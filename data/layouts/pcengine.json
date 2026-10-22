@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "system": "pcengine",
+  "name": "NEC PC Engine / TurboGrafx-16",
+  "controllers": {
+    "two_button": {
+      "buttons": ["i", "ii", "run", "select"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": [],
+      "rumble": false
+    },
+    "six_button": {
+      "buttons": ["i", "ii", "iii", "iv", "v", "vi", "run", "select"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": [],
+      "rumble": false
+    }
+  },
+  "default_controller": "two_button",
+  "glyphs": { "i": "I", "ii": "II", "iii": "III", "iv": "IV", "v": "V", "vi": "VI", "run": "RUN", "select": "SELECT" },
+  "positional_default": {
+    "two_button": {
+      "ii": "face_south", "i": "face_east", "run": "start", "select": "select",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right"
+    },
+    "six_button": {
+      "ii": "face_south", "i": "face_east", "iii": "face_west", "iv": "face_north", "v": "l1", "vi": "r1",
+      "run": "start", "select": "select",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right"
+    }
+  },
+  "meta": { "confirm": "two_button.i", "cancel": "two_button.ii", "primary": "two_button.ii", "secondary": "two_button.i" },
+  "_notes": "II is left of I on the pad, so II=south and I=east, as in Beetle PCE (RetroPad B->II, A->I). The six_button (Avenue Pad 6) mapping of III-VI is a judgment call; [VERIFY] against the Beetle PCE defaults. Turbo switches are emulator features, not inputs. Covers PC Engine CD / TurboGrafx-CD too; SuperGrafx shares this layout."
+}

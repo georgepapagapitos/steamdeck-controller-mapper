@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "system": "psvita",
+  "name": "Sony PlayStation Vita",
+  "controllers": {
+    "standard": {
+      "buttons": ["cross", "circle", "square", "triangle", "l", "r", "start", "select", "ps", "front_touch_press", "rear_touch_press"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": ["lstick_x", "lstick_y", "rstick_x", "rstick_y", "front_touch_x", "front_touch_y", "rear_touch_x", "rear_touch_y", "motion"],
+      "rumble": false,
+      "allow_shared_sources": ["front_touch_x+front_touch_y", "rear_touch_x+rear_touch_y"]
+    }
+  },
+  "default_controller": "standard",
+  "glyphs": {
+    "cross": "✕", "circle": "○", "square": "□", "triangle": "△",
+    "l": "L", "r": "R", "start": "START", "select": "SELECT", "ps": "PS",
+    "front_touch_press": "FRONT TOUCH", "rear_touch_press": "REAR TOUCH"
+  },
+  "positional_default": {
+    "standard": {
+      "cross": "face_south", "circle": "face_east", "square": "face_west", "triangle": "face_north",
+      "l": "l1", "r": "r1", "start": "start", "select": "select", "ps": "guide",
+      "front_touch_press": "touchpad_click", "rear_touch_press": "none",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right",
+      "lstick_x": "ls_x", "lstick_y": "ls_y", "rstick_x": "rs_x", "rstick_y": "rs_y",
+      "front_touch_x": "touchpad", "front_touch_y": "touchpad",
+      "rear_touch_x": "none", "rear_touch_y": "none", "motion": "gyro"
+    }
+  },
+  "meta": { "confirm": "standard.cross", "cancel": "standard.circle", "primary": "standard.cross", "secondary": "standard.square" },
+  "_notes": "Front and rear touch are pointer targets. Front touch goes to the controller touchpad surface (Vita3K supports this on DS4/DualSense). Rear touch is unbound by default: no common pad has a second surface, and Vita3K's PSTV mode lets l2/r2/l3/r3 stand in for it per game. Candidate follow-up: a 'pstv' controller type with l2/r2/l3/r3. ps on guide may clash with Steam; [VERIFY]."
+}

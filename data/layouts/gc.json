@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "system": "gc",
+  "name": "Nintendo GameCube",
+  "controllers": {
+    "standard": {
+      "buttons": [
+        "a",
+        "b",
+        "x",
+        "y",
+        "z",
+        "start",
+        "l_digital",
+        "r_digital"
+      ],
+      "dpad": [
+        "up",
+        "down",
+        "left",
+        "right"
+      ],
+      "analog": [
+        "main_x",
+        "main_y",
+        "c_x",
+        "c_y",
+        "l_analog",
+        "r_analog"
+      ],
+      "rumble": true,
+      "allow_shared_sources": [
+        "l_digital+l_analog",
+        "r_digital+r_analog"
+      ]
+    }
+  },
+  "default_controller": "standard",
+  "glyphs": {
+    "a": "A",
+    "b": "B",
+    "x": "X",
+    "y": "Y",
+    "z": "Z",
+    "start": "START/PAUSE",
+    "l_digital": "L",
+    "r_digital": "R"
+  },
+  "positional_default": {
+    "standard": {
+      "a": "face_east",
+      "b": "face_south",
+      "x": "face_north",
+      "y": "face_west",
+      "z": "r1",
+      "start": "start",
+      "l_digital": "l2",
+      "r_digital": "r2",
+      "l_analog": "l2",
+      "r_analog": "r2",
+      "up": "dpad_up",
+      "down": "dpad_down",
+      "left": "dpad_left",
+      "right": "dpad_right",
+      "main_x": "ls_x",
+      "main_y": "ls_y",
+      "c_x": "rs_x",
+      "c_y": "rs_y"
+    }
+  },
+  "meta": {
+    "confirm": "standard.a",
+    "cancel": "standard.b",
+    "primary": "standard.a",
+    "secondary": "standard.b"
+  },
+  "_notes": "positional_default mirrors EmuDeck's default 'baxy' controllerLayout (Dolphin GCPadNew.ini: A=Button E, B=Button S, X=Button N, Y=Button W, Z=Shoulder R; L1 unbound), see data/defaults/README.md. The 'abxy' setting is the label-match preset."
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "system": "mastersystem",
+  "name": "Sega Master System / Mark III",
+  "controllers": {
+    "standard": {
+      "buttons": ["one", "two", "pause"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": [],
+      "rumble": false
+    }
+  },
+  "default_controller": "standard",
+  "glyphs": { "one": "1", "two": "2", "pause": "PAUSE" },
+  "positional_default": {
+    "standard": {
+      "one": "face_south", "two": "face_east", "pause": "start",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right"
+    }
+  },
+  "meta": { "confirm": "standard.one", "cancel": "standard.two", "primary": "standard.one", "secondary": "standard.two" },
+  "_notes": "pause is a console button, not a pad button; emulators map it to Start. 1 is left of 2 on the pad, so 1=south and 2=east, as in Genesis Plus GX (RetroPad B->1, A->2). Game Gear (start instead of pause) would be its own layout if added. Many SMS games use 1 to start and 2 to act, so confirm=one."
+}

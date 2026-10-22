@@ -1,0 +1,17 @@
+{
+  "$schema": "../schema/rule.schema.json",
+  "schema_version": 1,
+  "id": "user.style-nintendo.snes.label-match",
+  "label": "Nintendo-style pads: SNES buttons match printed labels",
+  "applies_to": {
+    "controller": { "level": "style", "value": "nintendo" },
+    "content": { "level": "system", "system": "snes" }
+  },
+  "bindings": {
+    "snes.standard.a": { "input": "face_east" },
+    "snes.standard.b": { "input": "face_south" },
+    "snes.standard.x": { "input": "face_north" },
+    "snes.standard.y": { "input": "face_west" }
+  },
+  "notes": "On a Nintendo-style pad, positional and label-match agree for SNES. This rule is explicit so it survives preset changes."
+}

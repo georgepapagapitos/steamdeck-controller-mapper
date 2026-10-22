@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "system": "gbc",
+  "name": "Nintendo Game Boy Color",
+  "controllers": {
+    "standard": {
+      "buttons": ["a", "b", "start", "select"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": [],
+      "rumble": true
+    }
+  },
+  "default_controller": "standard",
+  "glyphs": { "a": "A", "b": "B", "start": "START", "select": "SELECT" },
+  "positional_default": {
+    "standard": {
+      "b": "face_south", "a": "face_east", "start": "start", "select": "select",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right"
+    }
+  },
+  "label_positions": { "a": "east", "b": "west" },
+  "meta": { "confirm": "standard.a", "cancel": "standard.b", "primary": "standard.a", "secondary": "standard.b" },
+  "_notes": "rumble=true because some GBC carts have a rumble motor (MBC5 rumble, e.g. Pokemon Pinball), and Gambatte/SameBoy/mGBA can forward it. [VERIFY] per-core rumble support. Same button convention as gb."
+}

@@ -1,0 +1,27 @@
+{
+  "core": "Snes9x",
+  "core_files": [
+    "snes9x_libretro.so"
+  ],
+  "systems": [
+    "snes"
+  ],
+  "sources": [
+    "https://github.com/libretro/snes9x/blob/fae2fea08f74180759ef540ee94259213f503480/libretro/libretro.cpp#L1081",
+    "https://github.com/libretro/snes9x/blob/fae2fea08f74180759ef540ee94259213f503480/libretro/libretro.cpp#L1277"
+  ],
+  "targets": {
+    "snes.standard.a": "A",
+    "snes.standard.b": "B",
+    "snes.standard.x": "X",
+    "snes.standard.y": "Y",
+    "snes.standard.l": "L",
+    "snes.standard.r": "R",
+    "snes.standard.start": "START",
+    "snes.standard.select": "SELECT",
+    "snes.standard.up": "UP",
+    "snes.standard.down": "DOWN",
+    "snes.standard.left": "LEFT",
+    "snes.standard.right": "RIGHT"
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "core": "Flycast",
+  "core_files": [
+    "flycast_libretro.so"
+  ],
+  "systems": [
+    "dreamcast",
+    "naomi",
+    "atomiswave"
+  ],
+  "sources": [
+    "https://github.com/libretro/flycast/blob/40eee790bb0d838509868f2c5e2f9b935891edff/core/libretro/libretro.cpp#L3254",
+    "https://github.com/libretro/flycast/blob/40eee790bb0d838509868f2c5e2f9b935891edff/core/libretro/libretro.cpp#L1797",
+    "https://github.com/libretro/flycast/blob/40eee790bb0d838509868f2c5e2f9b935891edff/core/libretro/libretro.cpp#L2126",
+    "https://github.com/libretro/flycast/blob/40eee790bb0d838509868f2c5e2f9b935891edff/core/libretro/libretro.cpp#L2048"
+  ],
+  "device_types": {
+    "dreamcast.standard": 1
+  },
+  "targets": {
+    "dreamcast.standard.a": "B",
+    "dreamcast.standard.b": "A",
+    "dreamcast.standard.x": "Y",
+    "dreamcast.standard.y": "X",
+    "dreamcast.standard.start": "START",
+    "dreamcast.standard.up": "UP",
+    "dreamcast.standard.down": "DOWN",
+    "dreamcast.standard.left": "LEFT",
+    "dreamcast.standard.right": "RIGHT",
+    "dreamcast.standard.analog_x": "LEFT_X",
+    "dreamcast.standard.analog_y": "LEFT_Y",
+    "dreamcast.standard.l_trigger": "L2",
+    "dreamcast.standard.r_trigger": "R2",
+    "naomi.standard.button1": "B",
+    "naomi.standard.button2": "A",
+    "naomi.standard.button3": "Y",
+    "naomi.standard.button4": "X",
+    "naomi.standard.button5": "R",
+    "naomi.standard.button6": "L",
+    "naomi.standard.button7": "R2",
+    "naomi.standard.button8": "L2",
+    "naomi.standard.start": "START",
+    "naomi.standard.coin": "SELECT",
+    "naomi.standard.test": "L3",
+    "naomi.standard.service": "R3",
+    "naomi.standard.up": "UP",
+    "naomi.standard.down": "DOWN",
+    "naomi.standard.left": "LEFT",
+    "naomi.standard.right": "RIGHT",
+    "atomiswave.standard.button1": "B",
+    "atomiswave.standard.button2": "A",
+    "atomiswave.standard.button3": "Y",
+    "atomiswave.standard.button4": "X",
+    "atomiswave.standard.button5": "R",
+    "atomiswave.standard.button6": "L",
+    "atomiswave.standard.button7": "R2",
+    "atomiswave.standard.button8": "L2",
+    "atomiswave.standard.start": "START",
+    "atomiswave.standard.coin": "SELECT",
+    "atomiswave.standard.test": "L3",
+    "atomiswave.standard.service": "R3",
+    "atomiswave.standard.up": "UP",
+    "atomiswave.standard.down": "DOWN",
+    "atomiswave.standard.left": "LEFT",
+    "atomiswave.standard.right": "RIGHT"
+  },
+  "notes": "Arcade button names can be overridden per game by NAOMI input tables (get_button_name). L3 test needs the allow-service-buttons option."
+}

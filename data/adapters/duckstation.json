@@ -1,0 +1,576 @@
+{
+  "schema_version": 1,
+  "adapter": "duckstation",
+  "version_range": "DuckStation since commit 4e97420b3b (SDL3, 2025-01-24; every v0.1-10339+ tag) .. 'latest' release 2026-10-13 and master b3d57a7f47 (2026-10-22)",
+  "sources": [
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/util/sdl_input_source.cpp#L56-L63",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/util/sdl_input_source.cpp#L81-L107",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/util/sdl_input_source.cpp#L143-L162",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/util/sdl_input_source.cpp#L306-L347",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/util/sdl_input_source.cpp#L399-L432",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/util/sdl_input_source.cpp#L700-L860",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/util/sdl_input_source.cpp#L862-L932",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/util/sdl_input_source.cpp#L1160-L1250",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/util/input_manager.cpp#L250-L270",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/util/input_manager.cpp#L895-L930",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/core/analog_controller.cpp#L765-L880",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/core/digital_controller.cpp#L160-L235",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/core/controller.cpp#L24-L45",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/core/controller.cpp#L135-L196",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/core/settings.cpp#L160-L182",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/core/settings.cpp#L2775-L2805",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/core/settings.cpp#L2980-L3022",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/core/settings.h#L634-L635",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/core/core.cpp#L140-L262",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/core/system.cpp#L1105-L1160",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/core/system.cpp#L1393-L1404",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/core/system.cpp#L1505-L1560",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/core/game_list.cpp#L59-L63",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/core/game_list.cpp#L746-L802",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/core/game_list.cpp#L1421",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/common/binary_reader_writer.cpp#L333-L341",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/core/hotkeys.cpp#L136-L240",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/core/hotkeys.cpp#L691-L716",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/duckstation-qt/qthost.cpp#L108",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/duckstation-qt/qthost.cpp#L2190-L2198",
+    "https://github.com/stenzek/duckstation/blob/b3d57a7f47a4b22a1f6ed3b22c6821ffe0a396d8/src/duckstation-qt/qthost.cpp#L3166-L3204",
+    "https://github.com/stenzek/duckstation/commit/edd41dff15",
+    "https://github.com/dragoonDorise/EmuDeck/blob/dddb30229adbbd54d5ff7283cfd70e11c4322c26/functions/EmuScripts/emuDeckDuckStation.sh#L5-L9",
+    "https://github.com/dragoonDorise/EmuDeck/blob/dddb30229adbbd54d5ff7283cfd70e11c4322c26/configs/duckstation/settings.ini"
+  ],
+  "_conventions": "Axis targets and axis sources are objects {neg, pos}. Sign follows SDL: x neg = left, pos = right; y neg = up, pos = down. To bind an axis target to an axis source, write target.neg <- source.neg and target.pos <- source.pos.",
+  "paths": {
+    "appimage_or_native": {
+      "data_root": "$XDG_CONFIG_HOME/duckstation/ if XDG_CONFIG_HOME is set and absolute, else ~/.local/share/duckstation/"
+    },
+    "flatpak": {
+      "app_id": "org.duckstation.DuckStation",
+      "data_root": "~/.var/app/org.duckstation.DuckStation/config/duckstation/",
+      "_note": "Flatpak sets XDG_CONFIG_HOME. EmuDeck migrates Flatpak users to the AppImage."
+    },
+    "portable": {
+      "data_root": "<AppImage dir or exe dir> when portable.txt or settings.ini exists there"
+    },
+    "main_ini": "<data_root>/settings.ini",
+    "input_profiles": "<data_root>/inputprofiles/<name>.ini  ([Folders] InputProfiles overrides)",
+    "game_settings": "<data_root>/gamesettings/<SERIAL>.ini  ([Folders] GameSettings overrides)",
+    "cache": "<data_root>/cache/  ([Folders] Cache overrides)"
+  },
+  "device_ref": {
+    "format": "SDL-{player_index}",
+    "persistent_format": "SDL-{sdl_guid}-{serial} (serial of [A-Za-z0-9-] only) or SDL-SB-{sdl_guid}-{hex(serial)}",
+    "persistent_ids": "[InputSources] SDLUsePersistentDeviceIdentifiers, default true. Used when DuckStation saves a binding and the device has a serial; numeric SDL-N is always still accepted on load.",
+    "index_semantics": "SDL player index, else first free index (same as PCSX2).",
+    "_note": "Persistent ids landed in commit edd41dff15 (2026-09-25), first in the 'latest' release of 2026-10-13. Steam virtual pads likely have no serial, so they stay SDL-N. [VERIFY]"
+  },
+  "binding_syntax": {
+    "binding": "{device}/{token}, e.g. SDL-0/FaceSouth",
+    "chord": " & ",
+    "multiple_bindings": "repeat the key on its own line (INI multi-value, read with GetStringList)",
+    "half_axis": "+Axis / -Axis prefix, e.g. +LeftTrigger, -LeftY",
+    "invert_suffix": "~ (e.g. -JoyAxis2~)",
+    "raw_joystick": {
+      "button": "Button{n}",
+      "axis": "+Axis{n} / -Axis{n} / FullAxis{n}",
+      "hat": "Hat{n}{North|East|South|West}"
+    },
+    "per_binding_scale_deadzone": "<Key>Scale, <Key>Deadzone in the same [PadN] section",
+    "keyboard": "Keyboard/<Key>",
+    "unbound": "delete the key",
+    "leds": {
+      "rgb": "RGBLED",
+      "mute": "MuteLED"
+    }
+  },
+  "physical_tokens": {
+    "face_south": "A",
+    "face_east": "B",
+    "face_west": "X",
+    "face_north": "Y",
+    "dpad_up": "DPadUp",
+    "dpad_down": "DPadDown",
+    "dpad_left": "DPadLeft",
+    "dpad_right": "DPadRight",
+    "l1": "LeftShoulder",
+    "r1": "RightShoulder",
+    "l2": "+LeftTrigger",
+    "r2": "+RightTrigger",
+    "ls_x": {
+      "neg": "-LeftX",
+      "pos": "+LeftX"
+    },
+    "ls_y": {
+      "neg": "-LeftY",
+      "pos": "+LeftY"
+    },
+    "rs_x": {
+      "neg": "-RightX",
+      "pos": "+RightX"
+    },
+    "rs_y": {
+      "neg": "-RightY",
+      "pos": "+RightY"
+    },
+    "ls_up": "-LeftY",
+    "ls_down": "+LeftY",
+    "ls_left": "-LeftX",
+    "ls_right": "+LeftX",
+    "rs_up": "-RightY",
+    "rs_down": "+RightY",
+    "rs_left": "-RightX",
+    "rs_right": "+RightX",
+    "l3": "LeftStick",
+    "r3": "RightStick",
+    "start": "Start",
+    "select": "Back",
+    "guide": "Guide",
+    "misc1": "Misc1",
+    "paddle1": "RightPaddle1",
+    "paddle2": "LeftPaddle1",
+    "paddle3": "RightPaddle2",
+    "paddle4": "LeftPaddle2",
+    "touchpad_click": "Touchpad",
+    "touchpad": null,
+    "gyro": null,
+    "accel": {
+      "roll": {
+        "neg": "-Turn",
+        "pos": "+Turn"
+      },
+      "pitch": {
+        "neg": "-Tilt",
+        "pos": "+Tilt"
+      },
+      "_note": "SDL accelerometer exposed as 'Turn' (roll) and 'Tilt' (pitch) half-axes. [VERIFY] sign"
+    },
+    "trackpad_l": null,
+    "trackpad_r": null,
+    "trackpad_l_click": null,
+    "trackpad_r_click": null,
+    "qam": null
+  },
+  "legacy_physical_tokens": {
+    "_applies_to": "DuckStation SDL2 builds before commit 4e97420b3b. Only the paddles differ.",
+    "paddle1": "Paddle1",
+    "paddle2": "Paddle2",
+    "paddle3": "Paddle3",
+    "paddle4": "Paddle4"
+  },
+  "rumble_tokens": {
+    "large": "LargeMotor",
+    "small": "SmallMotor",
+    "haptic": "Haptic"
+  },
+  "targets": {
+    "psx.dualshock.up": {
+      "section": "Pad{n}",
+      "key": "Up"
+    },
+    "psx.dualshock.down": {
+      "section": "Pad{n}",
+      "key": "Down"
+    },
+    "psx.dualshock.left": {
+      "section": "Pad{n}",
+      "key": "Left"
+    },
+    "psx.dualshock.right": {
+      "section": "Pad{n}",
+      "key": "Right"
+    },
+    "psx.dualshock.cross": {
+      "section": "Pad{n}",
+      "key": "Cross"
+    },
+    "psx.dualshock.circle": {
+      "section": "Pad{n}",
+      "key": "Circle"
+    },
+    "psx.dualshock.square": {
+      "section": "Pad{n}",
+      "key": "Square"
+    },
+    "psx.dualshock.triangle": {
+      "section": "Pad{n}",
+      "key": "Triangle"
+    },
+    "psx.dualshock.select": {
+      "section": "Pad{n}",
+      "key": "Select"
+    },
+    "psx.dualshock.start": {
+      "section": "Pad{n}",
+      "key": "Start"
+    },
+    "psx.dualshock.l1": {
+      "section": "Pad{n}",
+      "key": "L1"
+    },
+    "psx.dualshock.r1": {
+      "section": "Pad{n}",
+      "key": "R1"
+    },
+    "psx.dualshock.l2": {
+      "section": "Pad{n}",
+      "key": "L2"
+    },
+    "psx.dualshock.r2": {
+      "section": "Pad{n}",
+      "key": "R2"
+    },
+    "psx.dualshock.l3": {
+      "section": "Pad{n}",
+      "key": "L3"
+    },
+    "psx.dualshock.r3": {
+      "section": "Pad{n}",
+      "key": "R3"
+    },
+    "psx.dualshock.lstick_x": {
+      "section": "Pad{n}",
+      "keys": {
+        "neg": "LLeft",
+        "pos": "LRight"
+      }
+    },
+    "psx.dualshock.lstick_y": {
+      "section": "Pad{n}",
+      "keys": {
+        "neg": "LUp",
+        "pos": "LDown"
+      }
+    },
+    "psx.dualshock.rstick_x": {
+      "section": "Pad{n}",
+      "keys": {
+        "neg": "RLeft",
+        "pos": "RRight"
+      }
+    },
+    "psx.dualshock.rstick_y": {
+      "section": "Pad{n}",
+      "keys": {
+        "neg": "RUp",
+        "pos": "RDown"
+      }
+    },
+    "psx.dualshock.analog": {
+      "section": "Pad{n}",
+      "key": "Analog"
+    },
+    "psx.digital.up": {
+      "section": "Pad{n}",
+      "key": "Up"
+    },
+    "psx.digital.down": {
+      "section": "Pad{n}",
+      "key": "Down"
+    },
+    "psx.digital.left": {
+      "section": "Pad{n}",
+      "key": "Left"
+    },
+    "psx.digital.right": {
+      "section": "Pad{n}",
+      "key": "Right"
+    },
+    "psx.digital.cross": {
+      "section": "Pad{n}",
+      "key": "Cross"
+    },
+    "psx.digital.circle": {
+      "section": "Pad{n}",
+      "key": "Circle"
+    },
+    "psx.digital.square": {
+      "section": "Pad{n}",
+      "key": "Square"
+    },
+    "psx.digital.triangle": {
+      "section": "Pad{n}",
+      "key": "Triangle"
+    },
+    "psx.digital.select": {
+      "section": "Pad{n}",
+      "key": "Select"
+    },
+    "psx.digital.start": {
+      "section": "Pad{n}",
+      "key": "Start"
+    },
+    "psx.digital.l1": {
+      "section": "Pad{n}",
+      "key": "L1"
+    },
+    "psx.digital.r1": {
+      "section": "Pad{n}",
+      "key": "R1"
+    },
+    "psx.digital.l2": {
+      "section": "Pad{n}",
+      "key": "L2"
+    },
+    "psx.digital.r2": {
+      "section": "Pad{n}",
+      "key": "R2"
+    }
+  },
+  "hotkeys": {
+    "section": "Hotkeys",
+    "targets": {
+      "hotkey.save_state": "SaveSelectedSaveState",
+      "hotkey.load_state": "LoadSelectedSaveState",
+      "hotkey.menu": "OpenPauseMenu",
+      "hotkey.exit": "PowerOff",
+      "hotkey.fast_forward": "FastForward",
+      "hotkey.rewind": "Rewind",
+      "hotkey.screenshot": "Screenshot",
+      "hotkey.next_slot": "SelectNextSaveStateSlot",
+      "hotkey.prev_slot": "SelectPreviousSaveStateSlot",
+      "hotkey.toggle_fullscreen": "ToggleFullscreen",
+      "hotkey.pause": "TogglePause"
+    },
+    "_note": "FastForward is hold; ToggleFastForward is the toggle. Rewind needs [Main] RewindEnable = true. EmuDeck binds several hotkeys twice (keyboard + pad) by repeating the key."
+  },
+  "options": {
+    "rumble": {
+      "section": "Pad{n}",
+      "keys": {
+        "large": "LargeMotor",
+        "small": "SmallMotor"
+      },
+      "on": {
+        "large": "SDL-{p}/LargeMotor",
+        "small": "SDL-{p}/SmallMotor"
+      },
+      "strength_keys": {
+        "LargeMotorVibrationBias": {
+          "range": [
+            -255,
+            255
+          ],
+          "default": 8
+        },
+        "SmallMotorVibrationBias": {
+          "range": [
+            -255,
+            255
+          ],
+          "default": 8
+        }
+      }
+    },
+    "deadzone": {
+      "stick": {
+        "section": "Pad{n}",
+        "key": "AnalogDeadzone",
+        "range": [
+          0.0,
+          1.0
+        ],
+        "default": 0.0
+      },
+      "button_trigger": {
+        "section": "Pad{n}",
+        "key": "ButtonDeadzone",
+        "range": [
+          0.01,
+          1.0
+        ],
+        "default": 0.25
+      },
+      "per_binding": "<Key>Deadzone"
+    },
+    "sensitivity": {
+      "section": "Pad{n}",
+      "key": "AnalogSensitivity",
+      "range": [
+        0.01,
+        2.0
+      ],
+      "default": 1.33
+    },
+    "invert": {
+      "section": "Pad{n}",
+      "keys": [
+        "InvertLeftStick",
+        "InvertRightStick"
+      ],
+      "values": {
+        "0": "none",
+        "1": "left/right",
+        "2": "up/down",
+        "3": "both"
+      }
+    },
+    "force_analog": {
+      "section": "Pad{n}",
+      "key": "ForceAnalogOnReset",
+      "default": true
+    },
+    "analog_dpad_in_digital_mode": {
+      "section": "Pad{n}",
+      "key": "AnalogDPadInDigitalMode",
+      "default": true
+    },
+    "controller_type": {
+      "section": "Pad{n}",
+      "key": "Type",
+      "values": {
+        "psx.dualshock": "AnalogController",
+        "psx.digital": "DigitalController",
+        "none": "None"
+      },
+      "other_values": [
+        "AnalogJoystick",
+        "GunCon",
+        "PlayStationMouse",
+        "NeGcon",
+        "NeGconRumble",
+        "Justifier",
+        "PopnController",
+        "DDGoController",
+        "JogCon"
+      ],
+      "defaults": {
+        "Pad1": "AnalogController",
+        "Pad2..Pad8": "None"
+      }
+    },
+    "multitap": {
+      "section": "ControllerPorts",
+      "key": "MultitapMode",
+      "values": [
+        "Disabled",
+        "Port1Only",
+        "Port2Only",
+        "BothPorts"
+      ],
+      "default": "Disabled",
+      "pad_numbering": {
+        "Pad1": "port 1 slot A",
+        "Pad2": "port 2 slot A",
+        "Pad3": "1B",
+        "Pad4": "1C",
+        "Pad5": "1D",
+        "Pad6": "2B",
+        "Pad7": "2C",
+        "Pad8": "2D"
+      }
+    },
+    "input_sources": {
+      "section": "InputSources",
+      "keys": {
+        "SDL": true,
+        "SDLControllerEnhancedMode": "default false",
+        "SDLPS5PlayerLED": "default false",
+        "SDLUsePersistentDeviceIdentifiers": "default true (2026-10+)"
+      }
+    }
+  },
+  "per_game": {
+    "id_type": "serial",
+    "file": "<game_settings>/{SanitizeFileName(serial)}.ini; for multi-disc sets, the serial of the first disc",
+    "profile_key": {
+      "section": "ControllerPorts",
+      "key": "InputProfileName"
+    },
+    "own_bindings_key": {
+      "section": "ControllerPorts",
+      "key": "UseGameSettingsForController",
+      "value": true,
+      "_note": "game ini then holds its own [PadN]/[ControllerPorts]; InputProfileName is ignored when this is true"
+    },
+    "profile_file": "<input_profiles>/{name}.ini",
+    "precedence": "Exactly one controller layer is used: input profile, else game ini (only with UseGameSettingsForController = true), else base settings.ini. Hotkeys come from base unless the chosen layer has [ControllerPorts] UseProfileHotkeyBindings = true; input-source settings likewise need UseProfileInputSources = true."
+  },
+  "game_id": {
+    "format": "serial like SLUS-00594",
+    "methods": [
+      {
+        "name": "gamelist_cache",
+        "path": "<cache>/gamelist.cache",
+        "header": {
+          "signature_u32le": "0x45434C48",
+          "version_u32le": 41
+        },
+        "entry": [
+          "u8 type",
+          "u8 region",
+          "str path",
+          "str serial",
+          "str title",
+          "u64 hash",
+          "s64 file_size",
+          "u64 uncompressed_size",
+          "u64 last_modified_time",
+          "s8 disc_set_index",
+          "u8[16] achievements_hash"
+        ],
+        "string": "u32le length + bytes",
+        "_note": "Little endian; later entries for the same path win. DuckStation opens the file locked while scanning; read it before launch."
+      },
+      {
+        "name": "system_cnf",
+        "applies_to": [
+          "bin/cue",
+          "iso"
+        ],
+        "_note": "SYSTEM.CNF 'BOOT = cdrom:\\SLUS_005.94;1' -> SLUS-00594. CHD: use the cache."
+      }
+    ]
+  },
+  "managed_keys": {
+    "settings.ini": {
+      "Pad{n}": [
+        "Type (only with options.controller_type)",
+        "Up",
+        "Down",
+        "Left",
+        "Right",
+        "Cross",
+        "Circle",
+        "Square",
+        "Triangle",
+        "Select",
+        "Start",
+        "L1",
+        "R1",
+        "L2",
+        "R2",
+        "L3",
+        "R3",
+        "Analog",
+        "LUp",
+        "LDown",
+        "LLeft",
+        "LRight",
+        "RUp",
+        "RDown",
+        "RLeft",
+        "RRight",
+        "LargeMotor",
+        "SmallMotor",
+        "AnalogDeadzone",
+        "ButtonDeadzone",
+        "AnalogSensitivity",
+        "ForceAnalogOnReset (options only)"
+      ],
+      "ControllerPorts": [
+        "MultitapMode (only for >2 players)"
+      ],
+      "Hotkeys": [
+        "only hotkey targets with rules"
+      ]
+    },
+    "never_touch": [
+      "[Main] SettingsVersion / SetupWizardIncomplete",
+      "[Folders]"
+    ]
+  },
+  "save_behaviour": {
+    "on_change": "Host::CommitBaseSettingChanges -> 1 s single-shot timer (SETTINGS_SAVE_DELAY) -> QtHost::SaveSettings writes settings.ini",
+    "exit": "pending timer is flushed on shutdown",
+    "_implication": "Write only while DuckStation is not running."
+  }
+}

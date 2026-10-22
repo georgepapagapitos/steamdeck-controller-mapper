@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "system": "saturn",
+  "name": "Sega Saturn",
+  "controllers": {
+    "standard": {
+      "buttons": ["a", "b", "c", "x", "y", "z", "l", "r", "start"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": [],
+      "rumble": false
+    },
+    "3d": {
+      "buttons": ["a", "b", "c", "x", "y", "z", "l", "r", "start"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": ["stick_x", "stick_y", "l_analog", "r_analog"],
+      "rumble": false,
+      "allow_shared_sources": ["l+l_analog", "r+r_analog"]
+    }
+  },
+  "default_controller": "standard",
+  "glyphs": { "a": "A", "b": "B", "c": "C", "x": "X", "y": "Y", "z": "Z", "l": "L", "r": "R", "start": "START" },
+  "positional_default": {
+    "standard": {
+      "a": "face_west", "b": "face_south", "c": "face_east",
+      "x": "l1", "y": "face_north", "z": "r1", "l": "l2", "r": "r2", "start": "start",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right"
+    },
+    "3d": {
+      "a": "face_west", "b": "face_south", "c": "face_east",
+      "x": "l1", "y": "face_north", "z": "r1", "l": "l2", "r": "r2", "start": "start",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right",
+      "stick_x": "ls_x", "stick_y": "ls_y", "l_analog": "l2", "r_analog": "r2"
+    }
+  },
+  "meta": { "confirm": "standard.c", "cancel": "standard.b", "primary": "standard.b", "secondary": "standard.c" },
+  "_notes": "Same face convention as genesis six_button (A/B/C = west/south/east, X=l1, Y=north, Z=r1), plus Saturn L/R on the triggers. This matches the Beetle Saturn / Yabause libretro defaults as we understand them; [VERIFY]. On the 3D pad, L/R are analog triggers with digital L/R read from the same trigger, so they may share a source. The fightpad-6 preset gives the two-row layout. confirm=C as on genesis; Japanese titles often confirm on A or C and cancel on B."
+}

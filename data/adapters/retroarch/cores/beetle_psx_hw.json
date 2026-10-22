@@ -1,0 +1,57 @@
+{
+  "core": "Beetle PSX HW",
+  "core_files": [
+    "mednafen_psx_hw_libretro.so"
+  ],
+  "systems": [
+    "psx"
+  ],
+  "sources": [
+    "https://github.com/libretro/beetle-psx-libretro/blob/9bcc75d0a3e8310a273afb8fac1409224ff42c29/libretro_options.h#L14",
+    "https://github.com/libretro/beetle-psx-libretro/blob/9bcc75d0a3e8310a273afb8fac1409224ff42c29/input.c#L94",
+    "https://github.com/libretro/beetle-psx-libretro/blob/9bcc75d0a3e8310a273afb8fac1409224ff42c29/input.c#L153",
+    "https://github.com/libretro/beetle-psx-libretro/blob/9bcc75d0a3e8310a273afb8fac1409224ff42c29/input.h#L8"
+  ],
+  "device_types": {
+    "psx.digital": 1,
+    "psx.dualshock": 517,
+    "psx.analog": 261
+  },
+  "targets": {
+    "psx.digital.cross": "B",
+    "psx.digital.circle": "A",
+    "psx.digital.square": "Y",
+    "psx.digital.triangle": "X",
+    "psx.digital.l1": "L",
+    "psx.digital.r1": "R",
+    "psx.digital.l2": "L2",
+    "psx.digital.r2": "R2",
+    "psx.digital.start": "START",
+    "psx.digital.select": "SELECT",
+    "psx.digital.up": "UP",
+    "psx.digital.down": "DOWN",
+    "psx.digital.left": "LEFT",
+    "psx.digital.right": "RIGHT",
+    "psx.dualshock.cross": "B",
+    "psx.dualshock.circle": "A",
+    "psx.dualshock.square": "Y",
+    "psx.dualshock.triangle": "X",
+    "psx.dualshock.l1": "L",
+    "psx.dualshock.r1": "R",
+    "psx.dualshock.l2": "L2",
+    "psx.dualshock.r2": "R2",
+    "psx.dualshock.start": "START",
+    "psx.dualshock.select": "SELECT",
+    "psx.dualshock.up": "UP",
+    "psx.dualshock.down": "DOWN",
+    "psx.dualshock.left": "LEFT",
+    "psx.dualshock.right": "RIGHT",
+    "psx.dualshock.l3": "L3",
+    "psx.dualshock.r3": "R3",
+    "psx.dualshock.left_x": "LEFT_X",
+    "psx.dualshock.left_y": "LEFT_Y",
+    "psx.dualshock.right_x": "RIGHT_X",
+    "psx.dualshock.right_y": "RIGHT_Y"
+  },
+  "notes": "Software build (mednafen_psx_libretro.so) reports library_name 'Beetle PSX': a different remap directory."
+}

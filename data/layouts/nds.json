@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "system": "nds",
+  "name": "Nintendo DS",
+  "controllers": {
+    "standard": {
+      "buttons": ["a", "b", "x", "y", "l", "r", "start", "select", "touch_press", "lid"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": ["touch_x", "touch_y"],
+      "rumble": false
+    }
+  },
+  "default_controller": "standard",
+  "glyphs": {
+    "a": "A", "b": "B", "x": "X", "y": "Y", "l": "L", "r": "R", "start": "START", "select": "SELECT",
+    "touch_press": "TOUCH", "lid": "LID"
+  },
+  "positional_default": {
+    "standard": {
+      "b": "face_south", "a": "face_east", "y": "face_west", "x": "face_north",
+      "l": "l1", "r": "r1", "start": "start", "select": "select",
+      "touch_press": "r3", "lid": "none",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right",
+      "touch_x": "rs_x", "touch_y": "rs_y"
+    }
+  },
+  "label_positions": { "a": "east", "b": "south", "x": "north", "y": "west" },
+  "meta": { "confirm": "standard.a", "cancel": "standard.b", "primary": "standard.b", "secondary": "standard.y" },
+  "_notes": "touch_x/touch_y form a 'pointer' target: the emulator moves a cursor over the bottom screen, and touch_press taps. The DS has no sticks, so the right stick drives the pointer and r3 taps (melonDS/DeSmuME libretro style). Many Deck users prefer trackpad_r as a mouse via Steam; we can't bind that because Steam owns the trackpads. lid (close/open) is unbound by default. Microphone (blow) is left out."
+}

@@ -1,0 +1,33 @@
+event0	Power Button		PNP0C0C/button/input0	0000:0001
+event1	Lid Switch		PNP0C0D/button/input0	0000:0005
+event10	Microsoft X-Box 360 pad 0			28de:11ff
+event11	MX MCHNCL M Keyboard	d7:03:f8:d1:0b:ed	50:20:65:e8:26:fa	046d:b367
+event12	HD-Audio Generic HDMI/DP,pcm=7		ALSA	0000:0000
+event13	HD-Audio Generic HDMI/DP,pcm=8		ALSA	0000:0000
+event14	HD-Audio Generic HDMI/DP,pcm=9		ALSA	0000:0000
+event15	FTS3528:00 2808:1015 UNKNOWN		i2c-FTS3528:00	2808:1015
+event16	sof-nau8821-max Headset Jack		ALSA	0000:0000
+event17	steamos-manager			28de:0000
+event18	MX MCHNCL M	d7:03:f8:d1:0b:ed	50:20:65:e8:26:fa	046d:b367
+event19	Logitech MX Master 3S	de:d1:cf:23:6d:ad	50:20:65:e8:26:fa	046d:b034
+event2	Power Button		LNXPWRBN/button/input0	0000:0001
+event20	DualSense Wireless Controller	88:03:4c:25:12:6a		054c:0ce6
+event21	DualSense Wireless Controller Motion Sensors	88:03:4c:25:12:6a		054c:0ce6
+event22	DualSense Wireless Controller Touchpad	88:03:4c:25:12:6a		054c:0ce6
+event23	Microsoft X-Box 360 pad 1			28de:11ff
+event3	AT Translated Set 2 keyboard		isa0060/serio0/input0	0001:0001
+event4	Valve Software Steam Controller	27F170649FC47B8	usb-0000:04:00.4-3/input0	28de:1205
+event5	Valve Software Steam Controller	27F170649FC47B8	usb-0000:04:00.4-3/input1	28de:1205
+event6	Video Bus		LNXVIDEO/video/input0	0000:0006
+event7	HD-Audio Generic HDMI/DP,pcm=3		ALSA	0000:0000
+event8	PC Speaker		isa0061/input0	001f:0001
+event9	FTS3528:00 2808:1015		i2c-FTS3528:00	2808:1015
+js0	Microsoft X-Box 360 pad 0			28de:11ff
+js1	DualSense Wireless Controller	88:03:4c:25:12:6a		054c:0ce6
+js2	DualSense Wireless Controller Motion Sensors	88:03:4c:25:12:6a		054c:0ce6
+js3	Microsoft X-Box 360 pad 1			28de:11ff
+mouse0	Valve Software Steam Controller	27F170649FC47B8	usb-0000:04:00.4-3/input0	28de:1205
+mouse1	FTS3528:00 2808:1015		i2c-FTS3528:00	2808:1015
+mouse2	FTS3528:00 2808:1015 UNKNOWN		i2c-FTS3528:00	2808:1015
+mouse3	Logitech MX Master 3S	de:d1:cf:23:6d:ad	50:20:65:e8:26:fa	046d:b034
+mouse4	DualSense Wireless Controller Touchpad	88:03:4c:25:12:6a		054c:0ce6

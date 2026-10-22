@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "system": "xbox",
+  "name": "Microsoft Xbox",
+  "controllers": {
+    "standard": {
+      "buttons": ["a", "b", "x", "y", "black", "white", "start", "back", "l3", "r3"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": ["lstick_x", "lstick_y", "rstick_x", "rstick_y", "l_trigger", "r_trigger"],
+      "rumble": true
+    }
+  },
+  "default_controller": "standard",
+  "glyphs": {
+    "a": "A", "b": "B", "x": "X", "y": "Y", "black": "BLACK", "white": "WHITE",
+    "start": "START", "back": "BACK", "l3": "L3", "r3": "R3"
+  },
+  "positional_default": {
+    "standard": {
+      "a": "face_south", "b": "face_east", "x": "face_west", "y": "face_north",
+      "white": "l1", "black": "r1", "start": "start", "back": "select", "l3": "l3", "r3": "r3",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right",
+      "lstick_x": "ls_x", "lstick_y": "ls_y", "rstick_x": "rs_x", "rstick_y": "rs_y",
+      "l_trigger": "l2", "r_trigger": "r2"
+    }
+  },
+  "meta": { "confirm": "standard.a", "cancel": "standard.b", "primary": "standard.a", "secondary": "standard.x" },
+  "_notes": "'standard' covers the Duke and the Controller S, which have the same inputs. White/Black go to LB/RB as in xemu's default. The real face buttons are analog (pressure); xemu treats them as digital from SDL pads, so they stay in 'buttons'."
+}

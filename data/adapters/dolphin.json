@@ -1,0 +1,1174 @@
+{
+  "schema_version": 1,
+  "adapter": "dolphin",
+  "version_range": "Dolphin 2407 .. 2609a and master 2c805fee8f (2026-10-22). SDL Gamepad names since commit 51e05f468a (2023-08-03); SDL3 since 2509",
+  "sources": [
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/InputCommon/ControllerInterface/SDL/SDLGamepad.h#L388-L439",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/InputCommon/ControllerInterface/SDL/SDLGamepad.cpp#L22-L143",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/InputCommon/ControllerInterface/SDL/SDLGamepad.cpp#L281-L337",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/InputCommon/ControllerInterface/CoreDevice.cpp#L190-L218",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/InputCommon/ControllerInterface/ControllerInterface.cpp#L249-L270",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/InputCommon/ControllerInterface/MappingCommon.cpp#L34-L142",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/InputCommon/ControlReference/ExpressionParser.cpp#L193-L255",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp#L22-L105",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/InputCommon/ControllerEmu/ControllerEmu.cpp#L113-L137",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/InputCommon/ControllerEmu/ControlGroup/Attachments.cpp#L53-L95",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/InputCommon/InputConfig.cpp#L31-L153",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/InputCommon/InputProfile.cpp#L30-L54",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Core/HW/GCPadEmu.h#L57-L86",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Core/HW/GCPadEmu.cpp#L39-L98",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Core/HW/GCPad.cpp#L14",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Core/HW/Wiimote.cpp#L100",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Core/HW/Wiimote.h#L45-L52",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp#L213-L310",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp#L32-L57",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Core/HW/WiimoteEmu/Extension/Classic.h#L221-L244",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Core/Config/WiimoteSettings.cpp#L10-L19",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Core/Config/MainSettings.cpp#L168-L181",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Core/HW/SI/SI_Device.h#L88-L106",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Core/HotkeyManager.cpp#L22-L211",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Core/HotkeyManager.cpp#L295-L328",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/UICommon/UICommon.cpp#L401-L482",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Common/FileUtil.cpp#L843-L850",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Common/FileUtil.cpp#L924-L936",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Common/CommonPaths.h#L15-L105",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Core/ConfigLoaders/GameConfigLoader.cpp#L33-L58",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Core/ConfigManager.cpp#L561-L580",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/UICommon/GameFileCache.cpp#L26-L39",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/DolphinTool/HeaderCommand.cpp#L22-L105",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/DiscIO/WIABlob.h#L40-L119",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/DiscIO/VolumeDisc.cpp#L19-L58",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/DolphinQt/MainWindow.cpp#L369-L403",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/Common/IniFile.h#L25-L45",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Data/Sys/Profiles/GCPad/SDL%20Gamepad.ini",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/InputCommon/ControllerInterface/SteamDeck/SteamDeck.cpp#L15-L273",
+    "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/CMakeLists.txt#L97",
+    "https://github.com/flathub/org.DolphinEmu.dolphin-emu/blob/e4c2d7d2ebeff8dc4d79b614c1dced3011b47126/org.DolphinEmu.dolphin-emu.yml",
+    "https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/src/joystick/SDL_joystick.c#L1019-L1040",
+    "https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/src/joystick/SDL_gamepad.c#L3883-L3900",
+    "https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/src/joystick/SDL_gamepad_db.h#L741",
+    "https://github.com/dragoonDorise/EmuDeck/blob/dddb30229adbbd54d5ff7283cfd70e11c4322c26/functions/EmuScripts/emuDeckDolphin.sh#L4-L6",
+    "https://github.com/dragoonDorise/EmuDeck/blob/dddb30229adbbd54d5ff7283cfd70e11c4322c26/configs/org.DolphinEmu.dolphin-emu/config/dolphin-emu/GCPadNew.ini"
+  ],
+  "_conventions": "Axis targets and axis sources are objects {neg, pos}. Sign follows SDL: x neg = left, pos = right; y neg = up, pos = down. To bind an axis target to an axis source, write target.neg <- source.neg and target.pos <- source.pos.",
+  "paths": {
+    "flatpak": {
+      "app_id": "org.DolphinEmu.dolphin-emu",
+      "config_root": "~/.var/app/org.DolphinEmu.dolphin-emu/config/dolphin-emu/",
+      "data_root": "~/.var/app/org.DolphinEmu.dolphin-emu/data/dolphin-emu/",
+      "cache_root": "~/.var/app/org.DolphinEmu.dolphin-emu/cache/dolphin-emu/"
+    },
+    "native_xdg": {
+      "config_root": "${XDG_CONFIG_HOME:-~/.config}/dolphin-emu/",
+      "data_root": "${XDG_DATA_HOME:-~/.local/share}/dolphin-emu/",
+      "cache_root": "${XDG_CACHE_HOME:-~/.cache}/dolphin-emu/",
+      "_note": "Used when ~/.dolphin-emu does not exist (or always inside Flatpak)."
+    },
+    "legacy_single_dir": {
+      "root": "~/.dolphin-emu/",
+      "config_root": "~/.dolphin-emu/Config/",
+      "data_root": "~/.dolphin-emu/",
+      "cache_root": "~/.dolphin-emu/Cache/"
+    },
+    "portable": {
+      "root": "<exe dir>/User/ when <exe dir>/portable.txt exists, or $DOLPHIN_EMU_USERPATH",
+      "config_root": "<root>/Config/",
+      "data_root": "<root>/",
+      "cache_root": "<root>/Cache/"
+    },
+    "files_under_config_root": [
+      "Dolphin.ini",
+      "GCPadNew.ini",
+      "WiimoteNew.ini",
+      "Hotkeys.ini",
+      "Profiles/GCPad/<name>.ini",
+      "Profiles/Wiimote/<name>.ini",
+      "Profiles/Hotkeys/<name>.ini"
+    ],
+    "files_under_data_root": [
+      "GameSettings/<GAMEID>.ini",
+      "GC/",
+      "Wii/",
+      "StateSaves/"
+    ],
+    "files_under_cache_root": [
+      "gamelist.cache"
+    ]
+  },
+  "device_ref": {
+    "key": "Device",
+    "format": "{source}/{index}/{name}",
+    "sources": {
+      "sdl": "SDL",
+      "evdev": "evdev",
+      "dsu": "DSUClient",
+      "real_wiimote": "Bluetooth"
+    },
+    "index_semantics": "first free id among devices with the same source AND name, in the order devices were added; so two identical pads are SDL/0/<name> and SDL/1/<name>",
+    "name_semantics": "SDL_GetGamepadName(). Under Steam (SteamVirtualGamepadInfo set) SDL returns Steam's name for the physical pad; EmuDeck ships 'SDL/0/Steam Deck Controller'. Without Steam info, the virtual pad is 'Steam Virtual Gamepad' (SDL gamepad DB). [VERIFY] names for other pads through Steam",
+    "examples": [
+      "SDL/0/Steam Deck Controller",
+      "SDL/1/Steam Deck Controller",
+      "SDL/0/PS4 Controller",
+      "SDL/0/Steam Deck"
+    ],
+    "per_binding_override": "`SDL/1/PS4 Controller:Button S` (device prefix inside the expression, then ':')"
+  },
+  "binding_syntax": {
+    "quote": "wrap a control name in backticks when it contains any non-letter character (MappingCommon::GetExpressionForControl); bare words are tried as function names first",
+    "or": " | ",
+    "and_simultaneous": " & ",
+    "hotkey_sequence": "@(`Back`+`Start`)",
+    "not": "!",
+    "unbound": "empty value (key is deleted on save, since empty is the default)",
+    "range_key": "<group>/<control>/Range = <percent> (default 100; Modifier default 50)",
+    "keys_case_insensitive": true,
+    "note": "Sticks have no full-axis token: each direction is its own key with a half-axis token."
+  },
+  "physical_tokens": {
+    "face_south": "Button S",
+    "face_east": "Button E",
+    "face_west": "Button W",
+    "face_north": "Button N",
+    "dpad_up": "Pad N",
+    "dpad_down": "Pad S",
+    "dpad_left": "Pad W",
+    "dpad_right": "Pad E",
+    "l1": "Shoulder L",
+    "r1": "Shoulder R",
+    "l2": "Trigger L",
+    "r2": "Trigger R",
+    "ls_x": {
+      "neg": "Left X-",
+      "pos": "Left X+"
+    },
+    "ls_y": {
+      "neg": "Left Y+",
+      "pos": "Left Y-"
+    },
+    "rs_x": {
+      "neg": "Right X-",
+      "pos": "Right X+"
+    },
+    "rs_y": {
+      "neg": "Right Y+",
+      "pos": "Right Y-"
+    },
+    "ls_up": "Left Y+",
+    "ls_down": "Left Y-",
+    "ls_left": "Left X-",
+    "ls_right": "Left X+",
+    "rs_up": "Right Y+",
+    "rs_down": "Right Y-",
+    "rs_left": "Right X-",
+    "rs_right": "Right X+",
+    "l3": "Thumb L",
+    "r3": "Thumb R",
+    "start": "Start",
+    "select": "Back",
+    "guide": "Guide",
+    "misc1": "Misc 1",
+    "paddle1": "Paddle 1",
+    "paddle2": "Paddle 2",
+    "paddle3": "Paddle 3",
+    "paddle4": "Paddle 4",
+    "touchpad_click": "Touchpad",
+    "touchpad": {
+      "x": {
+        "neg": "Touchpad X-",
+        "pos": "Touchpad X+"
+      },
+      "y": {
+        "neg": "Touchpad Y-",
+        "pos": "Touchpad Y+"
+      }
+    },
+    "gyro": {
+      "pitch": {
+        "neg": "Gyro Pitch Up",
+        "pos": "Gyro Pitch Down"
+      },
+      "roll": {
+        "neg": "Gyro Roll Left",
+        "pos": "Gyro Roll Right"
+      },
+      "yaw": {
+        "neg": "Gyro Yaw Left",
+        "pos": "Gyro Yaw Right"
+      }
+    },
+    "accel": {
+      "x": {
+        "neg": "Accel Left",
+        "pos": "Accel Right"
+      },
+      "y": {
+        "neg": "Accel Up",
+        "pos": "Accel Down"
+      },
+      "z": {
+        "neg": "Accel Forward",
+        "pos": "Accel Backward"
+      }
+    },
+    "trackpad_l": null,
+    "trackpad_r": null,
+    "trackpad_l_click": null,
+    "trackpad_r_click": null,
+    "qam": null
+  },
+  "legacy_physical_tokens": {
+    "_applies_to": "Dolphin before commit 51e05f468a (SDL Joystick API). Still accepted by current versions: legacy axes are added as hidden inputs and Button::IsMatchingName matches 'Button <n>' and XInput-style 'Button A/B/X/Y'.",
+    "button": "Button {index}",
+    "axis": "Axis {index}{+|-}",
+    "hat": "Hat {index} {N|E|S|W}",
+    "xinput_style_face_aliases": {
+      "face_south": "Button A",
+      "face_east": "Button B",
+      "face_west": "Button X",
+      "face_north": "Button Y"
+    },
+    "emudeck_steam_virtual_examples": {
+      "ls_up": "Axis 1-",
+      "ls_down": "Axis 1+",
+      "ls_left": "Axis 0-",
+      "ls_right": "Axis 0+",
+      "rs_up": "Axis 4-",
+      "rs_down": "Axis 4+",
+      "rs_left": "Axis 3-",
+      "rs_right": "Axis 3+"
+    }
+  },
+  "alt_backends": {
+    "steamdeck": {
+      "_note": "Dolphin's own hidraw backend for the built-in Deck controls (VID 28de PID 1205, interface 2), since commit c5d2ad99d2 (2023-04). Device = 'SteamDeck/0/Steam Deck'. Built when hidapi is available (bundled in Externals). Works next to Steam Input. [VERIFY] it enumerates inside the Flatpak on device.",
+      "device": "SteamDeck/0/Steam Deck",
+      "physical_tokens": {
+        "face_south": "A",
+        "face_east": "B",
+        "face_west": "X",
+        "face_north": "Y",
+        "dpad_up": "D-Pad Up",
+        "dpad_down": "D-Pad Down",
+        "dpad_left": "D-Pad Left",
+        "dpad_right": "D-Pad Right",
+        "l1": "L1",
+        "r1": "R1",
+        "l2": "L2",
+        "r2": "R2",
+        "ls_x": {
+          "neg": "Left Stick X-",
+          "pos": "Left Stick X+"
+        },
+        "ls_y": {
+          "neg": "Left Stick Y+",
+          "pos": "Left Stick Y-"
+        },
+        "rs_x": {
+          "neg": "Right Stick X-",
+          "pos": "Right Stick X+"
+        },
+        "rs_y": {
+          "neg": "Right Stick Y+",
+          "pos": "Right Stick Y-"
+        },
+        "ls_up": "Left Stick Y+",
+        "ls_down": "Left Stick Y-",
+        "ls_left": "Left Stick X-",
+        "ls_right": "Left Stick X+",
+        "rs_up": "Right Stick Y+",
+        "rs_down": "Right Stick Y-",
+        "rs_left": "Right Stick X-",
+        "rs_right": "Right Stick X+",
+        "l3": "L3",
+        "r3": "R3",
+        "start": "Menu",
+        "select": "View",
+        "guide": "Steam",
+        "qam": "Quick Access",
+        "paddle1": "R4",
+        "paddle2": "L4",
+        "paddle3": "R5",
+        "paddle4": "L5",
+        "trackpad_l": {
+          "x": {
+            "neg": "Left Trackpad X-",
+            "pos": "Left Trackpad X+"
+          },
+          "y": {
+            "neg": "Left Trackpad Y+",
+            "pos": "Left Trackpad Y-"
+          }
+        },
+        "trackpad_r": {
+          "x": {
+            "neg": "Right Trackpad X-",
+            "pos": "Right Trackpad X+"
+          },
+          "y": {
+            "neg": "Right Trackpad Y+",
+            "pos": "Right Trackpad Y-"
+          }
+        },
+        "trackpad_l_click": "Left Trackpad Click",
+        "trackpad_r_click": "Right Trackpad Click",
+        "gyro": {
+          "pitch": {
+            "neg": "Gyro Pitch Up",
+            "pos": "Gyro Pitch Down"
+          },
+          "roll": {
+            "neg": "Gyro Roll Left",
+            "pos": "Gyro Roll Right"
+          },
+          "yaw": {
+            "neg": "Gyro Yaw Left",
+            "pos": "Gyro Yaw Right"
+          }
+        },
+        "accel": {
+          "x": {
+            "neg": "Accel Left",
+            "pos": "Accel Right"
+          },
+          "y": {
+            "neg": "Accel Up",
+            "pos": "Accel Down"
+          },
+          "z": {
+            "neg": "Accel Forward",
+            "pos": "Accel Backward"
+          }
+        },
+        "misc1": null,
+        "touchpad": null,
+        "touchpad_click": null
+      },
+      "extra_inputs": [
+        "R2 Full Pull",
+        "L2 Full Pull",
+        "Left Trackpad Touch",
+        "Right Trackpad Touch",
+        "Left Stick Touch",
+        "Right Stick Touch",
+        "Left Trackpad Pressure",
+        "Right Trackpad Pressure",
+        "Left Stick Capacitance",
+        "Right Stick Capacitance"
+      ],
+      "_sign_note": "Raw Deck report Y is positive up (SDL's steamdeck driver negates it to get SDL's down-positive axis), so 'Left Stick Y+' is up, like Dolphin's SDL names. Trackpad Y assumed the same [VERIFY]."
+    }
+  },
+  "rumble_tokens": {
+    "combined": "Motor",
+    "low_freq": "Motor L",
+    "high_freq": "Motor R",
+    "trigger_l": "Trigger L",
+    "trigger_r": "Trigger R",
+    "haptic_effects": [
+      "Constant",
+      "Ramp",
+      "Sine",
+      "Triangle",
+      "Sawtooth Up",
+      "Sawtooth Down",
+      "Strong",
+      "Weak"
+    ],
+    "_note": "'Motor L'/'Motor R' and trigger rumble exist since 2503; 'Motor' (combined) since 2407 or earlier. EmuDeck uses 'Strong' (SDL haptic LeftRight effect)."
+  },
+  "targets": {
+    "gc.standard.a": {
+      "file": "GCPadNew.ini",
+      "section": "GCPad{n}",
+      "key": "Buttons/A"
+    },
+    "gc.standard.b": {
+      "file": "GCPadNew.ini",
+      "section": "GCPad{n}",
+      "key": "Buttons/B"
+    },
+    "gc.standard.x": {
+      "file": "GCPadNew.ini",
+      "section": "GCPad{n}",
+      "key": "Buttons/X"
+    },
+    "gc.standard.y": {
+      "file": "GCPadNew.ini",
+      "section": "GCPad{n}",
+      "key": "Buttons/Y"
+    },
+    "gc.standard.z": {
+      "file": "GCPadNew.ini",
+      "section": "GCPad{n}",
+      "key": "Buttons/Z"
+    },
+    "gc.standard.start": {
+      "file": "GCPadNew.ini",
+      "section": "GCPad{n}",
+      "key": "Buttons/Start"
+    },
+    "gc.standard.up": {
+      "file": "GCPadNew.ini",
+      "section": "GCPad{n}",
+      "key": "D-Pad/Up"
+    },
+    "gc.standard.down": {
+      "file": "GCPadNew.ini",
+      "section": "GCPad{n}",
+      "key": "D-Pad/Down"
+    },
+    "gc.standard.left": {
+      "file": "GCPadNew.ini",
+      "section": "GCPad{n}",
+      "key": "D-Pad/Left"
+    },
+    "gc.standard.right": {
+      "file": "GCPadNew.ini",
+      "section": "GCPad{n}",
+      "key": "D-Pad/Right"
+    },
+    "gc.standard.l_digital": {
+      "file": "GCPadNew.ini",
+      "section": "GCPad{n}",
+      "key": "Triggers/L"
+    },
+    "gc.standard.r_digital": {
+      "file": "GCPadNew.ini",
+      "section": "GCPad{n}",
+      "key": "Triggers/R"
+    },
+    "gc.standard.l_analog": {
+      "file": "GCPadNew.ini",
+      "section": "GCPad{n}",
+      "key": "Triggers/L-Analog"
+    },
+    "gc.standard.r_analog": {
+      "file": "GCPadNew.ini",
+      "section": "GCPad{n}",
+      "key": "Triggers/R-Analog"
+    },
+    "gc.standard.main_x": {
+      "file": "GCPadNew.ini",
+      "section": "GCPad{n}",
+      "keys": {
+        "neg": "Main Stick/Left",
+        "pos": "Main Stick/Right"
+      }
+    },
+    "gc.standard.main_y": {
+      "file": "GCPadNew.ini",
+      "section": "GCPad{n}",
+      "keys": {
+        "neg": "Main Stick/Up",
+        "pos": "Main Stick/Down"
+      }
+    },
+    "gc.standard.c_x": {
+      "file": "GCPadNew.ini",
+      "section": "GCPad{n}",
+      "keys": {
+        "neg": "C-Stick/Left",
+        "pos": "C-Stick/Right"
+      }
+    },
+    "gc.standard.c_y": {
+      "file": "GCPadNew.ini",
+      "section": "GCPad{n}",
+      "keys": {
+        "neg": "C-Stick/Up",
+        "pos": "C-Stick/Down"
+      }
+    },
+    "wii.wiimote.a": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Buttons/A"
+    },
+    "wii.wiimote.b": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Buttons/B"
+    },
+    "wii.wiimote.one": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Buttons/1"
+    },
+    "wii.wiimote.two": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Buttons/2"
+    },
+    "wii.wiimote.plus": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Buttons/+"
+    },
+    "wii.wiimote.minus": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Buttons/-"
+    },
+    "wii.wiimote.home": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Buttons/Home"
+    },
+    "wii.wiimote.up": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "D-Pad/Up"
+    },
+    "wii.wiimote.down": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "D-Pad/Down"
+    },
+    "wii.wiimote.left": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "D-Pad/Left"
+    },
+    "wii.wiimote.right": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "D-Pad/Right"
+    },
+    "wii.wiimote.shake": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "keys_all": [
+        "Shake/X",
+        "Shake/Y",
+        "Shake/Z"
+      ],
+      "_note": "button target: write the same source to all three keys"
+    },
+    "wii.wiimote.ir_x": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "keys": {
+        "neg": "IR/Left",
+        "pos": "IR/Right"
+      }
+    },
+    "wii.wiimote.ir_y": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "keys": {
+        "neg": "IR/Up",
+        "pos": "IR/Down"
+      }
+    },
+    "wii.wiimote.tilt": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "keys_2d": {
+        "x": {
+          "neg": "Tilt/Left",
+          "pos": "Tilt/Right"
+        },
+        "y": {
+          "neg": "Tilt/Forward",
+          "pos": "Tilt/Backward"
+        }
+      },
+      "accel_group": {
+        "IMUAccelerometer/Up": "Accel Up",
+        "IMUAccelerometer/Down": "Accel Down",
+        "IMUAccelerometer/Left": "Accel Left",
+        "IMUAccelerometer/Right": "Accel Right",
+        "IMUAccelerometer/Forward": "Accel Forward",
+        "IMUAccelerometer/Backward": "Accel Backward"
+      },
+      "_note": "source accel: write accel_group (key -> SDL token). Source stick: use keys_2d."
+    },
+    "wii.wiimote_nunchuk.a": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Buttons/A"
+    },
+    "wii.wiimote_nunchuk.b": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Buttons/B"
+    },
+    "wii.wiimote_nunchuk.one": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Buttons/1"
+    },
+    "wii.wiimote_nunchuk.two": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Buttons/2"
+    },
+    "wii.wiimote_nunchuk.plus": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Buttons/+"
+    },
+    "wii.wiimote_nunchuk.minus": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Buttons/-"
+    },
+    "wii.wiimote_nunchuk.home": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Buttons/Home"
+    },
+    "wii.wiimote_nunchuk.up": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "D-Pad/Up"
+    },
+    "wii.wiimote_nunchuk.down": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "D-Pad/Down"
+    },
+    "wii.wiimote_nunchuk.left": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "D-Pad/Left"
+    },
+    "wii.wiimote_nunchuk.right": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "D-Pad/Right"
+    },
+    "wii.wiimote_nunchuk.shake": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "keys_all": [
+        "Shake/X",
+        "Shake/Y",
+        "Shake/Z"
+      ],
+      "_note": "button target: write the same source to all three keys"
+    },
+    "wii.wiimote_nunchuk.ir_x": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "keys": {
+        "neg": "IR/Left",
+        "pos": "IR/Right"
+      }
+    },
+    "wii.wiimote_nunchuk.ir_y": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "keys": {
+        "neg": "IR/Up",
+        "pos": "IR/Down"
+      }
+    },
+    "wii.wiimote_nunchuk.tilt": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "keys_2d": {
+        "x": {
+          "neg": "Tilt/Left",
+          "pos": "Tilt/Right"
+        },
+        "y": {
+          "neg": "Tilt/Forward",
+          "pos": "Tilt/Backward"
+        }
+      },
+      "accel_group": {
+        "IMUAccelerometer/Up": "Accel Up",
+        "IMUAccelerometer/Down": "Accel Down",
+        "IMUAccelerometer/Left": "Accel Left",
+        "IMUAccelerometer/Right": "Accel Right",
+        "IMUAccelerometer/Forward": "Accel Forward",
+        "IMUAccelerometer/Backward": "Accel Backward"
+      },
+      "_note": "source accel: write accel_group (key -> SDL token). Source stick: use keys_2d."
+    },
+    "wii.wiimote_nunchuk.c": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Nunchuk/Buttons/C"
+    },
+    "wii.wiimote_nunchuk.z": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Nunchuk/Buttons/Z"
+    },
+    "wii.wiimote_nunchuk.nunchuk_shake": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "keys_all": [
+        "Nunchuk/Shake/X",
+        "Nunchuk/Shake/Y",
+        "Nunchuk/Shake/Z"
+      ]
+    },
+    "wii.wiimote_nunchuk.nunchuk_x": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "keys": {
+        "neg": "Nunchuk/Stick/Left",
+        "pos": "Nunchuk/Stick/Right"
+      }
+    },
+    "wii.wiimote_nunchuk.nunchuk_y": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "keys": {
+        "neg": "Nunchuk/Stick/Up",
+        "pos": "Nunchuk/Stick/Down"
+      }
+    },
+    "wii.classic.a": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Classic/Buttons/A"
+    },
+    "wii.classic.b": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Classic/Buttons/B"
+    },
+    "wii.classic.x": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Classic/Buttons/X"
+    },
+    "wii.classic.y": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Classic/Buttons/Y"
+    },
+    "wii.classic.zl": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Classic/Buttons/ZL"
+    },
+    "wii.classic.zr": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Classic/Buttons/ZR"
+    },
+    "wii.classic.plus": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Classic/Buttons/+"
+    },
+    "wii.classic.minus": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Classic/Buttons/-"
+    },
+    "wii.classic.home": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Classic/Buttons/Home"
+    },
+    "wii.classic.up": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Classic/D-Pad/Up"
+    },
+    "wii.classic.down": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Classic/D-Pad/Down"
+    },
+    "wii.classic.left": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Classic/D-Pad/Left"
+    },
+    "wii.classic.right": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Classic/D-Pad/Right"
+    },
+    "wii.classic.l_digital": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Classic/Triggers/L"
+    },
+    "wii.classic.r_digital": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Classic/Triggers/R"
+    },
+    "wii.classic.l_analog": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Classic/Triggers/L-Analog"
+    },
+    "wii.classic.r_analog": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "key": "Classic/Triggers/R-Analog"
+    },
+    "wii.classic.lstick_x": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "keys": {
+        "neg": "Classic/Left Stick/Left",
+        "pos": "Classic/Left Stick/Right"
+      }
+    },
+    "wii.classic.lstick_y": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "keys": {
+        "neg": "Classic/Left Stick/Up",
+        "pos": "Classic/Left Stick/Down"
+      }
+    },
+    "wii.classic.rstick_x": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "keys": {
+        "neg": "Classic/Right Stick/Left",
+        "pos": "Classic/Right Stick/Right"
+      }
+    },
+    "wii.classic.rstick_y": {
+      "file": "WiimoteNew.ini",
+      "section": "Wiimote{n}",
+      "keys": {
+        "neg": "Classic/Right Stick/Up",
+        "pos": "Classic/Right Stick/Down"
+      }
+    }
+  },
+  "hotkeys": {
+    "file": "Hotkeys.ini",
+    "section": "Hotkeys",
+    "targets": {
+      "hotkey.save_state": "Save State/Save to Selected Slot",
+      "hotkey.load_state": "Load State/Load from Selected Slot",
+      "hotkey.menu": null,
+      "hotkey.exit": "General/Exit",
+      "hotkey.fast_forward": "Emulation Speed/Disable Emulation Speed Limit",
+      "hotkey.rewind": null,
+      "hotkey.screenshot": "General/Take Screenshot",
+      "hotkey.next_slot": "Other State Hotkeys/Increase Selected State Slot",
+      "hotkey.prev_slot": "Other State Hotkeys/Decrease Selected State Slot",
+      "hotkey.toggle_fullscreen": "General/Toggle Fullscreen",
+      "hotkey.pause": "General/Toggle Pause"
+    },
+    "_note": "Key = '<group>/<label>' from HotkeyManager s_groups_info + s_hotkey_labels. 'General/Stop' stops emulation without quitting. Chords use ' & ' (pressed together) or '@(a+b)' (ordered)."
+  },
+  "options": {
+    "rumble": {
+      "file": "GCPadNew.ini|WiimoteNew.ini",
+      "section": "GCPad{n}|Wiimote{n}",
+      "key": "Rumble/Motor",
+      "on": "Motor",
+      "off": ""
+    },
+    "deadzone": {
+      "gc.main_stick": {
+        "key": "Main Stick/Dead Zone",
+        "unit": "percent",
+        "range": [
+          0,
+          50
+        ],
+        "default": 0
+      },
+      "gc.c_stick": {
+        "key": "C-Stick/Dead Zone",
+        "unit": "percent",
+        "range": [
+          0,
+          50
+        ],
+        "default": 0
+      },
+      "gc.triggers": {
+        "key": "Triggers/Dead Zone",
+        "unit": "percent",
+        "range": [
+          0,
+          25
+        ],
+        "default": 0
+      },
+      "gc.trigger_threshold": {
+        "key": "Triggers/Threshold",
+        "unit": "percent",
+        "range": [
+          1,
+          100
+        ],
+        "default": 90
+      },
+      "wii.nunchuk_stick": {
+        "key": "Nunchuk/Stick/Dead Zone",
+        "unit": "percent",
+        "range": [
+          0,
+          50
+        ]
+      },
+      "wii.classic_sticks": {
+        "keys": [
+          "Classic/Left Stick/Dead Zone",
+          "Classic/Right Stick/Dead Zone"
+        ],
+        "unit": "percent"
+      }
+    },
+    "stick_calibration_keys": [
+      "Main Stick/Calibration",
+      "C-Stick/Calibration",
+      "Main Stick/Center",
+      "C-Stick/Center"
+    ],
+    "controller_type": {
+      "gc": {
+        "file": "Dolphin.ini",
+        "section": "Core",
+        "key": "SIDevice{n-1}",
+        "values": {
+          "none": 0,
+          "n64_mic": 1,
+          "n64_keyboard": 2,
+          "n64_mouse": 3,
+          "n64_controller": 4,
+          "gba_link": 5,
+          "standard": 6,
+          "keyboard": 7,
+          "steering": 8,
+          "dancemat": 9,
+          "taru_konga": 10,
+          "am_baseboard": 11,
+          "wiiu_adapter": 12,
+          "gba_emulated": 13
+        },
+        "defaults": {
+          "SIDevice0": 6,
+          "SIDevice1": 0,
+          "SIDevice2": 0,
+          "SIDevice3": 0
+        }
+      },
+      "wii_source": {
+        "file": "WiimoteNew.ini",
+        "section": "Wiimote{n}",
+        "key": "Source",
+        "values": {
+          "none": 0,
+          "emulated": 1,
+          "real": 2
+        },
+        "defaults": {
+          "Wiimote1": 1,
+          "Wiimote2": 0,
+          "Wiimote3": 0,
+          "Wiimote4": 0
+        },
+        "_note": "Balance board: section [BalanceBoard] Source."
+      },
+      "wii_extension": {
+        "file": "WiimoteNew.ini",
+        "section": "Wiimote{n}",
+        "key": "Extension",
+        "values": {
+          "wii.wiimote": "None",
+          "wii.wiimote_nunchuk": "Nunchuk",
+          "wii.classic": "Classic"
+        },
+        "other_values": [
+          "Guitar",
+          "Drums",
+          "Turntable",
+          "uDraw",
+          "Drawsome",
+          "TaTaCon",
+          "Shinkansen"
+        ],
+        "default": "None",
+        "_note": "Value may also be an input expression; MotionPlus: 'Extension/Attach MotionPlus' = True|False (default True)"
+      }
+    },
+    "always_connected": {
+      "key": "Options/Always Connected",
+      "default": false
+    },
+    "gyro": {
+      "wii_group": "IMUGyroscope",
+      "keys": [
+        "IMUGyroscope/Pitch Up",
+        "IMUGyroscope/Pitch Down",
+        "IMUGyroscope/Roll Left",
+        "IMUGyroscope/Roll Right",
+        "IMUGyroscope/Yaw Left",
+        "IMUGyroscope/Yaw Right"
+      ],
+      "dead_zone_key": "IMUGyroscope/Dead Zone"
+    },
+    "sdl_hints": {
+      "file": "Dolphin.ini",
+      "section": "SDL_Hints",
+      "_note": "Arbitrary SDL hints, applied at startup (2603+)"
+    }
+  },
+  "per_game": {
+    "id_type": "gameid6",
+    "files": "<data_root>/GameSettings/{ID[0]}.ini, {ID[0:3]}.ini, {ID}.ini, {ID}r{revision}.ini (merged in that order, all optional)",
+    "section": "Controls",
+    "profile_keys": {
+      "gc": "PadProfile{n}",
+      "wii": "WiimoteProfile{n}",
+      "n_range": [
+        1,
+        4
+      ]
+    },
+    "profile_value": "profile name relative to the profile dir, without .ini; may be a comma-separated list or a directory (first match is used)",
+    "profile_dir": {
+      "gc": "<config_root>/Profiles/GCPad/",
+      "wii": "<config_root>/Profiles/Wiimote/"
+    },
+    "profile_file_section": "Profile",
+    "precedence": "If PadProfileN/WiimoteProfileN is set for the running game, that profile replaces the whole [GCPadN]/[WiimoteN] section for that slot. The global file is not read for that slot.",
+    "missing_profile": "Dolphin shows 'No profiles found for game setting' and falls back to global for that slot."
+  },
+  "game_id": {
+    "format": "6 ASCII chars, e.g. GALE01 (4-char title code + 2-char maker)",
+    "methods": [
+      {
+        "name": "dolphin-tool",
+        "cmd_flatpak": [
+          "flatpak",
+          "run",
+          "--command=dolphin-tool",
+          "org.DolphinEmu.dolphin-emu",
+          "header",
+          "-j",
+          "-i",
+          "<file>"
+        ],
+        "cmd_native": [
+          "dolphin-tool",
+          "header",
+          "-j",
+          "-i",
+          "<file>"
+        ],
+        "json_keys": [
+          "game_id",
+          "internal_name",
+          "revision",
+          "title_id",
+          "region",
+          "country",
+          "block_size",
+          "compression_method",
+          "compression_level"
+        ],
+        "_note": "Built when ENABLE_CLI_TOOL=ON (default); the Flathub manifest does not turn it off. Handles every format Dolphin reads. [VERIFY] presence at /app/bin/dolphin-tool on device."
+      },
+      {
+        "name": "header_iso_gcm",
+        "offset": 0,
+        "length": 6,
+        "applies_to": [
+          "iso",
+          "gcm"
+        ]
+      },
+      {
+        "name": "header_wia_rvz",
+        "magic": {
+          "WIA": "57 49 41 01",
+          "RVZ": "52 56 5A 01"
+        },
+        "offset": 88,
+        "offset_hex": "0x58",
+        "length": 6,
+        "_note": "WIAHeader1 is 0x48 bytes; WIAHeader2 starts with 4 u32 fields then disc_header[0x80]"
+      },
+      {
+        "name": "gcz",
+        "magic": "01 C0 0B B1",
+        "_note": "deflate-compressed blocks; use dolphin-tool"
+      },
+      {
+        "name": "gamelist_cache",
+        "path": "<cache_root>/gamelist.cache",
+        "format": "PointerWrap binary, header {u32 revision=27, u64 size}, std::map fields; not stable across versions. Do not parse."
+      }
+    ]
+  },
+  "managed_keys": {
+    "GCPadNew.ini": {
+      "sections": "GCPad{n}",
+      "keys": [
+        "Device",
+        "Buttons/*",
+        "D-Pad/*",
+        "Main Stick/Up|Down|Left|Right|Modifier",
+        "C-Stick/Up|Down|Left|Right|Modifier",
+        "Triggers/L|R|L-Analog|R-Analog",
+        "Rumble/Motor"
+      ],
+      "option_keys": [
+        "Main Stick/Dead Zone",
+        "C-Stick/Dead Zone",
+        "Triggers/Dead Zone",
+        "Triggers/Threshold"
+      ]
+    },
+    "WiimoteNew.ini": {
+      "sections": "Wiimote{n}",
+      "keys": [
+        "Device",
+        "Source",
+        "Extension",
+        "Buttons/*",
+        "D-Pad/*",
+        "IR/*",
+        "Shake/*",
+        "Tilt/*",
+        "IMUAccelerometer/*",
+        "IMUGyroscope/*",
+        "Nunchuk/Buttons/*",
+        "Nunchuk/Stick/*",
+        "Nunchuk/Shake/*",
+        "Classic/Buttons/*",
+        "Classic/D-Pad/*",
+        "Classic/Left Stick/*",
+        "Classic/Right Stick/*",
+        "Classic/Triggers/*",
+        "Rumble/Motor"
+      ]
+    },
+    "Dolphin.ini": {
+      "section": "Core",
+      "keys": [
+        "SIDevice0",
+        "SIDevice1",
+        "SIDevice2",
+        "SIDevice3"
+      ],
+      "_note": "only when options.controller_type is set"
+    },
+    "Hotkeys.ini": {
+      "section": "Hotkeys",
+      "keys": [
+        "Device",
+        "<hotkey targets above>"
+      ],
+      "_note": "only with hotkey rules"
+    }
+  },
+  "save_behaviour": {
+    "startup": "DolphinQt MainWindow::InitControllers loads and immediately re-saves WiimoteNew.ini, GCPadNew.ini, GBA, GCKeyNew.ini, FreeLook input; keys equal to their default are deleted and keys are re-ordered",
+    "mapping_ui": "InputConfig::SaveConfig on change in the mapping windows",
+    "exit": "Config::Save() in ~MainWindow writes Dolphin.ini and other Config-system files (incl. [WiimoteN] Source)",
+    "_implication": "Compare parsed key/values, not file bytes, for drift detection."
+  }
+}

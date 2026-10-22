@@ -1,0 +1,56 @@
+{
+  "core": "SwanStation",
+  "core_files": [
+    "swanstation_libretro.so"
+  ],
+  "systems": [
+    "psx"
+  ],
+  "sources": [
+    "https://github.com/libretro/swanstation/blob/cc94ebcd38a88a0e90788d7c8bcd764a009a5fa0/src/libretro/libretro_host_interface.cpp#L115",
+    "https://github.com/libretro/swanstation/blob/cc94ebcd38a88a0e90788d7c8bcd764a009a5fa0/src/libretro/libretro_host_interface.cpp#L251",
+    "https://github.com/libretro/swanstation/blob/cc94ebcd38a88a0e90788d7c8bcd764a009a5fa0/src/libretro/libretro_host_interface.cpp#L337",
+    "https://github.com/libretro/swanstation/blob/cc94ebcd38a88a0e90788d7c8bcd764a009a5fa0/src/libretro/libretro_host_interface.cpp#L776"
+  ],
+  "device_types": {
+    "psx.digital": 1,
+    "psx.dualshock": 261
+  },
+  "targets": {
+    "psx.digital.cross": "B",
+    "psx.digital.circle": "A",
+    "psx.digital.square": "Y",
+    "psx.digital.triangle": "X",
+    "psx.digital.l1": "L",
+    "psx.digital.r1": "R",
+    "psx.digital.l2": "L2",
+    "psx.digital.r2": "R2",
+    "psx.digital.start": "START",
+    "psx.digital.select": "SELECT",
+    "psx.digital.up": "UP",
+    "psx.digital.down": "DOWN",
+    "psx.digital.left": "LEFT",
+    "psx.digital.right": "RIGHT",
+    "psx.dualshock.cross": "B",
+    "psx.dualshock.circle": "A",
+    "psx.dualshock.square": "Y",
+    "psx.dualshock.triangle": "X",
+    "psx.dualshock.l1": "L",
+    "psx.dualshock.r1": "R",
+    "psx.dualshock.l2": "L2",
+    "psx.dualshock.r2": "R2",
+    "psx.dualshock.start": "START",
+    "psx.dualshock.select": "SELECT",
+    "psx.dualshock.up": "UP",
+    "psx.dualshock.down": "DOWN",
+    "psx.dualshock.left": "LEFT",
+    "psx.dualshock.right": "RIGHT",
+    "psx.dualshock.l3": "L3",
+    "psx.dualshock.r3": "R3",
+    "psx.dualshock.left_x": "LEFT_X",
+    "psx.dualshock.left_y": "LEFT_Y",
+    "psx.dualshock.right_x": "RIGHT_X",
+    "psx.dualshock.right_y": "RIGHT_Y"
+  },
+  "notes": "DualShock device id is 261 here but 517 in Beetle PSX; never copy device ids across cores."
+}

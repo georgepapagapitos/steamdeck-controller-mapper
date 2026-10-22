@@ -1,0 +1,36 @@
+{
+  "core": "Gambatte",
+  "core_files": [
+    "gambatte_libretro.so"
+  ],
+  "systems": [
+    "gb",
+    "gbc"
+  ],
+  "sources": [
+    "https://github.com/libretro/gambatte-libretro/blob/d9d6cd06382d1ced30de34d56d3609452323dab1/libgambatte/libretro/libretro.cpp#L1655",
+    "https://github.com/libretro/gambatte-libretro/blob/d9d6cd06382d1ced30de34d56d3609452323dab1/libgambatte/libretro/libretro.cpp#L2673"
+  ],
+  "targets": {
+    "gb.standard.a": "A",
+    "gb.standard.b": "B",
+    "gb.standard.turbo_a": "X",
+    "gb.standard.turbo_b": "Y",
+    "gb.standard.start": "START",
+    "gb.standard.select": "SELECT",
+    "gb.standard.up": "UP",
+    "gb.standard.down": "DOWN",
+    "gb.standard.left": "LEFT",
+    "gb.standard.right": "RIGHT",
+    "gbc.standard.a": "A",
+    "gbc.standard.b": "B",
+    "gbc.standard.turbo_a": "X",
+    "gbc.standard.turbo_b": "Y",
+    "gbc.standard.start": "START",
+    "gbc.standard.select": "SELECT",
+    "gbc.standard.up": "UP",
+    "gbc.standard.down": "DOWN",
+    "gbc.standard.left": "LEFT",
+    "gbc.standard.right": "RIGHT"
+  }
+}

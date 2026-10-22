@@ -1,0 +1,45 @@
+--- a/GCPadNew.ini
++++ b/GCPadNew.ini
+@@ -1,10 +1,10 @@
+ [GCPad1]
+ Device = SDL/0/Steam Deck Controller
+-Buttons/A = `Button E`
+-Buttons/B = `Button S`
+-Buttons/X = `Button N`
+-Buttons/Y = `Button W`
+-Buttons/Z = `Shoulder R`
++Buttons/A = `Button S`
++Buttons/B = `Button W`
++Buttons/X = `Button E`
++Buttons/Y = `Button N`
++Buttons/Z = `Shoulder L`
+ Buttons/Start = Start
+ Main Stick/Up = `Axis 1-`
+ Main Stick/Down = `Axis 1+`
+@@ -29,13 +29,14 @@
+ D-Pad/Left = `Pad W`
+ D-Pad/Right = `Pad E`
+ Rumble/Motor = Strong
++Main Stick/Dead Zone = 18.00
+ [GCPad2]
+ Device = SDL/1/Steam Deck Controller
+ Buttons/A = `Button E`
+ Buttons/B = `Button S`
+ Buttons/X = `Button N`
+ Buttons/Y = `Button W`
+-Buttons/Z = `Shoulder R`
++Buttons/Z = `Shoulder L`
+ Buttons/Start = Start
+ Main Stick/Up = `Axis 1-`
+ Main Stick/Down = `Axis 1+`
+--- a/Hotkeys.ini
++++ b/Hotkeys.ini
+@@ -5,7 +5,7 @@
+ General/Stop = @(Back+`Button W`)
+ General/Toggle Fullscreen = @(Alt+Return)|@(Start+`Thumb L`)
+ General/Take Screenshot = F9
+-Emulation Speed/Disable Emulation Speed Limit = @(Start+`Trigger R`)
++Emulation Speed/Disable Emulation Speed Limit = @(Back+`Trigger R`)
+ Stepping/Step Into = F11
+ Stepping/Step Over = @(Shift+F10)
+ Stepping/Step Out = @(Shift+F11)

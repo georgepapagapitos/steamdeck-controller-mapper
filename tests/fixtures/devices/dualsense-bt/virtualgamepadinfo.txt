@@ -1,0 +1,12 @@
+[slot 0]
+name=#SettingsController_SteamController
+VID=0x28de
+PID=0x1205
+handle=0x000000ff3522fdac
+type=steam
+[slot 1]
+name=DualSense Wireless Controller
+VID=0x054c
+PID=0x0ce6
+handle=0x000d88034c25126a
+type=ps5

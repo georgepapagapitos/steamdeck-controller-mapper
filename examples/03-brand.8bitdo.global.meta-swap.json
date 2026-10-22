@@ -1,0 +1,15 @@
+{
+  "$schema": "../schema/rule.schema.json",
+  "schema_version": 1,
+  "id": "user.brand-8bitdo.global.confirm-swap",
+  "label": "All 8BitDo: confirm on east, cancel on south (every system)",
+  "applies_to": {
+    "controller": { "level": "brand", "value": "8bitdo" },
+    "content": { "level": "global" }
+  },
+  "bindings": {
+    "meta.confirm": { "input": "face_east" },
+    "meta.cancel":  { "input": "face_south" }
+  },
+  "notes": "Meta-bindings expand per system via each layout's 'meta' map, one notch below direct bindings at the same scope."
+}

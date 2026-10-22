@@ -1,0 +1,53 @@
+{
+  "$schema": "../schema/rule.schema.json",
+  "schema_version": 1,
+  "id": "user.any.global.hotkeys",
+  "label": "Hotkeys everywhere",
+  "notes": "Mirrors EmuDeck's hotkey scheme (data/defaults/README.md): Select + button on player 1's pad.",
+  "applies_to": {
+    "controller": {
+      "level": "any"
+    },
+    "content": {
+      "level": "global"
+    }
+  },
+  "bindings": {
+    "hotkey.exit": {
+      "chord": [
+        "select",
+        "start"
+      ]
+    },
+    "hotkey.pause": {
+      "chord": [
+        "select",
+        "face_south"
+      ]
+    },
+    "hotkey.save_state": {
+      "chord": [
+        "select",
+        "r1"
+      ]
+    },
+    "hotkey.load_state": {
+      "chord": [
+        "select",
+        "l1"
+      ]
+    },
+    "hotkey.fast_forward": {
+      "chord": [
+        "select",
+        "r2"
+      ]
+    },
+    "hotkey.menu": {
+      "chord": [
+        "select",
+        "r3"
+      ]
+    }
+  }
+}

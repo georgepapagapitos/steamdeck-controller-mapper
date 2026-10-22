@@ -1,0 +1,31 @@
+{
+  "core": "PPSSPP",
+  "core_files": [
+    "ppsspp_libretro.so"
+  ],
+  "systems": [
+    "psp"
+  ],
+  "sources": [
+    "https://github.com/hrydgard/ppsspp/blob/47e67cb12214ed092c42fc00af421c3d86e19ce9/libretro/libretro.cpp#L1300",
+    "https://github.com/hrydgard/ppsspp/blob/47e67cb12214ed092c42fc00af421c3d86e19ce9/libretro/libretro.cpp#L1182",
+    "https://github.com/hrydgard/ppsspp/blob/47e67cb12214ed092c42fc00af421c3d86e19ce9/libretro/libretro.cpp#L1644"
+  ],
+  "targets": {
+    "psp.standard.cross": "B",
+    "psp.standard.circle": "A",
+    "psp.standard.square": "Y",
+    "psp.standard.triangle": "X",
+    "psp.standard.l": "L",
+    "psp.standard.r": "R",
+    "psp.standard.start": "START",
+    "psp.standard.select": "SELECT",
+    "psp.standard.up": "UP",
+    "psp.standard.down": "DOWN",
+    "psp.standard.left": "LEFT",
+    "psp.standard.right": "RIGHT",
+    "psp.standard.analog_x": "LEFT_X",
+    "psp.standard.analog_y": "LEFT_Y"
+  },
+  "notes": "libretro/ppsspp is a stale 2020 mirror; the core is built from hrydgard/ppsspp/libretro."
+}

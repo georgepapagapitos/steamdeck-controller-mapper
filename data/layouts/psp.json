@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "system": "psp",
+  "name": "Sony PlayStation Portable",
+  "controllers": {
+    "standard": {
+      "buttons": ["cross", "circle", "square", "triangle", "l", "r", "start", "select", "home"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": ["stick_x", "stick_y"],
+      "rumble": false
+    }
+  },
+  "default_controller": "standard",
+  "glyphs": {
+    "cross": "✕", "circle": "○", "square": "□", "triangle": "△",
+    "l": "L", "r": "R", "start": "START", "select": "SELECT", "home": "HOME"
+  },
+  "positional_default": {
+    "standard": {
+      "cross": "face_south", "circle": "face_east", "square": "face_west", "triangle": "face_north",
+      "l": "l1", "r": "r1", "start": "start", "select": "select", "home": "none",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right",
+      "stick_x": "ls_x", "stick_y": "ls_y"
+    }
+  },
+  "meta": { "confirm": "standard.cross", "cancel": "standard.circle", "primary": "standard.cross", "secondary": "standard.square" },
+  "_notes": "PSP shoulders go to l1/r1, not the triggers. home is unbound: PPSSPP's pause menu is a hotkey (hotkey.menu). Right-stick camera in some games (Monster Hunter, Peace Walker) is a PPSSPP per-game remap onto d-pad or face buttons. It belongs in game-scope rules, not a separate controller type."
+}

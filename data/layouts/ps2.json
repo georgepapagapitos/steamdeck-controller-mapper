@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "system": "ps2",
+  "name": "Sony PlayStation 2",
+  "controllers": {
+    "dualshock2": {
+      "buttons": ["cross", "circle", "square", "triangle", "l1", "r1", "l2", "r2", "l3", "r3", "start", "select", "analog"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": ["lstick_x", "lstick_y", "rstick_x", "rstick_y"],
+      "rumble": true
+    }
+  },
+  "default_controller": "dualshock2",
+  "glyphs": {
+    "cross": "✕", "circle": "○", "square": "□", "triangle": "△",
+    "l1": "L1", "r1": "R1", "l2": "L2", "r2": "R2", "l3": "L3", "r3": "R3",
+    "start": "START", "select": "SELECT", "analog": "ANALOG"
+  },
+  "positional_default": {
+    "dualshock2": {
+      "cross": "face_south", "circle": "face_east", "square": "face_west", "triangle": "face_north",
+      "l1": "l1", "r1": "r1", "l2": "l2", "r2": "r2", "l3": "l3", "r3": "r3",
+      "start": "start", "select": "select", "analog": "none",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right",
+      "lstick_x": "ls_x", "lstick_y": "ls_y", "rstick_x": "rs_x", "rstick_y": "rs_y"
+    }
+  },
+  "meta": { "confirm": "dualshock2.cross", "cancel": "dualshock2.circle", "primary": "dualshock2.cross", "secondary": "dualshock2.square" },
+  "_notes": "DualShock 2 face, d-pad and shoulder buttons are pressure-sensitive. PCSX2 reads that from the source's analog value, so they stay in 'buttons' (as on real hardware they act as digital in most games); a trigger source gives real pressure on l2/r2. Pressure on face buttons only works with an analog-face source, which no common pad has. The 'analog' button is unbound (PCSX2 handles analog mode). Guitar, Buzz and EyeToy devices are not modelled."
+}

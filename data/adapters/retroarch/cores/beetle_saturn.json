@@ -1,0 +1,53 @@
+{
+  "core": "Beetle Saturn",
+  "core_files": [
+    "mednafen_saturn_libretro.so"
+  ],
+  "systems": [
+    "saturn"
+  ],
+  "sources": [
+    "https://github.com/libretro/beetle-saturn-libretro/blob/d0d841784845da0278a9a49554cc4cc01597ee2c/libretro.c#L57",
+    "https://github.com/libretro/beetle-saturn-libretro/blob/d0d841784845da0278a9a49554cc4cc01597ee2c/input.c#L139",
+    "https://github.com/libretro/beetle-saturn-libretro/blob/d0d841784845da0278a9a49554cc4cc01597ee2c/input.c#L255",
+    "https://github.com/libretro/beetle-saturn-libretro/blob/d0d841784845da0278a9a49554cc4cc01597ee2c/input.c#L684"
+  ],
+  "device_types": {
+    "saturn.standard": 1,
+    "saturn.3d": 261
+  },
+  "targets": {
+    "saturn.standard.a": "B",
+    "saturn.standard.b": "A",
+    "saturn.standard.c": "R",
+    "saturn.standard.x": "Y",
+    "saturn.standard.y": "X",
+    "saturn.standard.z": "L",
+    "saturn.standard.l": "L2",
+    "saturn.standard.r": "R2",
+    "saturn.standard.start": "START",
+    "saturn.standard.up": "UP",
+    "saturn.standard.down": "DOWN",
+    "saturn.standard.left": "LEFT",
+    "saturn.standard.right": "RIGHT",
+    "saturn.3d.a": "B",
+    "saturn.3d.b": "A",
+    "saturn.3d.c": "R",
+    "saturn.3d.x": "Y",
+    "saturn.3d.y": "X",
+    "saturn.3d.z": "L",
+    "saturn.3d.l": "L2",
+    "saturn.3d.r": "R2",
+    "saturn.3d.start": "START",
+    "saturn.3d.up": "UP",
+    "saturn.3d.down": "DOWN",
+    "saturn.3d.left": "LEFT",
+    "saturn.3d.right": "RIGHT",
+    "saturn.3d.analog_x": "LEFT_X",
+    "saturn.3d.analog_y": "LEFT_Y",
+    "saturn.3d.l_analog": "L2",
+    "saturn.3d.r_analog": "R2",
+    "saturn.3d.mode": "SELECT"
+  },
+  "notes": "SELECT = 3D Pad mode switch / ST-V coin; L3/R3 = ST-V test/service."
+}

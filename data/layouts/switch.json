@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "system": "switch",
+  "name": "Nintendo Switch",
+  "controllers": {
+    "pro": {
+      "buttons": ["a", "b", "x", "y", "l", "r", "zl", "zr", "plus", "minus", "home", "capture", "l3", "r3"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": ["lstick_x", "lstick_y", "rstick_x", "rstick_y", "motion"],
+      "rumble": true
+    }
+  },
+  "default_controller": "pro",
+  "glyphs": {
+    "a": "A", "b": "B", "x": "X", "y": "Y", "l": "L", "r": "R", "zl": "ZL", "zr": "ZR",
+    "plus": "+", "minus": "−", "home": "HOME", "capture": "CAPTURE", "l3": "L3", "r3": "R3"
+  },
+  "positional_default": {
+    "pro": {
+      "b": "face_south", "a": "face_east", "y": "face_west", "x": "face_north",
+      "l": "l1", "r": "r1", "zl": "l2", "zr": "r2",
+      "plus": "start", "minus": "select", "home": "guide", "capture": "misc1", "l3": "l3", "r3": "r3",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right",
+      "lstick_x": "ls_x", "lstick_y": "ls_y", "rstick_x": "rs_x", "rstick_y": "rs_y",
+      "motion": "gyro"
+    }
+  },
+  "label_positions": { "a": "east", "b": "south", "x": "north", "y": "west" },
+  "meta": { "confirm": "pro.a", "cancel": "pro.b", "primary": "pro.b", "secondary": "pro.y" },
+  "_notes": "One Pro Controller per player. Handheld, dual Joy-Con and single sideways Joy-Con are not modelled: emulators (Yuzu forks, Ryujinx) fold them into the same input names. ZL/ZR are digital on real hardware. Positional mapping means Xbox A (south) = Switch B, as in the Yuzu/Ryujinx defaults; label-match swaps this. home on guide may clash with Steam's guide button; [VERIFY]."
+}

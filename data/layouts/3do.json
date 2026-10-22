@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "system": "3do",
+  "name": "3DO Interactive Multiplayer",
+  "controllers": {
+    "standard": {
+      "buttons": ["a", "b", "c", "l", "r", "p", "x"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": [],
+      "rumble": false
+    }
+  },
+  "default_controller": "standard",
+  "glyphs": { "a": "A", "b": "B", "c": "C", "l": "L", "r": "R", "p": "P (PLAY)", "x": "X (STOP)" },
+  "positional_default": {
+    "standard": {
+      "a": "face_west", "b": "face_south", "c": "face_east",
+      "l": "l1", "r": "r1", "p": "start", "x": "select",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right"
+    }
+  },
+  "meta": { "confirm": "standard.a", "cancel": "standard.c", "primary": "standard.b", "secondary": "standard.c" },
+  "_notes": "A/B/C run left to right like the Genesis, so they use the genesis convention (west/south/east). [VERIFY] against Opera libretro defaults. P (Play/Pause) acts as Start and X (Stop) as Select. 3DO menus commonly confirm on A; cancel=C is a judgment call. The flightstick and mouse are not modelled."
+}

@@ -1,0 +1,3 @@
+duckstation_GPU.ResolutionScale = "3"
+duckstation_GPU.WidescreenHack = "false"
+duckstation_Display.AspectRatio = "auto"

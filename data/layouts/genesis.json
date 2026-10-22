@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "system": "genesis",
+  "name": "Sega Genesis / Mega Drive",
+  "controllers": {
+    "three_button": {
+      "buttons": ["a", "b", "c", "start"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": [],
+      "rumble": false
+    },
+    "six_button": {
+      "buttons": ["a", "b", "c", "x", "y", "z", "start", "mode"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": [],
+      "rumble": false
+    }
+  },
+  "default_controller": "three_button",
+  "glyphs": { "a": "A", "b": "B", "c": "C", "x": "X", "y": "Y", "z": "Z", "start": "START", "mode": "MODE" },
+  "positional_default": {
+    "three_button": {
+      "a": "face_west", "b": "face_south", "c": "face_east", "start": "start",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right"
+    },
+    "six_button": {
+      "a": "face_west", "b": "face_south", "c": "face_east",
+      "x": "l1", "y": "face_north", "z": "r1", "start": "start", "mode": "select",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right"
+    }
+  },
+  "meta": { "confirm": "three_button.c", "cancel": "three_button.b", "primary": "three_button.b", "secondary": "three_button.c" },
+  "_notes": "Follows Genesis Plus GX (libretro) defaults as we understand them: RetroPad Y->A, B->B, A->C, L->X, X->Y, R->Z, Select->Mode. A/B/C run left to right across west/south/east. [VERIFY] against the current core. The fightpad-6 preset gives the physical two-row layout instead (X/Y/Z on west/north/r1, A/B/C on south/east/r2) for fighting games. default_controller is three_button because some 3-button-era games misread a 6-button pad; [VERIFY] what GPGX/EmuDeck default to. meta.confirm=C is a judgment call: Sega menus mostly take A/B/C/Start alike, and C on east matches the Nintendo-style confirm position. Also used for 32X and Sega CD; split out if their controller types diverge."
+}

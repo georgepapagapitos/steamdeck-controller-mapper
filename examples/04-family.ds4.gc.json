@@ -1,0 +1,20 @@
+{
+  "$schema": "../schema/rule.schema.json",
+  "schema_version": 1,
+  "id": "user.family-ds4.gc",
+  "label": "All DualShock 4: GameCube",
+  "applies_to": {
+    "controller": { "level": "family", "value": "sony.dualshock4" },
+    "content": { "level": "system", "system": "gc" }
+  },
+  "bindings": {
+    "gc.standard.a": { "input": "face_south" },
+    "gc.standard.b": { "input": "face_west" },
+    "gc.standard.x": { "input": "face_east" },
+    "gc.standard.y": { "input": "face_north" },
+    "gc.standard.z": { "input": "r1" },
+    "gc.standard.l_analog": { "input": "l2", "mode": "analog" },
+    "gc.standard.r_analog": { "input": "r2", "mode": "analog" }
+  },
+  "options": { "rumble": { "enabled": true, "strength": 0.8 } }
+}

@@ -1,0 +1,66 @@
+{
+  "core": "Mupen64Plus-Next",
+  "core_files": [
+    "mupen64plus_next_libretro.so"
+  ],
+  "systems": [
+    "n64"
+  ],
+  "sources": [
+    "https://github.com/libretro/mupen64plus-libretro-nx/blob/12edd2c74a517ff86dfa8cfc71ad75e4c10486d5/libretro/libretro.c#L656",
+    "https://github.com/libretro/mupen64plus-libretro-nx/blob/12edd2c74a517ff86dfa8cfc71ad75e4c10486d5/custom/mupen64plus-core/plugin/emulate_game_controller_via_libretro.c#L76",
+    "https://github.com/libretro/mupen64plus-libretro-nx/blob/12edd2c74a517ff86dfa8cfc71ad75e4c10486d5/custom/mupen64plus-core/plugin/emulate_game_controller_via_libretro.c#L310",
+    "https://github.com/libretro/mupen64plus-libretro-nx/blob/12edd2c74a517ff86dfa8cfc71ad75e4c10486d5/libretro/libretro_core_options.h#L1586"
+  ],
+  "core_options": {
+    "mupen64plus-pak1": {
+      "values": [
+        "none",
+        "memory",
+        "rumble",
+        "transfer"
+      ],
+      "default": "memory"
+    }
+  },
+  "targets": {
+    "n64.standard.a": "B",
+    "n64.standard.b": "Y",
+    "n64.standard.z": "L2",
+    "n64.standard.l": "L",
+    "n64.standard.r": "R",
+    "n64.standard.start": "START",
+    "n64.standard.up": "UP",
+    "n64.standard.down": "DOWN",
+    "n64.standard.left": "LEFT",
+    "n64.standard.right": "RIGHT",
+    "n64.standard.stick_x": "LEFT_X",
+    "n64.standard.stick_y": "LEFT_Y",
+    "n64.standard.c_up": "RIGHT_Y-",
+    "n64.standard.c_down": "RIGHT_Y+",
+    "n64.standard.c_left": "RIGHT_X-",
+    "n64.standard.c_right": "RIGHT_X+"
+  },
+  "c_button_chord": {
+    "hold": "R2",
+    "n64.standard.c_right": "A",
+    "n64.standard.c_left": "Y",
+    "n64.standard.c_down": "B",
+    "n64.standard.c_up": "X",
+    "_options": "mupen64plus-r-cbutton=C1, -l-cbutton=C2, -d-cbutton=C3, -u-cbutton=C4 (defaults); C1=A C2=Y C3=B C4=X. While R2 is held, B/Y stop acting as A/B."
+  },
+  "core_option_variants": {
+    "mupen64plus-alt-map=True": {
+      "n64.standard.a": "B",
+      "n64.standard.b": "Y",
+      "n64.standard.z": "L2",
+      "n64.standard.l": "SELECT",
+      "n64.standard.r": "R2",
+      "n64.standard.c_up": "X",
+      "n64.standard.c_down": "A",
+      "n64.standard.c_left": "L",
+      "n64.standard.c_right": "R"
+    }
+  },
+  "notes": "Right stick is read as digital C buttons (threshold 0x4000). Pak is a core option, not a libretro device."
+}

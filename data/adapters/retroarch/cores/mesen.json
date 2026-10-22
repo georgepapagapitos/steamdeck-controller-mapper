@@ -1,0 +1,47 @@
+{
+  "core": "Mesen",
+  "core_files": [
+    "mesen_libretro.so"
+  ],
+  "systems": [
+    "nes",
+    "fds"
+  ],
+  "sources": [
+    "https://github.com/libretro/Mesen/blob/0102910c39ad1a62bc3f784466f3f67ca9eae335/Libretro/libretro.cpp#L1162",
+    "https://github.com/libretro/Mesen/blob/0102910c39ad1a62bc3f784466f3f67ca9eae335/Libretro/libretro.cpp#L853"
+  ],
+  "targets": {
+    "nes.standard.a": "A",
+    "nes.standard.b": "B",
+    "nes.standard.turbo_a": "X",
+    "nes.standard.turbo_b": "Y",
+    "nes.standard.start": "START",
+    "nes.standard.select": "SELECT",
+    "nes.standard.up": "UP",
+    "nes.standard.down": "DOWN",
+    "nes.standard.left": "LEFT",
+    "nes.standard.right": "RIGHT",
+    "fds.standard.a": "A",
+    "fds.standard.b": "B",
+    "fds.standard.turbo_a": "X",
+    "fds.standard.turbo_b": "Y",
+    "fds.standard.start": "START",
+    "fds.standard.select": "SELECT",
+    "fds.standard.up": "UP",
+    "fds.standard.down": "DOWN",
+    "fds.standard.left": "LEFT",
+    "fds.standard.right": "RIGHT",
+    "fds.standard.insert_next_disk": "L",
+    "fds.standard.switch_disk_side": "R"
+  },
+  "core_option_variants": {
+    "mesen_shift_buttons_clockwise=enabled": {
+      "nes.standard.a": "B",
+      "nes.standard.b": "Y",
+      "nes.standard.turbo_a": "A",
+      "nes.standard.turbo_b": "X"
+    }
+  },
+  "notes": "Port 1 extras: L2/R2 = VS System coin 1/2, L3 = Famicom microphone."
+}

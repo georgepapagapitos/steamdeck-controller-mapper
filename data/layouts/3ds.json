@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "system": "3ds",
+  "name": "Nintendo 3DS",
+  "controllers": {
+    "standard": {
+      "buttons": ["a", "b", "x", "y", "l", "r", "zl", "zr", "start", "select", "home", "touch_press"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": ["circle_x", "circle_y", "cstick_x", "cstick_y", "touch_x", "touch_y", "motion"],
+      "rumble": false,
+      "allow_shared_sources": ["touch_x+touch_y"]
+    }
+  },
+  "default_controller": "standard",
+  "glyphs": {
+    "a": "A", "b": "B", "x": "X", "y": "Y", "l": "L", "r": "R", "zl": "ZL", "zr": "ZR",
+    "start": "START", "select": "SELECT", "home": "HOME", "touch_press": "TOUCH"
+  },
+  "positional_default": {
+    "standard": {
+      "b": "face_south", "a": "face_east", "y": "face_west", "x": "face_north",
+      "l": "l1", "r": "r1", "zl": "l2", "zr": "r2",
+      "start": "start", "select": "select", "home": "guide", "touch_press": "touchpad_click",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right",
+      "circle_x": "ls_x", "circle_y": "ls_y", "cstick_x": "rs_x", "cstick_y": "rs_y",
+      "touch_x": "touchpad", "touch_y": "touchpad", "motion": "gyro"
+    }
+  },
+  "label_positions": { "a": "east", "b": "south", "x": "north", "y": "west" },
+  "meta": { "confirm": "standard.a", "cancel": "standard.b", "primary": "standard.b", "secondary": "standard.y" },
+  "_notes": "Models the New 3DS (ZL/ZR and C-stick). Original-3DS games see the C-stick and ZL/ZR as the Circle Pad Pro. Both sticks are taken, so the touch pointer goes to the controller touchpad surface (DS4/DualSense; Citra/Lime3DS/Azahar via cemuhook/SDL). On pads with no touchpad it resolves to nothing and a mouse or Steam trackpad-as-mouse is needed. 'touchpad' is a 2D surface, so touch_x and touch_y both point at it: the adapter takes the matching axis. motion is gyro+accel together. home on guide may clash with Steam; [VERIFY]."
+}

@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "system": "dreamcast",
+  "name": "Sega Dreamcast",
+  "controllers": {
+    "standard": {
+      "buttons": ["a", "b", "x", "y", "start"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": ["stick_x", "stick_y", "l_trigger", "r_trigger"],
+      "rumble": true
+    }
+  },
+  "default_controller": "standard",
+  "glyphs": { "a": "A", "b": "B", "x": "X", "y": "Y", "start": "START" },
+  "positional_default": {
+    "standard": {
+      "a": "face_south", "b": "face_east", "x": "face_west", "y": "face_north", "start": "start",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right",
+      "stick_x": "ls_x", "stick_y": "ls_y", "l_trigger": "l2", "r_trigger": "r2"
+    }
+  },
+  "meta": { "confirm": "standard.a", "cancel": "standard.b", "primary": "standard.a", "secondary": "standard.x" },
+  "_notes": "Dreamcast face labels sit where Xbox's do, so positional and label-match agree. Triggers are analog only (no digital pair). rumble=true assumes a Puru Puru / Jump Pack. Flycast exposes extra inputs (second stick, D-pad 2, C/Z for arcade sticks) that are left out; the arcade stick, light gun and keyboard aren't modelled. NAOMI/Atomiswave use arcade.json."
+}

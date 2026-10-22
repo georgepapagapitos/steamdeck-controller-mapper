@@ -1,0 +1,12 @@
+[slot 0]
+name=#SettingsController_SteamController
+VID=0x28de
+PID=0x1205
+handle=0x000000ff3522fdac
+type=steam
+[slot 1]
+name=8Bitdo Ultimate 2 Wireless Controller
+VID=0x2dc8
+PID=0x6012
+handle=0x0000e417d870513e
+type=unknown

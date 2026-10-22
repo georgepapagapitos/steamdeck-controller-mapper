@@ -1,0 +1,23 @@
+{
+  "$schema": "../schema/rule.schema.json",
+  "schema_version": 1,
+  "id": "user.family-ds4.dolphin.wii.nunchuk",
+  "label": "All DualShock 4: Wiimote + Nunchuk in Dolphin",
+  "applies_to": {
+    "controller": { "level": "family", "value": "sony.dualshock4" },
+    "content": { "level": "emulator", "emulator": "dolphin", "system": "wii" }
+  },
+  "bindings": {
+    "wii.wiimote_nunchuk.a": { "input": "face_south" },
+    "wii.wiimote_nunchuk.b": { "input": "r2", "mode": "digital", "threshold": 0.4 },
+    "wii.wiimote_nunchuk.c": { "input": "l1" },
+    "wii.wiimote_nunchuk.z": { "input": "l2", "mode": "digital", "threshold": 0.4 },
+    "wii.wiimote_nunchuk.shake": { "input": "face_west" },
+    "wii.wiimote_nunchuk.pointer": { "input": "gyro" }
+  },
+  "options": {
+    "controller_type": "wiimote_nunchuk",
+    "gyro": { "enabled": true, "mode": "pointer", "provider": "native" }
+  },
+  "requires": ["gyro"]
+}

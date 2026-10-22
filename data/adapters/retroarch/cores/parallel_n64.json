@@ -1,0 +1,59 @@
+{
+  "core": "ParaLLEl N64",
+  "core_files": [
+    "parallel_n64_libretro.so"
+  ],
+  "systems": [
+    "n64"
+  ],
+  "sources": [
+    "https://github.com/libretro/parallel-n64/blob/6f233392445dcef4188a321d4ba65a776f0e1672/libretro/libretro.c#L1245",
+    "https://github.com/libretro/parallel-n64/blob/6f233392445dcef4188a321d4ba65a776f0e1672/mupen64plus-core/src/plugin/emulate_game_controller_via_libretro.c#L106",
+    "https://github.com/libretro/parallel-n64/blob/6f233392445dcef4188a321d4ba65a776f0e1672/mupen64plus-core/src/plugin/emulate_game_controller_via_libretro.c#L860",
+    "https://github.com/libretro/parallel-n64/blob/6f233392445dcef4188a321d4ba65a776f0e1672/mupen64plus-core/src/plugin/emulate_game_controller_via_libretro.c#L1057",
+    "https://github.com/libretro/parallel-n64/blob/6f233392445dcef4188a321d4ba65a776f0e1672/libretro/libretro.c#L157"
+  ],
+  "core_options": {
+    "parallel-n64-pak1": {
+      "values": [
+        "none",
+        "memory",
+        "rumble",
+        "biosensor"
+      ],
+      "default": "none"
+    }
+  },
+  "targets": {
+    "n64.standard.a": "B",
+    "n64.standard.b": "Y",
+    "n64.standard.z": "L2",
+    "n64.standard.l": "L",
+    "n64.standard.r": "R",
+    "n64.standard.start": "START",
+    "n64.standard.up": "UP",
+    "n64.standard.down": "DOWN",
+    "n64.standard.left": "LEFT",
+    "n64.standard.right": "RIGHT",
+    "n64.standard.stick_x": "LEFT_X",
+    "n64.standard.stick_y": "LEFT_Y",
+    "n64.standard.c_up": "RIGHT_Y-",
+    "n64.standard.c_down": "RIGHT_Y+",
+    "n64.standard.c_left": "RIGHT_X-",
+    "n64.standard.c_right": "RIGHT_X+"
+  },
+  "core_option_variants": {
+    "parallel-n64-alt-map=enabled": {
+      "n64.standard.a": "B",
+      "n64.standard.b": "Y",
+      "n64.standard.z": "L2",
+      "n64.standard.l": "SELECT",
+      "n64.standard.r": "R2",
+      "n64.standard.c_up": "X",
+      "n64.standard.c_down": "A",
+      "n64.standard.c_left": "L",
+      "n64.standard.c_right": "R"
+    }
+  },
+  "notes": "R2+face C-button chord exists in code but r/l/d/u_cbutton are never assigned (all 0 = RetroPad B) [VERIFY on device]. Holding SELECT (alt-map disabled) toggles a built-in per-game layout (KI Gold, ClayFighter, ISS, Ridge Racer...)."
+}

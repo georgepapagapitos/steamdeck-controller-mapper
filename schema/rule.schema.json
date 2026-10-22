@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://map-helper.dev/schema/rule.schema.json",
+  "title": "map-helper rule",
+  "description": "A partial set of bindings and options plus the controller x content scope it applies to. See docs/03-canonical-model.md.",
+  "type": "object",
+  "required": ["schema_version", "id", "applies_to"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "label": { "type": "string" },
+    "notes": { "type": "string" },
+    "enabled": { "type": "boolean", "default": true },
+    "revision": { "type": "integer", "minimum": 1 },
+    "explicit_priority": {
+      "type": "integer",
+      "default": 0,
+      "description": "Tie-breaker / override within the same source. Higher wins. See 03 §3.1."
+    },
+    "requires": {
+      "type": "array",
+      "items": { "enum": ["gyro", "accel", "touchpad", "touchpad_click", "paddles", "analog_triggers", "rumble", "misc1"] }
+    },
+    "applies_to": {
+      "type": "object",
+      "required": ["controller", "content"],
+      "additionalProperties": false,
+      "properties": {
+        "controller": { "$ref": "#/$defs/controllerScope" },
+        "content": { "$ref": "#/$defs/contentScope" }
+      }
+    },
+    "bindings": {
+      "type": "object",
+      "description": "Keys are '<system>.<controller_type>.<input>', 'meta.<alias>', or 'hotkey.<action>'.",
+      "propertyNames": {
+        "pattern": "^([a-z0-9]+\\.[a-z0-9_]+\\.[a-z0-9_]+|meta\\.[a-z_]+|hotkey\\.[a-z_]+)$"
+      },
+      "additionalProperties": { "$ref": "#/$defs/source" }
+    },
+    "options": { "$ref": "#/$defs/options" }
+  },
+  "$defs": {
+    "controllerScope": {
+      "type": "object",
+      "required": ["level"],
+      "additionalProperties": false,
+      "properties": {
+        "level": { "enum": ["device", "model", "family", "brand", "style", "any"] },
+        "value": {
+          "type": "string",
+          "description": "device id, model id, family id, brand id, or style name. Omitted when level = any."
+        }
+      },
+      "if": { "properties": { "level": { "const": "any" } } },
+      "then": { "not": { "required": ["value"] } },
+      "else": { "required": ["value"] }
+    },
+    "contentScope": {
+      "type": "object",
+      "required": ["level"],
+      "additionalProperties": false,
+      "properties": {
+        "level": { "enum": ["game", "emulator", "system", "global"] },
+        "system": { "type": "string" },
+        "emulator": { "type": "string" },
+        "game_id": { "type": "string" }
+      },
+      "allOf": [
+        { "if": { "properties": { "level": { "const": "game" } } },
+          "then": { "required": ["system", "game_id"] } },
+        { "if": { "properties": { "level": { "const": "emulator" } } },
+          "then": { "required": ["emulator"] } },
+        { "if": { "properties": { "level": { "const": "system" } } },
+          "then": { "required": ["system"] } }
+      ]
+    },
+    "physicalInput": {
+      "enum": [
+        "face_south", "face_east", "face_west", "face_north",
+        "dpad_up", "dpad_down", "dpad_left", "dpad_right",
+        "l1", "r1", "l2", "r2", "l3", "r3",
+        "ls_x", "ls_y", "rs_x", "rs_y",
+        "ls_up", "ls_down", "ls_left", "ls_right",
+        "rs_up", "rs_down", "rs_left", "rs_right",
+        "start", "select", "guide", "misc1",
+        "paddle1", "paddle2", "paddle3", "paddle4",
+        "touchpad_click", "touchpad", "gyro", "accel",
+        "none"
+      ]
+    },
+    "source": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["input"],
+          "additionalProperties": false,
+          "properties": {
+            "input": { "$ref": "#/$defs/physicalInput" },
+            "mode": { "enum": ["analog", "digital"] },
+            "threshold": { "type": "number", "minimum": 0, "maximum": 1 },
+            "invert": { "type": "boolean" },
+            "deadzone": { "type": "number", "minimum": 0, "maximum": 1 },
+            "sensitivity": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["chord"],
+          "additionalProperties": false,
+          "properties": {
+            "chord": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/physicalInput" } }
+          }
+        }
+      ]
+    },
+    "options": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "controller_type": { "type": "string", "description": "Layout controller type, e.g. 'dualshock', 'digital', 'wiimote_nunchuk'." },
+        "rumble": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "strength": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        "deadzones": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ls": { "type": "number", "minimum": 0, "maximum": 1 },
+            "rs": { "type": "number", "minimum": 0, "maximum": 1 },
+            "l2": { "type": "number", "minimum": 0, "maximum": 1 },
+            "r2": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        "gyro": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "mode": { "enum": ["motion", "pointer", "stick"] },
+            "sensitivity": { "type": "number", "exclusiveMinimum": 0 },
+            "provider": { "enum": ["native", "dsu"] }
+          }
+        },
+        "pak": { "enum": ["rumble", "memory", "transfer", "none"] },
+        "multitap": { "type": "boolean" }
+      }
+    }
+  }
+}

@@ -1,0 +1,518 @@
+{
+  "schema_version": 1,
+  "adapter": "pcsx2",
+  "version_range": "PCSX2 v2.3.199 (SDL3, nightly; first stable v2.4.0) .. v2.9.138 and master 7fe1e5525a (2026-10-22)",
+  "sources": [
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/Input/SDLInputSource.cpp#L26-L34",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/Input/SDLInputSource.cpp#L159-L187",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/Input/SDLInputSource.cpp#L538-L545",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/Input/SDLInputSource.cpp#L661-L670",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/Input/SDLInputSource.cpp#L797-L1050",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/Input/SDLInputSource.cpp#L1060-L1175",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/Input/SDLInputSource.cpp#L1383-L1415",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/Input/InputManager.cpp#L192-L230",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/Input/InputManager.cpp#L389-L410",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/Input/InputManager.cpp#L606-L660",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/Input/InputManager.cpp#L860-L1000",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/INISettingsInterface.cpp#L309-L320",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/SIO/Pad/PadDualshock2.cpp#L18-L92",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/SIO/Pad/Pad.cpp#L155-L200",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/SIO/Pad/Pad.cpp#L272-L279",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/SIO/Pad/Pad.cpp#L337-L420",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/SIO/Pad/Pad.cpp#L503-L506",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/SIO/Sio.cpp#L36-L44",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/Pcsx2Config.cpp#L1866-L1868",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/Pcsx2Config.cpp#L2203-L2345",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/VMManager.cpp#L153",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/VMManager.cpp#L552-L558",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/VMManager.cpp#L680-L700",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/VMManager.cpp#L820-L858",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/VMManager.cpp#L982-L1048",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/LayeredSettingsInterface.h#L13-L20",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/LayeredSettingsInterface.cpp#L191-L206",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/GameList.cpp#L37-L41",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/GameList.cpp#L460-L560",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/GameList.cpp#L622-L640",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/Hotkeys.cpp#L151-L313",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/GS/GS.cpp#L1224",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2-qt/QtHost.cpp#L1363-L1400",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2-qt/QtHost.cpp#L1452-L1495",
+    "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2-qt/QtHost.cpp#L2578-L2581",
+    "https://github.com/PCSX2/pcsx2/commit/ac1a6d3348",
+    "https://github.com/dragoonDorise/EmuDeck/blob/dddb30229adbbd54d5ff7283cfd70e11c4322c26/functions/EmuScripts/emuDeckPCSX2QT.sh#L4-L6",
+    "https://github.com/dragoonDorise/EmuDeck/blob/dddb30229adbbd54d5ff7283cfd70e11c4322c26/configs/pcsx2qt/.config/PCSX2/inis/PCSX2.ini"
+  ],
+  "_conventions": "Axis targets and axis sources are objects {neg, pos}. Sign follows SDL: x neg = left, pos = right; y neg = up, pos = down. To bind an axis target to an axis source, write target.neg <- source.neg and target.pos <- source.pos.",
+  "paths": {
+    "appimage_or_native": {
+      "data_root": "${XDG_CONFIG_HOME:-~/.config}/PCSX2/"
+    },
+    "flatpak": {
+      "app_id": "net.pcsx2.PCSX2",
+      "data_root": "~/.var/app/net.pcsx2.PCSX2/config/PCSX2/"
+    },
+    "portable": {
+      "data_root": "<exe dir>/<path in portable.txt> when portable.txt/portable.ini exists; AppImage + -portable: <AppImage dir>/PCSX2/"
+    },
+    "main_ini": "<data_root>/inis/PCSX2.ini",
+    "input_profiles": "<data_root>/inputprofiles/<name>.ini  ([Folders] InputProfiles overrides)",
+    "game_settings": "<data_root>/gamesettings/  ([Folders] GameSettings overrides)",
+    "cache": "<data_root>/cache/  ([Folders] Cache overrides)",
+    "_note": "Folder overrides in [Folders] are relative to data_root unless absolute. Read them before resolving paths."
+  },
+  "device_ref": {
+    "format": "SDL-{player_index}",
+    "index_semantics": "SDL player index (SDL_GetGamepadPlayerIndex); if negative or taken, first free index. Steam virtual pads report their Steam slot. Index-based: order matters.",
+    "persistent_ids": false,
+    "other_sources": [
+      "Keyboard",
+      "Pointer-{n}",
+      "XInput-{n}",
+      "DInput-{n}"
+    ]
+  },
+  "binding_syntax": {
+    "binding": "{device}/{token}, e.g. SDL-0/FaceSouth",
+    "chord": " & ",
+    "multiple_bindings": "repeat the key on its own line (INI multi-value, read with GetStringList)",
+    "half_axis": "+Axis / -Axis prefix, e.g. +LeftTrigger, -LeftY",
+    "invert_suffix": "~ (e.g. -JoyAxis2~)",
+    "raw_joystick": {
+      "button": "JoyButton{n}",
+      "axis": "{+|-|Full}JoyAxis{n}",
+      "hat": "Hat{n}{North|East|South|West}"
+    },
+    "per_binding_scale_deadzone": "<Key>Scale, <Key>Deadzone in the same [PadN] section",
+    "keyboard": "Keyboard/<Key>",
+    "unbound": "delete the key"
+  },
+  "physical_tokens": {
+    "face_south": "FaceSouth",
+    "face_east": "FaceEast",
+    "face_west": "FaceWest",
+    "face_north": "FaceNorth",
+    "dpad_up": "DPadUp",
+    "dpad_down": "DPadDown",
+    "dpad_left": "DPadLeft",
+    "dpad_right": "DPadRight",
+    "l1": "LeftShoulder",
+    "r1": "RightShoulder",
+    "l2": "+LeftTrigger",
+    "r2": "+RightTrigger",
+    "ls_x": {
+      "neg": "-LeftX",
+      "pos": "+LeftX"
+    },
+    "ls_y": {
+      "neg": "-LeftY",
+      "pos": "+LeftY"
+    },
+    "rs_x": {
+      "neg": "-RightX",
+      "pos": "+RightX"
+    },
+    "rs_y": {
+      "neg": "-RightY",
+      "pos": "+RightY"
+    },
+    "ls_up": "-LeftY",
+    "ls_down": "+LeftY",
+    "ls_left": "-LeftX",
+    "ls_right": "+LeftX",
+    "rs_up": "-RightY",
+    "rs_down": "+RightY",
+    "rs_left": "-RightX",
+    "rs_right": "+RightX",
+    "l3": "LeftStick",
+    "r3": "RightStick",
+    "start": "Start",
+    "select": "Back",
+    "guide": "Guide",
+    "misc1": "Misc1",
+    "paddle1": "Paddle1",
+    "paddle2": "Paddle2",
+    "paddle3": "Paddle3",
+    "paddle4": "Paddle4",
+    "touchpad_click": "Touchpad",
+    "touchpad": null,
+    "gyro": null,
+    "accel": null,
+    "trackpad_l": null,
+    "trackpad_r": null,
+    "trackpad_l_click": null,
+    "trackpad_r_click": null,
+    "qam": null
+  },
+  "legacy_physical_tokens": {
+    "_applies_to": "PCSX2 before v2.3.199 (SDL2). Current PCSX2 still parses these, converts them on load and saves the converted value back to the file it came from.",
+    "face_south": "A",
+    "face_east": "B",
+    "face_west": "X",
+    "face_north": "Y",
+    "raw": {
+      "button": "Button{n}",
+      "axis": "+Axis{n} / -Axis{n} / FullAxis{n}"
+    }
+  },
+  "rumble_tokens": {
+    "large": "LargeMotor",
+    "small": "SmallMotor",
+    "haptic": "Haptic"
+  },
+  "targets": {
+    "ps2.dualshock2.up": {
+      "section": "Pad{n}",
+      "key": "Up"
+    },
+    "ps2.dualshock2.down": {
+      "section": "Pad{n}",
+      "key": "Down"
+    },
+    "ps2.dualshock2.left": {
+      "section": "Pad{n}",
+      "key": "Left"
+    },
+    "ps2.dualshock2.right": {
+      "section": "Pad{n}",
+      "key": "Right"
+    },
+    "ps2.dualshock2.cross": {
+      "section": "Pad{n}",
+      "key": "Cross"
+    },
+    "ps2.dualshock2.circle": {
+      "section": "Pad{n}",
+      "key": "Circle"
+    },
+    "ps2.dualshock2.square": {
+      "section": "Pad{n}",
+      "key": "Square"
+    },
+    "ps2.dualshock2.triangle": {
+      "section": "Pad{n}",
+      "key": "Triangle"
+    },
+    "ps2.dualshock2.select": {
+      "section": "Pad{n}",
+      "key": "Select"
+    },
+    "ps2.dualshock2.start": {
+      "section": "Pad{n}",
+      "key": "Start"
+    },
+    "ps2.dualshock2.l1": {
+      "section": "Pad{n}",
+      "key": "L1"
+    },
+    "ps2.dualshock2.r1": {
+      "section": "Pad{n}",
+      "key": "R1"
+    },
+    "ps2.dualshock2.l2": {
+      "section": "Pad{n}",
+      "key": "L2"
+    },
+    "ps2.dualshock2.r2": {
+      "section": "Pad{n}",
+      "key": "R2"
+    },
+    "ps2.dualshock2.l3": {
+      "section": "Pad{n}",
+      "key": "L3"
+    },
+    "ps2.dualshock2.r3": {
+      "section": "Pad{n}",
+      "key": "R3"
+    },
+    "ps2.dualshock2.lstick_x": {
+      "section": "Pad{n}",
+      "keys": {
+        "neg": "LLeft",
+        "pos": "LRight"
+      }
+    },
+    "ps2.dualshock2.lstick_y": {
+      "section": "Pad{n}",
+      "keys": {
+        "neg": "LUp",
+        "pos": "LDown"
+      }
+    },
+    "ps2.dualshock2.rstick_x": {
+      "section": "Pad{n}",
+      "keys": {
+        "neg": "RLeft",
+        "pos": "RRight"
+      }
+    },
+    "ps2.dualshock2.rstick_y": {
+      "section": "Pad{n}",
+      "keys": {
+        "neg": "RUp",
+        "pos": "RDown"
+      }
+    },
+    "ps2.dualshock2.analog": {
+      "section": "Pad{n}",
+      "key": "Analog"
+    },
+    "ps2.dualshock2.pressure": {
+      "section": "Pad{n}",
+      "key": "Pressure",
+      "_note": "'Apply Pressure' modifier; not in data/layouts/ps2.json"
+    }
+  },
+  "hotkeys": {
+    "section": "Hotkeys",
+    "targets": {
+      "hotkey.save_state": "SaveStateToSlot",
+      "hotkey.load_state": "LoadStateFromSlot",
+      "hotkey.menu": "OpenPauseMenu",
+      "hotkey.exit": "ShutdownVM",
+      "hotkey.fast_forward": "ToggleTurbo",
+      "hotkey.rewind": null,
+      "hotkey.screenshot": "Screenshot",
+      "hotkey.next_slot": "NextSaveStateSlot",
+      "hotkey.prev_slot": "PreviousSaveStateSlot",
+      "hotkey.toggle_fullscreen": "ToggleFullscreen",
+      "hotkey.pause": "TogglePause"
+    },
+    "_note": "HoldTurbo is the hold variant of fast forward. Chords: 'SDL-0/Back & SDL-0/Start'. Profiles only supply hotkeys when the profile has [Pad] UseProfileHotkeyBindings = true."
+  },
+  "options": {
+    "rumble": {
+      "section": "Pad{n}",
+      "keys": {
+        "large": "LargeMotor",
+        "small": "SmallMotor"
+      },
+      "on": {
+        "large": "SDL-{p}/LargeMotor",
+        "small": "SDL-{p}/SmallMotor"
+      },
+      "strength_keys": {
+        "LargeMotorScale": {
+          "range": [
+            0.0,
+            2.0
+          ],
+          "default": 1.0
+        },
+        "SmallMotorScale": {
+          "range": [
+            0.0,
+            2.0
+          ],
+          "default": 1.0
+        }
+      }
+    },
+    "deadzone": {
+      "stick": {
+        "section": "Pad{n}",
+        "key": "Deadzone",
+        "range": [
+          0.0,
+          1.0
+        ],
+        "default": 0.0
+      },
+      "button_trigger": {
+        "section": "Pad{n}",
+        "key": "ButtonDeadzone",
+        "range": [
+          0.0,
+          1.0
+        ],
+        "default": 0.0
+      },
+      "per_binding": "<Key>Deadzone"
+    },
+    "sensitivity": {
+      "section": "Pad{n}",
+      "key": "AxisScale",
+      "range": [
+        0.01,
+        2.0
+      ],
+      "default": 1.33
+    },
+    "invert": {
+      "section": "Pad{n}",
+      "keys": [
+        "InvertL",
+        "InvertR"
+      ],
+      "values": {
+        "0": "none",
+        "1": "left/right",
+        "2": "up/down",
+        "3": "both"
+      }
+    },
+    "pressure_modifier": {
+      "section": "Pad{n}",
+      "key": "PressureModifier",
+      "default": 0.5
+    },
+    "controller_type": {
+      "section": "Pad{n}",
+      "key": "Type",
+      "values": {
+        "ps2.dualshock2": "DualShock2",
+        "none": "None"
+      },
+      "other_values": [
+        "Guitar",
+        "Jogcon",
+        "NeGcon",
+        "Popn"
+      ],
+      "defaults": {
+        "Pad1": "DualShock2",
+        "Pad2..Pad8": "None"
+      }
+    },
+    "multitap": {
+      "section": "Pad",
+      "keys": {
+        "port1": "MultitapPort1",
+        "port2": "MultitapPort2"
+      },
+      "values": [
+        true,
+        false
+      ],
+      "default": false,
+      "pad_numbering": {
+        "Pad1": "port 1 slot A",
+        "Pad2": "port 2 slot A",
+        "Pad3": "1B",
+        "Pad4": "1C",
+        "Pad5": "1D",
+        "Pad6": "2B",
+        "Pad7": "2C",
+        "Pad8": "2D"
+      }
+    },
+    "input_sources": {
+      "section": "InputSources",
+      "keys": {
+        "SDL": true,
+        "SDLControllerEnhancedMode": "default true",
+        "SDLPS5PlayerLED": "default true",
+        "SDLRawInput": "default false"
+      }
+    }
+  },
+  "per_game": {
+    "id_type": "serial_crc",
+    "file": "<game_settings>/{SanitizeFileName(serial)}_{crc:08X}.ini, fallback <game_settings>/{crc:08X}.ini",
+    "profile_key": {
+      "section": "EmuCore",
+      "key": "InputProfileName"
+    },
+    "profile_file": "<input_profiles>/{name}.ini",
+    "profile_contents": "same sections as PCSX2.ini: [Pad], [Pad1]..[Pad8], [InputSources], [Hotkeys]",
+    "precedence": "If InputProfileName names an existing profile, ALL pad bindings come from the profile only (base [PadN] is ignored). Hotkeys come from base unless the profile sets [Pad] UseProfileHotkeyBindings = true. Without a profile, bindings are read through the layered interface cmdline > game ini > input profile > base, so a game ini may also hold [PadN] keys that shadow base ones key by key."
+  },
+  "game_id": {
+    "format": "serial like SLUS-20312 plus 32-bit CRC of the boot ELF (hex, upper case, 8 digits)",
+    "methods": [
+      {
+        "name": "gamelist_cache",
+        "path": "<cache>/gamelist.cache",
+        "header": {
+          "signature_u32le": "0x45434C47",
+          "version_u32le": 34
+        },
+        "entry": [
+          "str path",
+          "str serial",
+          "str title",
+          "str title_sort",
+          "str title_en",
+          "u8 type",
+          "u8 region",
+          "u64 total_size",
+          "u64 last_modified_time",
+          "u32 crc",
+          "u8 compatibility_rating"
+        ],
+        "string": "u32le length + bytes (no terminator)",
+        "_note": "Little endian. Append-only: later entries for the same path win. Version changes reset the file; check version before parsing."
+      },
+      {
+        "name": "system_cnf",
+        "applies_to": [
+          "iso"
+        ],
+        "_note": "ISO9660 SYSTEM.CNF 'BOOT2 = cdrom0:\\SLUS_203.12;1' -> SLUS-20312. Gives serial only (CRC needs the ELF)."
+      },
+      {
+        "name": "filename",
+        "_note": "weak: '(SLUS-20312)' in file name"
+      }
+    ]
+  },
+  "managed_keys": {
+    "PCSX2.ini": {
+      "Pad{n}": [
+        "Type (only with options.controller_type)",
+        "Up",
+        "Down",
+        "Left",
+        "Right",
+        "Cross",
+        "Circle",
+        "Square",
+        "Triangle",
+        "Select",
+        "Start",
+        "L1",
+        "R1",
+        "L2",
+        "R2",
+        "L3",
+        "R3",
+        "Analog",
+        "Pressure",
+        "LUp",
+        "LDown",
+        "LLeft",
+        "LRight",
+        "RUp",
+        "RDown",
+        "RLeft",
+        "RRight",
+        "LargeMotor",
+        "SmallMotor",
+        "Deadzone",
+        "ButtonDeadzone",
+        "AxisScale",
+        "LargeMotorScale",
+        "SmallMotorScale (options only)"
+      ],
+      "Pad": [
+        "MultitapPort1",
+        "MultitapPort2 (only for >2 players)"
+      ],
+      "Hotkeys": [
+        "only hotkey targets with rules"
+      ],
+      "InputSources": [
+        "SDLControllerEnhancedMode (native mode options only)"
+      ]
+    },
+    "never_touch": [
+      "[UI] SettingsVersion (if missing or != 1, PCSX2 resets every setting to defaults)",
+      "[Folders]"
+    ]
+  },
+  "save_behaviour": {
+    "on_change": "Host::CommitBaseSettingChanges starts a single-shot timer, then QtHost::SaveSettings writes the whole PCSX2.ini from memory",
+    "exit": "QtHost main saves PCSX2.ini again if dirty",
+    "migration": "SDL2-style bindings (SDL-0/A, +Axis6, Button21) are rewritten in place on first load",
+    "_implication": "Write only while PCSX2 is not running. External edits made while it runs are lost at its next save."
+  }
+}

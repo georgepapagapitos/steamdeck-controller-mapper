@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "system": "ps3",
+  "name": "Sony PlayStation 3",
+  "controllers": {
+    "dualshock3": {
+      "buttons": ["cross", "circle", "square", "triangle", "l1", "r1", "l3", "r3", "start", "select", "ps"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": ["lstick_x", "lstick_y", "rstick_x", "rstick_y", "l2", "r2", "motion"],
+      "rumble": true
+    }
+  },
+  "default_controller": "dualshock3",
+  "glyphs": {
+    "cross": "✕", "circle": "○", "square": "□", "triangle": "△",
+    "l1": "L1", "r1": "R1", "l3": "L3", "r3": "R3",
+    "start": "START", "select": "SELECT", "ps": "PS"
+  },
+  "positional_default": {
+    "dualshock3": {
+      "cross": "face_south", "circle": "face_east", "square": "face_west", "triangle": "face_north",
+      "l1": "l1", "r1": "r1", "l3": "l3", "r3": "r3", "start": "start", "select": "select", "ps": "guide",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right",
+      "lstick_x": "ls_x", "lstick_y": "ls_y", "rstick_x": "rs_x", "rstick_y": "rs_y",
+      "l2": "l2", "r2": "r2", "motion": "gyro"
+    }
+  },
+  "meta": { "confirm": "dualshock3.cross", "cancel": "dualshock3.circle", "primary": "dualshock3.cross", "secondary": "dualshock3.square" },
+  "_notes": "L2/R2 are in 'analog' because RPCS3 games read trigger pressure. The other pressure-sensitive buttons are handled as in ps2. Sixaxis motion goes to 'motion'; few games use it. ps on guide may clash with Steam; [VERIFY]. Western confirm convention (cross). In RPCS3 the system language/region sets the swap, not this file."
+}

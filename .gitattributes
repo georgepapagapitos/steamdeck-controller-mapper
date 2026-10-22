@@ -1,0 +1,3 @@
+# LF in every checkout, on every OS, so a Windows edit isn't a whole-file diff, the shell scripts run on the Deck,
+# and captured fixtures stay byte-for-byte what the Deck wrote.
+* text=auto eol=lf

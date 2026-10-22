@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "system": "snes",
+  "name": "Super Nintendo / Super Famicom",
+  "controllers": {
+    "standard": {
+      "buttons": ["a", "b", "x", "y", "l", "r", "start", "select"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": [],
+      "rumble": false
+    }
+  },
+  "default_controller": "standard",
+  "glyphs": { "a": "A", "b": "B", "x": "X", "y": "Y", "l": "L", "r": "R", "start": "START", "select": "SELECT" },
+  "positional_default": {
+    "standard": {
+      "b": "face_south", "a": "face_east", "y": "face_west", "x": "face_north",
+      "l": "l1", "r": "r1", "start": "start", "select": "select",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right"
+    }
+  },
+  "label_positions": { "a": "east", "b": "south", "x": "north", "y": "west" },
+  "meta": { "confirm": "standard.a", "cancel": "standard.b", "primary": "standard.b", "secondary": "standard.y" }
+}

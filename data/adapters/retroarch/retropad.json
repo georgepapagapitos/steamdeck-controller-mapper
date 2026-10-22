@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "_verified_against": {
+    "retroarch": "libretro/RetroArch master eb7335f939c39be703662c2a0e07c106f99b64ac (version.all 1.22.2); remap semantics identical at tag v1.22.2",
+    "autoconfig": "libretro/retroarch-joypad-autoconfig master 7f94f847057c0829d4e18df27e50930728507f83"
+  },
+
+  "retropad_ids": {
+    "B": 0, "Y": 1, "SELECT": 2, "START": 3,
+    "UP": 4, "DOWN": 5, "LEFT": 6, "RIGHT": 7,
+    "A": 8, "X": 9, "L": 10, "R": 11,
+    "L2": 12, "R2": 13, "L3": 14, "R3": 15
+  },
+  "analog_half_axis_ids": {
+    "LEFT_X+": 16, "LEFT_X-": 17, "LEFT_Y+": 18, "LEFT_Y-": 19,
+    "RIGHT_X+": 20, "RIGHT_X-": 21, "RIGHT_Y+": 22, "RIGHT_Y-": 23
+  },
+  "unmapped_value": -1,
+  "_ids_notes": "0-15 are RETRO_DEVICE_ID_JOYPAD_* (libretro.h). 16-23 are RetroArch's RARCH_ANALOG_*_PLUS/MINUS (input/input_defines.h, RARCH_FIRST_CUSTOM_BIND = 16). Y+ is down, Y- is up (autoconfig labels l_y_minus 'LS Up'). In memory 'unmapped' is RARCH_UNMAPPED = 1024; in a .rmp it is written and read as -1.",
+
+  "positional_convention": "The RetroPad is SNES-positional: B = south, A = east, Y = west, X = north (libretro.h comments on RETRO_DEVICE_ID_JOYPAD_*). L/R are bumpers, L2/R2 triggers, L3/R3 stick clicks.",
+  "physical_to_retropad": {
+    "face_south": "B", "face_east": "A", "face_west": "Y", "face_north": "X",
+    "dpad_up": "UP", "dpad_down": "DOWN", "dpad_left": "LEFT", "dpad_right": "RIGHT",
+    "l1": "L", "r1": "R", "l2": "L2", "r2": "R2", "l3": "L3", "r3": "R3",
+    "select": "SELECT", "start": "START",
+    "ls_x": "LEFT_X", "ls_y": "LEFT_Y", "rs_x": "RIGHT_X", "rs_y": "RIGHT_Y",
+    "ls_right": "LEFT_X+", "ls_left": "LEFT_X-", "ls_down": "LEFT_Y+", "ls_up": "LEFT_Y-",
+    "rs_right": "RIGHT_X+", "rs_left": "RIGHT_X-", "rs_down": "RIGHT_Y+", "rs_up": "RIGHT_Y-"
+  },
+  "_physical_notes": "Holds only when the active autoconfig profile is positional. Both shipped Steam virtual pad profiles are (sdl2/Steam Virtual Gamepad.cfg: input_b_btn=0 = SDL south; udev/Steam Input x-box.cfg: input_b_btn=0 = BTN_SOUTH). guide, misc1, paddles, touchpad, trackpads and gyro have no RetroPad id and cannot be the source of a remap.",
+
+  "remap_file": {
+    "extension": ".rmp",
+    "format": "RetroArch config_file (key = \"value\" lines). Values are quoted integers when RetroArch writes them; config_get_int also accepts unquoted.",
+    "direction": "KEY names the SOURCE (the RetroPad input as produced by autoconfig for user N); VALUE is the RetroPad id the CORE receives. input_player1_btn_b = \"8\" means pressing RetroPad B sends A to the core.",
+    "identity_rule": "A key that is absent, or whose value equals its own id, is identity. A source remapped away no longer reaches its own id: input_state() drops the original bit when remap_ids[id] != id.",
+    "swap_rule": "Remaps are not swaps. To exchange A and B you must write both input_playerN_btn_a = \"0\" and input_playerN_btn_b = \"8\"; writing only one makes two sources drive one target and leaves the other target unreachable.",
+    "button_keys": "input_player{N}_btn_{b|y|select|start|up|down|left|right|a|x|l|r|l2|r2|l3|r3}",
+    "stick_keys": "input_player{N}_stk_{l_x+|l_x-|l_y+|l_y-|r_x+|r_x-|r_y+|r_y-}",
+    "keyboard_keys": "input_player{N}_key_{same suffixes as btn/stk} = RETROK_* code (keyboard mapper; not managed by map-helper)",
+    "button_value_range": "0-15 (button) or 16-23 (drive an analog half-axis at full deflection) or -1 (unmapped). Out-of-range values are clamped to unmapped by input_remapping_load_file.",
+    "stick_value_range": "16-23 (axis to axis; sign inverted automatically when source and target parity differ) or 0-15 (axis to button above input_axis_threshold) or -1.",
+    "per_port_keys": {
+      "input_libretro_device_p{N}": "libretro device id for core port N (RETRO_DEVICE_JOYPAD = 1, RETRO_DEVICE_ANALOG = 5, subclasses = ((index + 1) << 8) | base). Core specific; see cores/*.json device_types.",
+      "input_remap_port_p{N}": "0-based core port that user N feeds. Several users may feed one port. Value > MAX_USERS is reset to N-1; MAX_USERS means 'feeds no port'.",
+      "input_player{N}_analog_dpad_mode": "0 none, 1 left stick, 2 right stick, 3 left forced, 4 right forced, 5 left+right, 6 twinstick, 7 left+right forced, 8 twinstick forced (enum analog_dpad_mode)."
+    },
+    "other_keys_written": ["input_turbo_enable", "input_turbo_allow_dpad", "input_turbo_mode", "input_turbo_bind", "input_turbo_button", "input_turbo_period", "input_turbo_duty_cycle"],
+    "player_index": "N is 1-based and counts RetroArch users (the Port N Controls menu rows), not core ports. Users are routed to core ports by input_remap_port_pN.",
+    "players_saved": "input_remapping_save_file writes users 1..input_max_users plus any user mapped to a port; btn/stk keys only when not identity; -1 only when the core declared a descriptor for that id. device, analog_dpad_mode and remap_port are always written (remap_port is skipped for a port assigned by 'first press').",
+    "paths": {
+      "game": "<input_remapping_directory>/<library_name>/<content basename without last extension>.rmp",
+      "content_dir": "<input_remapping_directory>/<library_name>/<name of the content's parent directory>.rmp",
+      "core": "<input_remapping_directory>/<library_name>/<library_name>.rmp",
+      "sort_by_controller": "With input_remap_sort_by_controller_enable = true, <library_name> becomes <library_name>/<sanitized display name of user 1's device>."
+    },
+    "load_order": "game, then content_dir, then core. The FIRST file found is loaded and the search stops. Files do not layer: input_remapping_load_file resets every remap to defaults first.",
+    "save_on_exit": "remap_save_on_exit (default true) rewrites the file that was loaded, from memory, when content closes or RetroArch quits."
+  },
+
+  "binding_values_in_cfg": {
+    "_applies_to": "retroarch.cfg input_player{N}_* and input_* hotkey binds, and autoconfig files. Values are device-specific indices for the active input_joypad_driver.",
+    "button": "\"<n>\" = joypad button index from the driver (key suffix _btn)",
+    "hat": "\"h<hat><up|down|left|right>\", e.g. \"h0up\" (key suffix _btn)",
+    "axis": "\"+<n>\" or \"-<n>\" = axis n positive/negative half (key suffix _axis)",
+    "unbound": "\"nul\"",
+    "keyboard": "input_<name> = key name such as \"f2\" (no suffix); mouse uses _mbtn",
+    "precedence": "A user bind in retroarch.cfg wins; if it is nul / unset the autoconfig profile's bind is used (input_key_pressed in input_driver.c)."
+  },
+
+  "steam_virtual_pad_indices": {
+    "_source": "retroarch-joypad-autoconfig sdl2/Steam Virtual Gamepad.cfg and udev/Steam Input x-box.cfg (both VID 10462 = 0x28DE, PID 4607 = 0x11FF)",
+    "sdl2": {
+      "face_south": "0", "face_east": "1", "face_west": "2", "face_north": "3",
+      "select": "4", "guide": "5", "start": "6", "l3": "7", "r3": "8", "l1": "9", "r1": "10",
+      "dpad_up": "11", "dpad_down": "12", "dpad_left": "13", "dpad_right": "14",
+      "l2": "+4 (axis)", "r2": "+5 (axis)",
+      "_guide_note": "guide = 5 is SDL_CONTROLLER_BUTTON_GUIDE; it is not bound in the shipped profile [VERIFY that Steam forwards it]"
+    },
+    "udev": {
+      "face_south": "0", "face_east": "1", "face_west": "2", "face_north": "3",
+      "l1": "4", "r1": "5", "select": "6", "start": "7", "guide": "8", "l3": "9", "r3": "10",
+      "dpad_up": "h0up", "dpad_down": "h0down", "dpad_left": "h0left", "dpad_right": "h0right",
+      "l2": "+2 (axis)", "r2": "+5 (axis)"
+    }
+  },
+
+  "hotkeys": {
+    "_key_rule": "Hotkeys (meta binds) exist only for user 1 and use prefix 'input_' (input_config_get_prefix). Joypad button: input_<base>_btn; axis: input_<base>_axis; keyboard: input_<base>.",
+    "enable": "input_enable_hotkey_btn",
+    "hotkey.menu": "input_menu_toggle_btn",
+    "hotkey.exit": "input_exit_emulator_btn",
+    "hotkey.save_state": "input_save_state_btn",
+    "hotkey.load_state": "input_load_state_btn",
+    "hotkey.next_slot": "input_state_slot_increase_btn",
+    "hotkey.prev_slot": "input_state_slot_decrease_btn",
+    "hotkey.fast_forward": "input_hold_fast_forward_btn",
+    "hotkey.fast_forward_toggle": "input_toggle_fast_forward_btn",
+    "hotkey.rewind": "input_rewind_btn",
+    "hotkey.screenshot": "input_screenshot_btn",
+    "hotkey.pause": "input_pause_toggle_btn",
+    "hotkey.toggle_fullscreen": "input_toggle_fullscreen_btn",
+    "_other_bases": "close_content, reset, toggle_slowmotion, hold_slowmotion, frame_advance, audio_mute, volume_up, volume_down, disk_eject_toggle, disk_next, disk_prev, shader_toggle, shader_next, shader_prev, cheat_toggle, recording_toggle, streaming_toggle, turbo_fire_toggle, game_focus_toggle, runahead_toggle, fps_toggle, ai_service, osk_toggle, ... (input_config_bind_map in configuration.c)"
+  }
+}

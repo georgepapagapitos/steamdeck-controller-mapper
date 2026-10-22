@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "system": "wiiu",
+  "name": "Nintendo Wii U",
+  "controllers": {
+    "gamepad": {
+      "buttons": ["a", "b", "x", "y", "l", "r", "zl", "zr", "plus", "minus", "home", "l3", "r3", "touch_press", "tv"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": ["lstick_x", "lstick_y", "rstick_x", "rstick_y", "touch_x", "touch_y", "motion"],
+      "rumble": true,
+      "allow_shared_sources": ["touch_x+touch_y"]
+    },
+    "pro": {
+      "buttons": ["a", "b", "x", "y", "l", "r", "zl", "zr", "plus", "minus", "home", "l3", "r3"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": ["lstick_x", "lstick_y", "rstick_x", "rstick_y"],
+      "rumble": true
+    }
+  },
+  "default_controller": "gamepad",
+  "glyphs": {
+    "a": "A", "b": "B", "x": "X", "y": "Y", "l": "L", "r": "R", "zl": "ZL", "zr": "ZR",
+    "plus": "+", "minus": "−", "home": "HOME", "l3": "L3", "r3": "R3", "touch_press": "TOUCH", "tv": "TV"
+  },
+  "positional_default": {
+    "gamepad": {
+      "b": "face_south", "a": "face_east", "y": "face_west", "x": "face_north",
+      "l": "l1", "r": "r1", "zl": "l2", "zr": "r2",
+      "plus": "start", "minus": "select", "home": "guide", "l3": "l3", "r3": "r3",
+      "touch_press": "touchpad_click", "tv": "none",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right",
+      "lstick_x": "ls_x", "lstick_y": "ls_y", "rstick_x": "rs_x", "rstick_y": "rs_y",
+      "touch_x": "touchpad", "touch_y": "touchpad", "motion": "gyro"
+    },
+    "pro": {
+      "b": "face_south", "a": "face_east", "y": "face_west", "x": "face_north",
+      "l": "l1", "r": "r1", "zl": "l2", "zr": "r2",
+      "plus": "start", "minus": "select", "home": "guide", "l3": "l3", "r3": "r3",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right",
+      "lstick_x": "ls_x", "lstick_y": "ls_y", "rstick_x": "rs_x", "rstick_y": "rs_y"
+    }
+  },
+  "label_positions": { "a": "east", "b": "south", "x": "north", "y": "west" },
+  "meta": { "confirm": "gamepad.a", "cancel": "gamepad.b", "primary": "gamepad.b", "secondary": "gamepad.y" },
+  "_notes": "Cemu also emulates Wiimote/Nunchuk/Classic for Wii U games. They are left out here and can reuse the wii.json types if needed. GamePad touch goes to the controller touchpad surface like 3ds (Cemu usually takes touch from the mouse; Steam trackpad-as-mouse covers the Deck). tv is the GamePad TV-remote button and is unbound. Cemu's 'swap screens' is a hotkey, not a console input. motion via cemuhook/SDL is set by options.motion_provider."
+}

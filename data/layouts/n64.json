@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "system": "n64",
+  "name": "Nintendo 64",
+  "controllers": {
+    "standard": {
+      "buttons": ["a", "b", "z", "l", "r", "start", "c_up", "c_down", "c_left", "c_right"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": ["stick_x", "stick_y"],
+      "rumble": true
+    }
+  },
+  "default_controller": "standard",
+  "glyphs": {
+    "a": "A", "b": "B", "z": "Z", "l": "L", "r": "R", "start": "START",
+    "c_up": "C▲", "c_down": "C▼", "c_left": "C◀", "c_right": "C▶"
+  },
+  "positional_default": {
+    "standard": {
+      "a": "face_south", "b": "face_west", "z": "l2", "l": "l1", "r": "r1", "start": "start",
+      "c_up": "rs_up", "c_down": "rs_down", "c_left": "rs_left", "c_right": "rs_right",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right",
+      "stick_x": "ls_x", "stick_y": "ls_y"
+    }
+  },
+  "label_positions": { "a": "south", "b": "west" },
+  "meta": { "confirm": "standard.a", "cancel": "standard.b", "primary": "standard.a", "secondary": "standard.b" },
+  "_notes": "Default is the n64-c-buttons-on-right-stick preset: C buttons on right-stick half-axes, Z on l2 (the N64 Z trigger sits under the left hand on the centre grip), L on l1, R on r1. That leaves face_east and face_north unbound; the n64-c-buttons-on-face preset puts c_down on face_east and c_left on face_north (Mupen64Plus-Next style). rumble=true assumes a Rumble Pak; the actual pak is the 'pak' option (rumble|memory|transfer|none), not a controller type."
+}

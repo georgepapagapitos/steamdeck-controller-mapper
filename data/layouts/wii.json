@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "system": "wii",
+  "name": "Nintendo Wii",
+  "controllers": {
+    "wiimote": {
+      "buttons": ["a", "b", "one", "two", "plus", "minus", "home", "shake"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": ["ir_x", "ir_y", "tilt"],
+      "rumble": true
+    },
+    "wiimote_nunchuk": {
+      "buttons": ["a", "b", "one", "two", "plus", "minus", "home", "shake", "c", "z", "nunchuk_shake"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": ["ir_x", "ir_y", "tilt", "nunchuk_x", "nunchuk_y"],
+      "rumble": true
+    },
+    "classic": {
+      "buttons": ["a", "b", "x", "y", "l_digital", "r_digital", "zl", "zr", "plus", "minus", "home"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": ["lstick_x", "lstick_y", "rstick_x", "rstick_y", "l_analog", "r_analog"],
+      "rumble": false,
+      "allow_shared_sources": ["l_digital+l_analog", "r_digital+r_analog"]
+    }
+  },
+  "default_controller": "wiimote_nunchuk",
+  "glyphs": {
+    "a": "A", "b": "B", "one": "1", "two": "2", "plus": "+", "minus": "−", "home": "HOME",
+    "shake": "SHAKE", "c": "C", "z": "Z", "nunchuk_shake": "NUNCHUK SHAKE",
+    "x": "X", "y": "Y", "l_digital": "L", "r_digital": "R", "zl": "ZL", "zr": "ZR"
+  },
+  "positional_default": {
+    "wiimote": {
+      "a": "face_south", "b": "r2", "one": "face_west", "two": "face_north",
+      "plus": "start", "minus": "select", "home": "guide", "shake": "r1",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right",
+      "ir_x": "rs_x", "ir_y": "rs_y", "tilt": "accel"
+    },
+    "wiimote_nunchuk": {
+      "a": "face_south", "b": "r2", "one": "face_west", "two": "face_north",
+      "plus": "start", "minus": "select", "home": "guide", "shake": "r1",
+      "c": "l1", "z": "l2", "nunchuk_shake": "l3",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right",
+      "ir_x": "rs_x", "ir_y": "rs_y", "tilt": "accel", "nunchuk_x": "ls_x", "nunchuk_y": "ls_y"
+    },
+    "classic": {
+      "b": "face_south", "a": "face_east", "y": "face_west", "x": "face_north",
+      "zl": "l1", "zr": "r1", "l_digital": "l2", "r_digital": "r2", "l_analog": "l2", "r_analog": "r2",
+      "plus": "start", "minus": "select", "home": "guide",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right",
+      "lstick_x": "ls_x", "lstick_y": "ls_y", "rstick_x": "rs_x", "rstick_y": "rs_y"
+    }
+  },
+  "label_positions": { "a": "east", "b": "south", "x": "north", "y": "west" },
+  "meta": { "confirm": "wiimote_nunchuk.a", "cancel": "wiimote_nunchuk.b", "primary": "wiimote_nunchuk.a", "secondary": "wiimote_nunchuk.b" },
+  "_notes": "Wiimote pointer (ir_x/ir_y) is on the right stick by default: every pad has one, and the stick is free in Wiimote and Nunchuk modes. Gyro pointing is opt-in through the gyro-aim preset (options.gyro mode 'pointer'). The Wiimote is modelled held upright (A main, B trigger on r2). Sideways NES-style games want two=face_east, one=face_south; that is a per-game rule, not a separate controller type. tilt is accel-driven where the pad has an accelerometer, otherwise unbound. On the Classic Controller, L/R are the analog triggers, so they take l2/r2 and the digital ZL/ZR take l1/r1. That is the opposite of the Classic Controller Pro's physical layout; review. label_positions here describes the Classic Controller only: Wiimote a/b aren't on a compass. meta targets wiimote_nunchuk, the default, because most Wii games use it."
+}

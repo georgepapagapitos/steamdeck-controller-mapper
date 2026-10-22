@@ -1,0 +1,24 @@
+[slot 0]
+name=#SettingsController_SteamController
+VID=0x28de
+PID=0x1205
+handle=0x000000ff3522fdac
+type=steam
+[slot 1]
+name=DualSense Wireless Controller
+VID=0x054c
+PID=0x0ce6
+handle=0x000d88034c25126a
+type=ps5
+[slot 2]
+name=8Bitdo Ultimate 2 Wireless Controller
+VID=0x2dc8
+PID=0x6012
+handle=0x0001e417d870513e
+type=unknown
+[slot 3]
+name=Nintendo Switch Pro Controller
+VID=0x057e
+PID=0x2009
+handle=0x00027cbb8ad54982
+type=switchpro

@@ -1,0 +1,30 @@
+{
+  "core": "melonDS DS",
+  "core_files": [
+    "melondsds_libretro.so"
+  ],
+  "systems": [
+    "nds"
+  ],
+  "sources": [
+    "https://github.com/JesseTG/melonds-ds/blob/f394adbacb5722ee97c1b37c8064da9a25818310/CMakeLists.txt#L21",
+    "https://github.com/JesseTG/melonds-ds/blob/f394adbacb5722ee97c1b37c8064da9a25818310/src/libretro/libretro.cpp#L172",
+    "https://github.com/JesseTG/melonds-ds/blob/f394adbacb5722ee97c1b37c8064da9a25818310/src/libretro/input/input.cpp#L53"
+  ],
+  "targets": {
+    "nds.standard.a": "A",
+    "nds.standard.b": "B",
+    "nds.standard.x": "X",
+    "nds.standard.y": "Y",
+    "nds.standard.l": "L",
+    "nds.standard.r": "R",
+    "nds.standard.start": "START",
+    "nds.standard.select": "SELECT",
+    "nds.standard.up": "UP",
+    "nds.standard.down": "DOWN",
+    "nds.standard.left": "LEFT",
+    "nds.standard.right": "RIGHT",
+    "nds.standard.microphone": "L3"
+  },
+  "notes": "L2 = pointer speed / alternate controls modifier, R2 = touch joystick, R3 = next screen layout (frontend-ish functions, not console buttons)."
+}

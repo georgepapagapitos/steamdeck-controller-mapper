@@ -1,0 +1,16 @@
+{
+  "$schema": "../schema/rule.schema.json",
+  "schema_version": 1,
+  "id": "user.model-dualsense-edge.ps2.paddles",
+  "label": "DualSense Edge: back paddles = L3/R3 on PS2",
+  "requires": ["paddles"],
+  "applies_to": {
+    "controller": { "level": "model", "value": "sony.dualsense-edge" },
+    "content": { "level": "system", "system": "ps2" }
+  },
+  "bindings": {
+    "ps2.dualshock2.l3": { "input": "paddle1" },
+    "ps2.dualshock2.r3": { "input": "paddle2" }
+  },
+  "notes": "Only works in native mode (Steam Input off); in passthrough Steam must map the paddles. The trace warns."
+}

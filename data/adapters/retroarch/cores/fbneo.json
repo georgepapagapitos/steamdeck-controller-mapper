@@ -1,0 +1,87 @@
+{
+  "core": "FinalBurn Neo",
+  "core_files": [
+    "fbneo_libretro.so"
+  ],
+  "systems": [
+    "arcade",
+    "neogeo",
+    "cps1",
+    "cps2",
+    "cps3"
+  ],
+  "sources": [
+    "https://github.com/libretro/FBNeo/blob/2b0c1c0679df115cada7df9199ea2762222e58fd/src/burner/libretro/libretro.cpp#L452",
+    "https://github.com/libretro/FBNeo/blob/2b0c1c0679df115cada7df9199ea2762222e58fd/src/burner/title.h#L5",
+    "https://github.com/libretro/FBNeo/blob/2b0c1c0679df115cada7df9199ea2762222e58fd/src/burner/libretro/retro_input.cpp#L54",
+    "https://github.com/libretro/FBNeo/blob/2b0c1c0679df115cada7df9199ea2762222e58fd/src/burner/libretro/retro_input.cpp#L2431",
+    "https://github.com/libretro/FBNeo/blob/2b0c1c0679df115cada7df9199ea2762222e58fd/src/burner/libretro/retro_input.h#L35"
+  ],
+  "device_types": {
+    "classic": 5,
+    "6panel": 261,
+    "modern": 517
+  },
+  "targets": {
+    "arcade.generic.button1": "B",
+    "arcade.generic.button2": "A",
+    "arcade.generic.button3": "Y",
+    "arcade.generic.button4": "X",
+    "arcade.generic.button5": "R",
+    "arcade.generic.button6": "L",
+    "arcade.generic.button7": "R2",
+    "arcade.generic.button8": "L2",
+    "arcade.generic.button9": "R3",
+    "arcade.generic.coin": "SELECT",
+    "arcade.generic.start": "START",
+    "arcade.generic.up": "UP",
+    "arcade.generic.down": "DOWN",
+    "arcade.generic.left": "LEFT",
+    "arcade.generic.right": "RIGHT",
+    "arcade.sf6.lp": "Y",
+    "arcade.sf6.mp": "X",
+    "arcade.sf6.hp": "L",
+    "arcade.sf6.lk": "B",
+    "arcade.sf6.mk": "A",
+    "arcade.sf6.hk": "R",
+    "arcade.sf6.coin": "SELECT",
+    "arcade.sf6.start": "START",
+    "arcade.sf6.up": "UP",
+    "arcade.sf6.down": "DOWN",
+    "arcade.sf6.left": "LEFT",
+    "arcade.sf6.right": "RIGHT",
+    "neogeo.standard.a": "B",
+    "neogeo.standard.b": "A",
+    "neogeo.standard.c": "Y",
+    "neogeo.standard.d": "X",
+    "neogeo.standard.coin": "SELECT",
+    "neogeo.standard.start": "START",
+    "neogeo.standard.up": "UP",
+    "neogeo.standard.down": "DOWN",
+    "neogeo.standard.left": "LEFT",
+    "neogeo.standard.right": "RIGHT"
+  },
+  "core_option_variants": {
+    "device=modern (517)": {
+      "arcade.sf6.lp": "Y",
+      "arcade.sf6.mp": "X",
+      "arcade.sf6.hp": "R",
+      "arcade.sf6.lk": "B",
+      "arcade.sf6.mk": "A",
+      "arcade.sf6.hk": "R2",
+      "neogeo.standard.a": "Y",
+      "neogeo.standard.b": "B",
+      "neogeo.standard.c": "X",
+      "neogeo.standard.d": "A"
+    },
+    "device=6panel (261)": {
+      "arcade.generic.button1": "Y",
+      "arcade.generic.button2": "X",
+      "arcade.generic.button3": "L",
+      "arcade.generic.button4": "B",
+      "arcade.generic.button5": "A",
+      "arcade.generic.button6": "R"
+    }
+  },
+  "notes": "Mapping is generated per game from driver input names (GameInpStandardOne): fire N -> FIRE0N macros; 3P+3K games use the SF layout. Subset builds report 'FinalBurn Neo (<subset> subset)'. Content is an archive: block_extract style naming uses the zip basename."
+}

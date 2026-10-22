@@ -1,0 +1,12 @@
+captured: 2026-10-22T15:23:12-05:00
+PRETTY_NAME="SteamOS"
+VERSION_ID=3.8.28
+BUILD_ID=20260922.1
+python: Python 3.13.5
+board: Galileo
+emudeck backend: dddb3022 2026-10-05
+org.DolphinEmu.dolphin-emu	2606a
+org.libretro.RetroArch	1.22.2
+DuckStation.AppImage
+DuckStation.AppImage.backup
+pcsx2-Qt.AppImage

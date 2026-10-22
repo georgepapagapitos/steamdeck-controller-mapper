@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "system": "atari2600",
+  "name": "Atari 2600 (VCS)",
+  "controllers": {
+    "joystick": {
+      "buttons": ["fire", "reset", "select", "left_difficulty", "right_difficulty", "color_bw"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": [],
+      "rumble": false
+    },
+    "paddle": {
+      "buttons": ["fire", "reset", "select", "left_difficulty", "right_difficulty", "color_bw"],
+      "dpad": [],
+      "analog": ["paddle"],
+      "rumble": false
+    }
+  },
+  "default_controller": "joystick",
+  "glyphs": {
+    "fire": "FIRE", "reset": "RESET", "select": "SELECT",
+    "left_difficulty": "L DIFF", "right_difficulty": "R DIFF", "color_bw": "COLOR/BW"
+  },
+  "positional_default": {
+    "joystick": {
+      "fire": "face_south", "reset": "start", "select": "select",
+      "left_difficulty": "l1", "right_difficulty": "r1", "color_bw": "l2",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right"
+    },
+    "paddle": {
+      "fire": "face_south", "reset": "start", "select": "select",
+      "left_difficulty": "l1", "right_difficulty": "r1", "color_bw": "l2",
+      "paddle": "ls_x"
+    }
+  },
+  "meta": { "confirm": "joystick.fire", "cancel": "joystick.select", "primary": "joystick.fire", "secondary": "joystick.fire" },
+  "_notes": "reset, select, the difficulty switches and color/bw are console switches, not controller inputs, but they are listed per controller type so every target has a binding. Stella maps them to Start/Select/L1/R1/L2 [VERIFY]. The joystick has one button, so meta.secondary also points at fire and meta.cancel at select; review whether meta keys may be omitted instead. Driving and keypad controllers are not modelled."
+}

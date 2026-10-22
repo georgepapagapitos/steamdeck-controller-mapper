@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "system": "arcade",
+  "name": "Arcade (MAME, FBNeo, NAOMI, Atomiswave)",
+  "controllers": {
+    "generic": {
+      "buttons": ["button1", "button2", "button3", "button4", "button5", "button6", "button7", "button8", "coin", "start"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": [],
+      "rumble": false
+    }
+  },
+  "default_controller": "generic",
+  "glyphs": {
+    "button1": "1", "button2": "2", "button3": "3", "button4": "4",
+    "button5": "5", "button6": "6", "button7": "7", "button8": "8",
+    "coin": "COIN", "start": "START"
+  },
+  "positional_default": {
+    "generic": {
+      "button1": "face_south", "button2": "face_east", "button3": "face_west", "button4": "face_north",
+      "button5": "l1", "button6": "r1", "button7": "l2", "button8": "r2",
+      "coin": "select", "start": "start",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right"
+    }
+  },
+  "meta": { "confirm": "generic.button1", "cancel": "generic.button2", "primary": "generic.button1", "secondary": "generic.button2" },
+  "_notes": "Player-1 style generic panel; ports are separate player slots. The joystick is modelled as 'dpad'. Button numbering follows standalone MAME's XInput defaults (B1=A, B2=B, B3=X, B4=Y, B5=LB, B6=RB, B7=LT, B8=RT). FBNeo and MAME libretro remap per driver. 6-button fighters (CPS2) want the fightpad-6 preset (LP/MP/HP = west/north/r1, LK/MK/HK = south/east/r2). Analog cabinet controls (wheels, trackballs, lightguns, spinners) are not modelled. Neo Geo has its own layout (neogeo.json)."
+}

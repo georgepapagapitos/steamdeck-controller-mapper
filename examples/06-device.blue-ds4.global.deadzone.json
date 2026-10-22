@@ -1,0 +1,11 @@
+{
+  "$schema": "../schema/rule.schema.json",
+  "schema_version": 1,
+  "id": "user.device-blue-ds4.global.deadzone",
+  "label": "Blue DS4: worn left stick",
+  "applies_to": {
+    "controller": { "level": "device", "value": "mac:aa:bb:cc:dd:ee:ff" },
+    "content": { "level": "global" }
+  },
+  "options": { "deadzones": { "ls": 0.18 } }
+}

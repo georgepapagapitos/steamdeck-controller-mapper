@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+# Claude Code setup, shared between machines through the private steamdeck-controller-mapper-agent repo and symlinked in (see its README).
+CLAUDE.md
+AGENTS.md
+BOARD.md
+.claude

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "system": "scummvm",
+  "name": "ScummVM (point-and-click engines)",
+  "controllers": {
+    "standard": {
+      "buttons": ["left_click", "right_click", "skip", "skip_line", "menu", "virtual_keyboard"],
+      "dpad": [],
+      "analog": ["pointer_x", "pointer_y"],
+      "rumble": false
+    }
+  },
+  "default_controller": "standard",
+  "glyphs": {
+    "left_click": "LEFT CLICK", "right_click": "RIGHT CLICK", "skip": "SKIP (ESC)",
+    "skip_line": "SKIP LINE (.)", "menu": "MENU", "virtual_keyboard": "KEYBOARD"
+  },
+  "positional_default": {
+    "standard": {
+      "left_click": "face_south", "right_click": "face_east", "skip": "face_west", "skip_line": "face_north",
+      "menu": "start", "virtual_keyboard": "select",
+      "pointer_x": "ls_x", "pointer_y": "ls_y"
+    }
+  },
+  "meta": { "confirm": "standard.left_click", "cancel": "standard.right_click", "primary": "standard.left_click", "secondary": "standard.right_click" },
+  "_notes": "Not a console: a small abstract action set ScummVM (standalone keymapper or libretro core) can bind. pointer_x/pointer_y are a pointer target driven by the left stick; Steam trackpad-as-mouse also works with no binding. skip = Esc (skip cutscene), skip_line = '.', menu = the ScummVM global main menu (Ctrl+F5). [VERIFY] the action ids in ScummVM's keymapper. Per-engine keys (verbs, inventory) are left out."
+}

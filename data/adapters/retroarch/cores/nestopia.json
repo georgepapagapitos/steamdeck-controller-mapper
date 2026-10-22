@@ -1,0 +1,42 @@
+{
+  "core": "Nestopia",
+  "core_files": [
+    "nestopia_libretro.so"
+  ],
+  "systems": [
+    "nes",
+    "fds"
+  ],
+  "sources": [
+    "https://github.com/libretro/nestopia/blob/06a8949e0b3cf60e3a38a374b1426bf40fccb9a0/libretro/libretro.cpp#L618",
+    "https://github.com/libretro/nestopia/blob/06a8949e0b3cf60e3a38a374b1426bf40fccb9a0/libretro/libretro.cpp#L2025"
+  ],
+  "targets": {
+    "nes.standard.a": "A",
+    "nes.standard.b": "B",
+    "nes.standard.turbo_a": "X",
+    "nes.standard.turbo_b": "Y",
+    "nes.standard.start": "START",
+    "nes.standard.select": "SELECT",
+    "nes.standard.up": "UP",
+    "nes.standard.down": "DOWN",
+    "nes.standard.left": "LEFT",
+    "nes.standard.right": "RIGHT",
+    "fds.standard.a": "A",
+    "fds.standard.b": "B",
+    "fds.standard.turbo_a": "X",
+    "fds.standard.turbo_b": "Y",
+    "fds.standard.start": "START",
+    "fds.standard.select": "SELECT",
+    "fds.standard.up": "UP",
+    "fds.standard.down": "DOWN",
+    "fds.standard.left": "LEFT",
+    "fds.standard.right": "RIGHT",
+    "fds.standard.switch_disk_side": "L",
+    "fds.standard.eject_disk": "R"
+  },
+  "core_option_variants": {
+    "nestopia_button_shift=enabled": "rotates A/B/turbo clockwise like Mesen [VERIFY exact table]"
+  },
+  "notes": "Port 1 extras: L2/R2 = VS System coin 1/2, L3 = Famicom microphone."
+}

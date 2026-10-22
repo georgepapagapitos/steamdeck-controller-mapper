@@ -1,0 +1,13 @@
+{
+  "$schema": "../schema/rule.schema.json",
+  "schema_version": 1,
+  "id": "user.any.gc.gale01",
+  "label": "Melee: Z on R1 is too far, use L1",
+  "applies_to": {
+    "controller": { "level": "any" },
+    "content": { "level": "game", "system": "gc", "game_id": "GALE01" }
+  },
+  "bindings": {
+    "gc.standard.z": { "input": "l1" }
+  }
+}

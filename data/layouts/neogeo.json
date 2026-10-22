@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "system": "neogeo",
+  "name": "SNK Neo Geo (AES/MVS/CD)",
+  "controllers": {
+    "standard": {
+      "buttons": ["a", "b", "c", "d", "start", "select"],
+      "dpad": ["up", "down", "left", "right"],
+      "analog": [],
+      "rumble": false
+    }
+  },
+  "default_controller": "standard",
+  "glyphs": { "a": "A", "b": "B", "c": "C", "d": "D", "start": "START", "select": "SELECT/COIN" },
+  "positional_default": {
+    "standard": {
+      "a": "face_south", "b": "face_east", "c": "face_west", "d": "face_north",
+      "start": "start", "select": "select",
+      "up": "dpad_up", "down": "dpad_down", "left": "dpad_left", "right": "dpad_right"
+    }
+  },
+  "meta": { "confirm": "standard.a", "cancel": "standard.b", "primary": "standard.a", "secondary": "standard.b" },
+  "_notes": "A/B on the bottom row (south/east) and C/D on top (west/north), FBNeo's 'classic' Neo Geo pad layout. The other common choice follows the MVS straight row / AES arc: A/B/C/D = face_west/face_south/face_east/face_north. [VERIFY] the EmuDeck/FBNeo default. select is the AES select button and the MVS coin; FBNeo maps coin to RetroPad Select."
+}

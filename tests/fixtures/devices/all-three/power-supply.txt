@@ -1,0 +1,5 @@
+/sys/class/power_supply/ACAD type=Mains online=0
+/sys/class/power_supply/BAT1 type=Battery online=
+/sys/class/power_supply/hidpp_battery_0 type=Battery online=1
+/sys/class/power_supply/nintendo_switch_controller_battery_0003:057E:2009.0012 type=Battery online=
+/sys/class/power_supply/ps-controller-battery-88:03:4c:25:12:6a type=Battery online=
