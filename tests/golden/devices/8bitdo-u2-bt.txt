@@ -1,3 +1,4 @@
+policy: steam-order (handheld: no external display)
 2dc8:6012  8BitDo Ultimate 2 Wireless               model=8bitdo.ultimate2 style=xbox mode=passthrough steam_slot=1
 steam slot 0: #SettingsController_SteamController (28de:1205, model=valve.steamdeck) -> event10 js0
     player 1: retroarch port 0, dolphin SDL/0/#SettingsController_SteamController

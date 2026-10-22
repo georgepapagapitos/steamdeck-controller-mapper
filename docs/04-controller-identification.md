@@ -197,20 +197,28 @@ Getting player order right matters a lot for couch play and for the docked Deck.
 | Policy | Behaviour |
 |--------|-----------|
 | `steam-order` (default) | Match whatever order Steam assigns its virtual gamepads. Player K is the K-th live slot in `virtualgamepadinfo.txt` (slots with no virtual pad are skipped). Steam's slot number is in each virtual pad's evdev name (`Microsoft X-Box 360 pad <N>`), and the file says which physical pad is in each slot (§5.2). "Reorder controllers" rewrites the file and re-feeds the virtual pads at once (S1, `all-three-reordered`), so the user picks P1 in Steam. Implemented (`devices.steam_order`). |
-| `external-first` | External controllers become P1..Pn in connection order. Deck built-in controls go last, or are disabled for emulation. This is the "docked" experience. |
+| `external-first` | External controllers become P1..Pn in Steam's order, and the Deck's own controls go last. This is the "docked" experience, and the default when docked (owner's decision, 2026-10-22). Implemented (`devices.player_order`). |
 | `pinned` | The user pins devices to slots: "Blue DS4 is always P1, 8BitDo P2". Unpinned devices fill the gaps. |
 | `deck-only` | Only the built-in controls (handheld). |
 
-Docked detection can switch the policy automatically:
-`handheld → deck-only`, `docked → external-first`. Signals, in order of
-reliability:
+Docked detection switches the policy automatically (`--policy auto`, the
+default for `devices` and `apply`): `docked → external-first`, handheld keeps
+`steam-order` (owner's decision, 2026-10-22). Both commands print the policy and
+why (`policy: external-first (docked: DP-1 connected)`). When docked can't be
+decided (no external DRM connector to read), they fall back to `steam-order`
+and say so. `--policy` overrides it. Signals, in order of reliability:
 
 1. **External display**: any `/sys/class/drm/card*-*/status` other than the internal panel (`card*-eDP-*`) reading `connected`. The kernel's `status` attribute is always one of `connected` / `disconnected` / `unknown` (`drm_sysfs.c` `status_show` → `drm_get_connector_status_name`). Don't hard-code `card0` vs `card1`, since the index differs between SteamOS releases and models. Glob, and skip `eDP`. On the Deck an external screen arrives as a `DP-*` connector through USB-C DP alt-mode (dock or adapter) **[VERIFY]** (S9): the connector name on LCD vs OLED.
 2. **External power**: `/sys/class/power_supply/*` with `type` = `Mains` or `USB` and `online` = `1` (kernel ABI `sysfs-class-power`). The Deck's supply name (`ACAD`?) is **[VERIFY]** (S9), so glob by `type` rather than name. Power alone isn't "docked" (charging in handheld), so only use it as a tiebreaker.
 3. **External controller count > 0** is the strongest *intent* signal and is already known from the probe.
 
 Rule: `docked = external_display_connected || (external_power && external_pads > 0)`.
-Re-evaluate at launch only. No daemon is needed.
+Re-evaluate at launch only. No daemon is needed. Implemented in `devices.docked`:
+connectors other than `eDP-*` and `Writeback-*` (virtual, always `unknown`) are
+external, and supplies count only by `type` (the Switch Pro's battery is
+`type=Battery`). The `docked` capture reads docked (`DP-1` connected); every
+handheld capture reads handheld (`DP-1` disconnected, `ACAD` offline). The power
+tiebreaker (a dock with the TV off) has no capture yet **[VERIFY]**.
 
 ### 5.2 Mapping slots to what the emulator sees
 
@@ -294,8 +302,9 @@ emulator index) does this at launch:
    With `nodes`, Steam's slot order and the emulator's order differ whenever Steam created the virtual pads out of
    slot order, which a Game Mode session did (S1); with `slots` they agree by construction.
 
-Pads Steam doesn't virtualise (Steam Input off for them) are players after the Steam pads, in the emulator's
-order **[VERIFY]**: SDL may open them through HIDAPI, whose order isn't modelled.
+Pads Steam doesn't virtualise (Steam Input off for them) are players after the Steam pads (owner confirmed).
+Their order among themselves follows the emulator's enumeration **[VERIFY]**: SDL may open them through HIDAPI,
+whose order isn't modelled.
 
 #### Policies on top of that
 

@@ -12,8 +12,9 @@ from tests.helpers import REPO
 from maphelper import cli
 from maphelper.adapters.dolphin import DolphinAdapter
 from maphelper.adapters.retroarch import RetroArchAdapter
-from maphelper.devices import (SDL_ORDER_NODES, SDL_ORDER_SLOTS, parse_proc_input_devices,
-                               parse_virtual_gamepad_info, sdl_joysticks, steam_order, steam_slots)
+from maphelper.devices import (POLICY_EXTERNAL_FIRST, POLICY_STEAM_ORDER, SDL_ORDER_NODES, SDL_ORDER_SLOTS, docked,
+                               parse_drm_status, parse_power_supply, parse_proc_input_devices,
+                               parse_virtual_gamepad_info, player_order, sdl_joysticks, steam_order, steam_slots)
 
 DEVICES = REPO / "tests" / "fixtures" / "devices"
 GOLDEN = REPO / "tests" / "golden"
@@ -163,6 +164,38 @@ class AdapterTest(unittest.TestCase):
         self.assertEqual(adapter.check(root, core, lambda *_: None), [])
 
 
+class DockedTest(unittest.TestCase):
+    def state(self, scenario, external_pads=1):
+        root = DEVICES / scenario
+        return docked(parse_drm_status((root / "drm-status.txt").read_text(encoding="utf-8")),
+                      parse_power_supply((root / "power-supply.txt").read_text(encoding="utf-8")), external_pads)
+
+    def test_captures(self):
+        self.assertEqual(self.state("docked"), (True, "DP-1 connected"))
+        for scenario in ("deck-only", "all-three", "all-three-reordered", "dualsense-bt", "switchpro-usb"):
+            self.assertFalse(self.state(scenario)[0], scenario)
+
+    def test_power_is_only_a_tiebreaker(self):
+        drm = {"eDP-1": "connected", "DP-1": "disconnected", "Writeback-1": "unknown"}
+        self.assertEqual(docked(drm, {"ACAD": ("Mains", "1")}, 1)[0], True)    # dock without a TV on, pad in hand
+        self.assertEqual(docked(drm, {"ACAD": ("Mains", "1")}, 0)[0], False)   # charging handheld
+        self.assertEqual(docked(drm, {"BAT1": ("Battery", "1")}, 1)[0], False)  # a pad's battery isn't power
+
+    def test_undecided_without_connectors(self):
+        self.assertIsNone(docked({}, {"ACAD": ("Mains", "1")}, 1)[0])
+        self.assertIsNone(docked({"eDP-1": "connected"}, {}, 0)[0])
+
+    def test_external_first_moves_the_deck_last(self):
+        # Steam's session put the Deck back in slot 0 (BOARD: switching sessions resets the order).
+        deck_first = "[slot 0]" + GAME_MODE_INFO.split("[slot 1]")[1] + "[slot 1]" + \
+            GAME_MODE_INFO.split("[slot 1]")[0].removeprefix("[slot 0]")
+        joys = joysticks(GAME_MODE_PROC, deck_first, SDL_ORDER_NODES)
+        self.assertEqual([j.slot.vid_pid for j in player_order(joys, POLICY_STEAM_ORDER)],
+                         ["28de:1205", "054c:0ce6"])
+        self.assertEqual([j.slot.vid_pid for j in player_order(joys, POLICY_EXTERNAL_FIRST)],
+                         ["054c:0ce6", "28de:1205"])
+
+
 class CliTest(unittest.TestCase):
     """End to end, against configs captured on the owner's Deck."""
 
@@ -182,7 +215,9 @@ class CliTest(unittest.TestCase):
     def test_devices_shows_each_slots_player_and_emulator_index(self):
         for root in sorted(p for p in DEVICES.iterdir() if (p / "virtualgamepadinfo.txt").is_file()):
             out, _ = self.run_cli("devices", "--proc-file", str(root / "proc-bus-input-devices"),
-                                  "--virtual-info", str(root / "virtualgamepadinfo.txt"), "--ignore-devices", "")
+                                  "--virtual-info", str(root / "virtualgamepadinfo.txt"), "--ignore-devices", "",
+                                  "--drm-status", str(root / "drm-status.txt"),
+                                  "--power-supply", str(root / "power-supply.txt"), "--sys-root", str(root))
             with self.subTest(root.name):
                 self.check_golden(GOLDEN / "devices" / f"{root.name}.txt", out)
 
@@ -191,7 +226,8 @@ class CliTest(unittest.TestCase):
         self.addCleanup(shutil.rmtree, tmp)
         (tmp / "proc").write_text(GAME_MODE_PROC, encoding="utf-8")
         (tmp / "info").write_text(GAME_MODE_INFO, encoding="utf-8")
-        return tmp, ["--proc-file", str(tmp / "proc"), "--virtual-info", str(tmp / "info"), "--ignore-devices", ""]
+        return tmp, ["--proc-file", str(tmp / "proc"), "--virtual-info", str(tmp / "info"), "--ignore-devices", "",
+                     "--sys-root", str(tmp), "--policy", "steam-order"]
 
     def test_apply_retroarch_puts_the_dualsense_on_player_1(self):
         # The SNES test from docs/13 S1: DualSense in slot 0, the Deck's virtual pad enumerated first. Player 1 gets
@@ -209,6 +245,44 @@ class CliTest(unittest.TestCase):
         out, _ = self.run_cli("apply", "--emulator", "dolphin", "--system", "gc",
                               "--config-root", str(tmp / "dolphin"), *probe)
         self.check_golden(GOLDEN / "dolphin" / "game-mode-reorder.diff", out)
+
+    def test_doctor_does_not_flag_written_ports(self):
+        # doctor's retroarch-autoconfig check warns on user binds in retroarch.cfg; a joypad port isn't one.
+        from maphelper import doctor
+        tmp, probe = self.game_mode_probe()
+        shutil.copytree(DEVICES.parent / "retroarch" / "dualsense-bt", tmp / "retroarch")
+        before = [f.message for f in doctor.check_retroarch(tmp / "retroarch") if f.check == "retroarch-autoconfig"]
+        self.run_cli("apply", "--emulator", "retroarch", "--system", "snes", "--config-root", str(tmp / "retroarch"),
+                     "--write", "--state-dir", str(tmp / "state"), *probe)
+        cfg = (tmp / "retroarch" / "retroarch.cfg").read_text(encoding="utf-8")
+        self.assertIn('input_player1_joypad_index = "1"', cfg)
+        self.assertIn('input_player2_joypad_index = "0"', cfg)
+        after = [f.message for f in doctor.check_retroarch(tmp / "retroarch") if f.check == "retroarch-autoconfig"]
+        self.assertEqual(after, before)
+
+    def test_docked_capture_puts_the_switch_pro_on_player_1(self):
+        # docked: Steam's session left the Deck in slot 0; external-first moves it last.
+        root = DEVICES / "docked"
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        shutil.copytree(DEVICES.parent / "retroarch" / "dualsense-bt", tmp / "retroarch")
+        out, err = self.run_cli("apply", "--emulator", "retroarch", "--system", "snes",
+                                "--config-root", str(tmp / "retroarch"), "--ignore-devices", "",
+                                "--proc-file", str(root / "proc-bus-input-devices"),
+                                "--virtual-info", str(root / "virtualgamepadinfo.txt"),
+                                "--drm-status", str(root / "drm-status.txt"),
+                                "--power-supply", str(root / "power-supply.txt"), "--sys-root", str(tmp))
+        self.assertIn("policy: external-first (docked: DP-1 connected)", err)
+        self.assertIn("player 1: Nintendo Switch Pro Controller (steam slot 1)", err)
+        self.assertIn('+input_player1_joypad_index = "1"', out)
+        self.assertIn('+input_player2_joypad_index = "0"', out)
+
+    def test_undecided_falls_back_to_steam_order(self):
+        tmp, probe = self.game_mode_probe()
+        probe = probe[:-2]                     # auto policy, but an empty sys root: no connectors, no power
+        out, _ = self.run_cli("devices", *probe)
+        self.assertIn("policy: steam-order (can't tell docked from handheld (no external display connector found)",
+                      out)
 
     def test_explicit_players_leave_ports_alone(self):
         tmp, probe = self.game_mode_probe()

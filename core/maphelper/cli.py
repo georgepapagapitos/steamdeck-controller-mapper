@@ -9,9 +9,10 @@ import sys
 from pathlib import Path
 
 from . import resolve as resolver
-from .devices import (STEAM_VIRTUAL_PAD, ControllerDB, is_gamepad, parse_ignore_devices, parse_proc_input_devices,
-                      parse_virtual_gamepad_info, physical_ids, sdl_joysticks, stable_id, steam_order, steam_slots,
-                      with_usb_serials)
+from .devices import (DECK_CONTROLS, STEAM_VIRTUAL_PAD, ControllerDB, is_gamepad, parse_ignore_devices, parse_proc_input_devices,
+                      parse_virtual_gamepad_info, physical_ids, sdl_joysticks, stable_id, steam_slots, with_usb_serials,
+                      POLICY_EXTERNAL_FIRST, POLICY_STEAM_ORDER, docked, parse_drm_status,
+                      parse_power_supply, player_order, read_drm_status, read_power_supply)
 from .model import Target
 from .store import load_json, load_layouts, load_sources
 from .validate import validate_rule
@@ -95,6 +96,12 @@ def add_probe_arguments(p) -> None:
                    help="Steam's virtual gamepad info file (default: $SteamVirtualGamepadInfo, else Steam's config dir)")
     p.add_argument("--ignore-devices", default=os.environ.get("SDL_GAMECONTROLLER_IGNORE_DEVICES", ""),
                    help="pads behind Steam Input (default: $SDL_GAMECONTROLLER_IGNORE_DEVICES)")
+    p.add_argument("--policy", choices=["auto", POLICY_STEAM_ORDER, POLICY_EXTERNAL_FIRST], default="auto",
+                   help="player order; auto: external-first when docked, else steam-order (docs/04 5.1)")
+    p.add_argument("--drm-status", type=Path, help="saved DRM connector states (a capture's drm-status.txt) "
+                                                   "instead of <sys-root>/class/drm")
+    p.add_argument("--power-supply", type=Path, help="saved power supplies (a capture's power-supply.txt) "
+                                                     "instead of <sys-root>/class/power_supply")
 
 
 class Probe:
@@ -114,11 +121,29 @@ class Probe:
         self.behind_steam = live if self.slots else parse_ignore_devices(args.ignore_devices)
         self.pads = [d for d in self.devices if is_gamepad(d) and not db.is_virtual(d.vid_pid)]
         self.ids = physical_ids(self.slots, self.pads)   # Steam slot -> physical pad's stable id
+        self.policy, self.policy_reason = self._policy(args)
+
+    def _policy(self, args) -> tuple:
+        if args.policy != "auto":
+            return args.policy, "chosen with --policy"
+        drm = (parse_drm_status(args.drm_status.read_text(encoding="utf-8")) if args.drm_status
+               else read_drm_status(args.sys_root))
+        power = (parse_power_supply(args.power_supply.read_text(encoding="utf-8")) if args.power_supply
+                 else read_power_supply(args.sys_root))
+        external = sum(1 for j in sdl_joysticks(self.devices, self.slots, self.behind_steam, "nodes")
+                       if not (j.slot and j.slot.vid_pid == DECK_CONTROLS))
+        is_docked, why = docked(drm, power, external)
+        if is_docked is None:
+            return POLICY_STEAM_ORDER, f"can't tell docked from handheld ({why}), so Steam's order"
+        return (POLICY_EXTERNAL_FIRST, f"docked: {why}") if is_docked else (POLICY_STEAM_ORDER, f"handheld: {why}")
+
+    def describe(self) -> str:
+        return f"policy: {self.policy} ({self.policy_reason})"
 
     def players(self, order: str) -> list:
-        """Joysticks in an emulator's SDL order (see devices.sdl_joysticks), and the players in Steam's order."""
+        """Joysticks in an emulator's SDL order (see devices.sdl_joysticks), and the players under the policy."""
         joysticks = sdl_joysticks(self.devices, self.slots, self.behind_steam, order)
-        return joysticks, steam_order(joysticks)
+        return joysticks, player_order(joysticks, self.policy)
 
     def identity(self, joystick) -> tuple:
         """(stable id or None, VID:PID, name) of the physical pad behind a joystick."""
@@ -186,8 +211,10 @@ def cmd_devices(args) -> int:
             **ports.get(dev, {}),
         })
     if args.json:
-        print(json.dumps({"controllers": rows, "steam_slots": slots}, indent=2))
+        print(json.dumps({"controllers": rows, "steam_slots": slots,
+                          "policy": {"name": probe.policy, "reason": probe.policy_reason}}, indent=2))
         return 0
+    print(probe.describe())
     if not rows:
         print("No external controllers connected. (The Deck's own controls appear only as a Steam slot below.)")
     for r in rows:
@@ -271,6 +298,7 @@ def cmd_apply(args) -> int:
         except OSError as e:
             print(f"error: can't read the connected devices ({e}); pass --player or --proc-file", file=sys.stderr)
             return 2
+        print(probe.describe(), file=sys.stderr)
         joysticks, order = probe.players(adapter.sdl_order)
         for n, joystick in enumerate(order, start=1):
             device_id, vid_pid, name = probe.identity(joystick)

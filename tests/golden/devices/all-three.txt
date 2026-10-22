@@ -1,3 +1,4 @@
+policy: steam-order (handheld: no external display)
 054c:0ce6  DualSense Wireless Controller            model=sony.dualsense style=playstation mode=passthrough steam_slot=1
 2dc8:6012  8BitDo Ultimate 2 Wireless               model=8bitdo.ultimate2 style=xbox mode=passthrough steam_slot=2
 057e:2009  Nintendo Co., Ltd. Pro Controller        model=nintendo.switch-pro style=nintendo mode=passthrough steam_slot=3 [needs claim]
