@@ -52,7 +52,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--json", action="store_true")
 
     p = sub.add_parser("apply", help="resolve and write an emulator's input config (dry run by default)")
-    p.add_argument("--emulator", required=True, choices=["dolphin"])
+    p.add_argument("--emulator", required=True, choices=["dolphin", "retroarch"])
+    p.add_argument("--core", help="RetroArch core (descriptor id or library name); needed when several run the system")
     p.add_argument("--system", required=True)
     p.add_argument("--game")
     p.add_argument("--config-root", type=Path, required=True, help="the emulator's config directory")
@@ -169,6 +170,7 @@ if __name__ == "__main__":
 
 def cmd_apply(args) -> int:
     from .adapters.dolphin import DolphinAdapter
+    from .adapters.retroarch import RetroArchAdapter
     from .formats.ini import IniDocument
     from .writer import apply_patches
 
@@ -189,11 +191,24 @@ def cmd_apply(args) -> int:
         path = args.config_root / file
         return IniDocument.parse(path.read_text(encoding="utf-8")).get(section, key) if path.exists() else None
 
-    adapter = DolphinAdapter()
-    rendered = adapter.render(players, args.system, current=current)
-    result = apply_patches(args.config_root, rendered.patches, adapter.managed_keys,
+    checks = []
+    if args.emulator == "retroarch":
+        adapter = RetroArchAdapter()
+        try:
+            core = adapter.core_for(args.system, args.core)
+        except ValueError as e:
+            print(f"error: {e}", file=sys.stderr)
+            return 2
+        rendered = adapter.render(players, core, current=current)
+        managed = adapter.managed_keys(core)
+        checks = adapter.check(args.config_root, core, current)
+    else:
+        adapter = DolphinAdapter()
+        rendered = adapter.render(players, args.system, current=current)
+        managed = adapter.managed_keys
+    result = apply_patches(args.config_root, rendered.patches, managed,
                            state_dir=args.state_dir, dry_run=not args.write)
-    for warning in [w for p in players.values() for w in p.warnings] + rendered.warnings:
+    for warning in [w for p in players.values() for w in p.warnings] + rendered.warnings + checks:
         print(f"warning: {warning}", file=sys.stderr)
     for patch in result.rejected:
         print(f"rejected (not a managed key): {patch}", file=sys.stderr)

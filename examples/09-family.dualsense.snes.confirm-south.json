@@ -1,0 +1,15 @@
+{
+  "$schema": "../schema/rule.schema.json",
+  "schema_version": 1,
+  "id": "user.family-dualsense.snes.confirm-south",
+  "label": "DualSense on SNES: A on the bottom button, B on the right",
+  "applies_to": {
+    "controller": { "level": "family", "value": "sony.dualsense" },
+    "content": { "level": "system", "system": "snes" }
+  },
+  "bindings": {
+    "snes.standard.a": { "input": "face_south" },
+    "snes.standard.b": { "input": "face_east" }
+  },
+  "notes": "Positional SNES puts A on the right. This moves it under the thumb. In RetroArch it becomes a remap pair in Snes9x.rmp: btn_b -> A and btn_a -> B."
+}

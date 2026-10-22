@@ -14,6 +14,7 @@ import shutil
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Optional
 
 from .formats.ini import IniDocument
 
@@ -21,7 +22,7 @@ from .formats.ini import IniDocument
 @dataclass(frozen=True)
 class Patch:
     file: str        # relative to the emulator's config root
-    section: str
+    section: Optional[str]   # None: top of the file, for formats without sections
     key: str
     value: str
 
@@ -38,8 +39,11 @@ def is_managed(patch: Patch, managed: dict) -> bool:
     spec = managed.get(patch.file)
     if not spec:
         return False
-    sections = spec.get("sections") or spec.get("section", "")
-    if not fnmatch.fnmatchcase(patch.section, sections.replace("{n}", "[1-9]")):
+    sections = spec.get("sections") or spec.get("section")
+    if sections is None:                               # a sectionless file (RetroArch .rmp): top-level keys only
+        if patch.section is not None:
+            return False
+    elif patch.section is None or not fnmatch.fnmatchcase(patch.section, sections.replace("{n}", "[1-9]")):
         return False
     patterns = list(spec.get("keys", [])) + list(spec.get("option_keys", []))
     return any(fnmatch.fnmatchcase(patch.key, p) for p in _expand(patterns))

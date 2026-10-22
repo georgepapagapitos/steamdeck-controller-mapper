@@ -38,7 +38,7 @@ class IniDocument:
     def sections(self) -> list[str]:
         return [m.group("name") for m in map(_SECTION.match, self.lines) if m]
 
-    def get(self, section: str, key: str) -> Optional[str]:
+    def get(self, section: Optional[str], key: str) -> Optional[str]:
         index = self._find_key(section, key)
         return None if index is None else _KEY.match(self.lines[index]).group("value")
 
@@ -71,7 +71,7 @@ class IniDocument:
 
     # -- edits -----------------------------------------------------------------
 
-    def set(self, section: str, key: str, value: str) -> None:
+    def set(self, section: Optional[str], key: str, value: str) -> None:
         index = self._find_key(section, key)
         if index is not None:
             m = _KEY.match(self.lines[index])
@@ -89,7 +89,7 @@ class IniDocument:
             insert_at -= 1
         self._insert(insert_at, f"{key}{self._separator()}{value}")
 
-    def remove(self, section: str, key: str) -> bool:
+    def remove(self, section: Optional[str], key: str) -> bool:
         index = self._find_key(section, key)
         if index is None:
             return False
@@ -109,7 +109,11 @@ class IniDocument:
             self.endings.insert(index, self.newline)
         self.lines.insert(index, line)
 
-    def _section_bounds(self, section: str) -> tuple[Optional[int], int]:
+    def _section_bounds(self, section: Optional[str]) -> tuple[Optional[int], int]:
+        """section None is the top of the file, before any [header] (RetroArch .cfg/.rmp have no sections)."""
+        if section is None:
+            first = next((i for i, line in enumerate(self.lines) if _SECTION.match(line)), len(self.lines))
+            return -1, first
         start = None
         for i, line in enumerate(self.lines):
             m = _SECTION.match(line)
@@ -121,7 +125,7 @@ class IniDocument:
                 start = i
         return start, len(self.lines)
 
-    def _find_key(self, section: str, key: str) -> Optional[int]:
+    def _find_key(self, section: Optional[str], key: str) -> Optional[int]:
         start, end = self._section_bounds(section)
         if start is None:
             return None

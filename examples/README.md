@@ -12,6 +12,7 @@ One example per scope level. Together they show how layering works.
 | `06-device.blue-ds4.global.deadzone.json` | device (one pad) | global | A worn stick gets a bigger deadzone |
 | `07-any.game.melee.json` | any | game: GALE01 | Melee-specific tweak for every controller |
 | `08-family.ds4.dolphin.wii.json` | family: DualShock 4 | emulator: dolphin + system: wii | Wii Nunchuk setup in Dolphin only |
+| `09-family.dualsense.snes.confirm-south.json` | family: DualSense | system: snes | SNES A under the thumb (a RetroArch remap pair) |
 
 ## Worked resolution
 
