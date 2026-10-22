@@ -347,10 +347,14 @@ pad takes the index SDL gives it.
 On the owner's Deck (Flatpak 1.22.2, Game Mode, docs/13 S1) RetroArch numbered
 users by **js node**: after a reorder put the DualSense in Steam slot 0, user 1
 was the Deck's virtual pad (`pad 1`, js0), and the pads kept their
-`Microsoft X-Box 360 pad <N>` names. That is SDL < 2.30's order (SDL ≥ 2.30 sorts
-Steam virtual pads by slot and renames them), so the adapter declares
-`sdl_order = "nodes"` (`retropad.json` `joypad_ports`) **[VERIFY]** which SDL2
-the Flatpak bundles.
+`Microsoft X-Box 360 pad <N>` names. That's node order, so the adapter declares
+`sdl_order = "nodes"` (`retropad.json` `joypad_ports`). It was observed despite
+SDL3 underneath: the Flatpak (runtime `org.kde.Platform` 6.11) loads the runtime's
+`libSDL2-2.0.so.0.3200.68`, which is sdl2-compat over `libSDL3` 3.2.30. SDL3 sorts
+Steam virtual pads by slot and renames them, and the Flatpak has `host`
+filesystem access and can read `virtualgamepadinfo.txt`. So why SDL3's slot sort didn't apply is unknown **[VERIFY]** (maybe `SteamVirtualGamepadInfo` isn't in the Flatpak's environment, or the sdl2-compat path differs). A fresh session
+with the virtual pads in slot order (2026-10-22, docked) gave the right player 1
+under either order, so it doesn't settle this.
 
 `apply` without `--player` takes the players in Steam's order (player K = K-th
 live slot), finds each one's virtual pad, ranks it among the joysticks SDL sees

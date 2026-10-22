@@ -137,8 +137,12 @@ The string is worked out the way Dolphin builds it:
 Example (`tests/golden/dolphin/game-mode-reorder.diff`): DualSense in slot 0,
 Deck in slot 1 gives `GCPad1` `SDL/0/DualSense Wireless Controller` and `GCPad2`
 `SDL/0/Steam Deck Controller` (EmuDeck's `SDL/1/Steam Deck Controller` would
-name a second Deck that isn't there). **[VERIFY]** on a Deck (S1): the order with
-3+ pads, the names in both sessions, and that the Flatpak can read the slot file.
+name a second Deck that isn't there). **Confirmed on a Deck** (2026-10-22, Game
+Mode, docked, docs/13 S1): with slots DualSense, Deck, Switch Pro, EmuDeck's
+AutoMap wrote `SDL/0/DualSense Wireless Controller`, `SDL/0/Steam Deck Controller`
+and `SDL/0/Nintendo Switch Pro Controller` to GCPad1–3, the strings map-helper
+computes. **[VERIFY]** still: the order when the virtual pads' nodes are out of slot
+order, and the names in Desktop Mode.
 Wii (`[Wiimote<K>] Device`) works the same way once Wii rendering exists.
 
 ## Input naming table (SDL backend)

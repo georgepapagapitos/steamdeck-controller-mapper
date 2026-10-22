@@ -238,7 +238,9 @@ def physical_ids(slots: list[SteamSlot], pads: list[InputDevice]) -> dict[int, s
 
 
 # How an SDL emulator numbers joysticks on Linux (docs/04 §5.2), per SDL's src/joystick/linux/SDL_sysjoystick.c.
-SDL_ORDER_NODES = "nodes"    # SDL < 2.30: every joystick by js index (sort_entries); Steam's slots play no part
+SDL_ORDER_NODES = "nodes"    # every joystick by js index (sort_entries), as SDL < 2.30 does; Steam's slots play no
+                             # part. Also what RetroArch's Flatpak did on a Deck, though it runs sdl2-compat over
+                             # SDL3 (docs/13 S1); why is unknown [VERIFY]
 SDL_ORDER_SLOTS = "slots"    # SDL >= 2.30 and SDL3: Steam virtual pads first, by the N in "pad N"
                              # (LINUX_ScanSteamVirtualGamepads), then everything else by js index
 

@@ -286,7 +286,8 @@ emulator index) does this at launch:
 3. **Node → the emulator's joystick index**, by enumerating the way the emulator's SDL does on Linux
    (`src/joystick/linux/SDL_sysjoystick.c`). Physical pads behind Steam are left out: Steam lists them in
    `SDL_GAMECONTROLLER_IGNORE_DEVICES` and `SDL_ShouldIgnoreJoystick` drops them. Two orders exist:
-   - **SDL < 2.30** (`nodes`): every joystick by js index (`sort_entries`). The `pad <N>` name means nothing to it.
+   - **`nodes`**: every joystick by js index (`sort_entries`), which is what SDL < 2.30 does. The `pad <N>` name
+     means nothing to it.
    - **SDL ≥ 2.30 and SDL3** (`slots`): Steam virtual pads first, sorted by `<N>` (`LINUX_ScanSteamVirtualGamepads`,
      SDL commit 5b26d4e "Sort Steam virtual gamepads by Steam controller slot", first in 2.30.0), then everything
      else by js index. These SDLs also name a virtual pad after its slot's `name=` (`SDL_GetJoystickName`).
@@ -295,10 +296,12 @@ emulator index) does this at launch:
    - **RetroArch** (`nodes`, seen on the owner's Deck: Flatpak 1.22.2 numbered users by js node and showed the pads
      as `Microsoft X-Box 360 pad <N>`, docs/13 S1): `input_playerK_joypad_index = "<index>"` in `retroarch.cfg`, a
      managed key. With the `sdl2` driver, joypad port i is SDL index i (`sdl2_joypad_init`). We write every assigned
-     player, so the indices stay a permutation. **[VERIFY]** which SDL2 the Flatpak bundles.
+     player, so the indices stay a permutation. The node order was observed despite SDL3 underneath (the Flatpak's
+     SDL2 is the runtime's sdl2-compat over SDL3 3.2.30, and it can read the slot file); why SDL3's slot sort didn't apply is unknown **[VERIFY]** (maybe `SteamVirtualGamepadInfo` isn't in the Flatpak's environment, or the sdl2-compat path differs).
    - **Dolphin** (`slots`: it bundles SDL3): `[GCPadK] Device = SDL/<n>/<name>`, where `<name>` is the slot's name and
      `<n>` counts earlier same-named SDL devices in that order (`ControllerInterface::AddDevice`). Player 1's string
-     also goes in `[Hotkeys] Device`, since hotkeys sit on P1's pad. **[VERIFY]** on a Deck.
+     also goes in `[Hotkeys] Device`, since hotkeys sit on P1's pad. Names and `<n>` confirmed on a Deck: EmuDeck's
+     AutoMap wrote the same strings (docs/13 S1). **[VERIFY]** the order when nodes are out of slot order.
    With `nodes`, Steam's slot order and the emulator's order differ whenever Steam created the virtual pads out of
    slot order, which a Game Mode session did (S1); with `slots` they agree by construction.
 
@@ -314,7 +317,7 @@ whose order isn't modelled.
 
 This is still the riskiest technical area. Spike S1 in
 [13](13-research-spikes.md) now has to *confirm* the mechanism above on device
-and settle points 5 (hot-plug, the SDL each Flatpak bundles), 6 and 7. It no longer has to discover the mechanism.
+and settle points 5 (hot-plug, and why RetroArch ignores the slot sort), 6 and 7. It no longer has to discover the mechanism.
 
 ## 6. Capabilities
 
