@@ -62,7 +62,23 @@ rm -rf "$savesPath/.gaming";
   external pads before built-in ones) and rewrites `Device =` in
   `GCPadNew.ini`, `WiimoteNew.ini` and `Hotkeys.ini`, `SIDevice0..3` in
   `Dolphin.ini`, and `Source =` per Wiimote. On a Deck (`Jupiter`/`Galileo`)
-  with the setting unset, it's skipped.
+  with the setting unset, it's skipped. "Unset" means the variable is empty
+  or absent from `settings.sh`: `jsonToBashVars` writes
+  `autoMapDolphin=$(jq .automap.dolphin settings.json)`, and jq prints `null`
+  for a missing key, which is neither empty nor `false`, so AutoMap runs.
+  The EmuDeck app's AutoMap page writes the same variables directly
+  (`setSetting autoMapDolphin …; setSetting autoMapSwitch …; setSetting
+  autoMapCemu …`, `src/renderer/pages/AutoMapConfigPage.jsx` @ `b06bfcf`).
+  Cemu (`emuDeckCemu.sh`) and Ryujinx (`emuDeckRyujinx.sh`, `autoMapSwitch`)
+  use the same unset-on-a-Deck rule. `map-helper doctor` reports AutoMap on for
+  Dolphin as an error, and for Cemu and the Switch emulators (not managed yet)
+  as info (`functions/jsonToBashVars.sh` L150–153,
+  `functions/EmuScripts/emuDeckDolphin.sh` `Dolphin_setGamepads` L263–273 @
+  `dddb302`). Both EmuDeck repos' heads were still `dddb302` and `b06bfcf` on
+  2026-10-22, and AutoMap there covers only those three. EmuDeck 2.7's
+  announced "AutoMap Controllers" toggle (SteamOS/Linux opt-in, up to 4
+  players) isn't in either repo yet; recheck the variable names and the
+  unset-means-off rule when it lands **[VERIFY]**.
 - **No pre-launch hook mechanism exists.** `all.sh` sources a fixed list of
   backend files plus `~/.config/EmuDeck/settings.sh` (EmuDeck-generated from
   `settings.json`). There's no `hooks/` directory, glob or user script.

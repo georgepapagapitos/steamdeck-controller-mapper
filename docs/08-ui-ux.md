@@ -235,7 +235,7 @@ map-helper import  --emulator dolphin --scope family:sony.dualshock4/system:gc
 map-helper capture <device-id>          # prints normalized events (debug)
 map-helper hooks status|install|repair|remove
 map-helper backup list|restore <id>
-map-helper doctor                        # full diagnostics bundle
+map-helper doctor [--json]               # read-only checks (Steam Input override, AutoMap, RetroArch remaps); bundle later
 map-helper uninstall [--restore pristine|current]
 ```
 

@@ -64,9 +64,16 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--state-dir", type=Path, default=Path.home() / ".local" / "state" / "map-helper",
                    help="where pristine backups go")
 
+    from . import doctor
+    p = sub.add_parser("doctor", help="report settings that silently defeat map-helper's mappings (read-only)")
+    p.add_argument("--steam-root", type=Path, default=doctor.STEAM_ROOT, help="Steam's install (has userdata/)")
+    p.add_argument("--retroarch-root", type=Path, default=doctor.RETROARCH_ROOT, help="RetroArch's config directory")
+    p.add_argument("--emudeck-settings", type=Path, default=doctor.EMUDECK_SETTINGS, help="EmuDeck's settings.sh")
+    p.add_argument("--json", action="store_true")
+
     args = parser.parse_args(argv)
     return {"validate": cmd_validate, "devices": cmd_devices, "explain": cmd_explain,
-            "apply": cmd_apply}[args.command](args)
+            "apply": cmd_apply, "doctor": cmd_doctor}[args.command](args)
 
 
 def cmd_validate(args) -> int:
@@ -216,3 +223,13 @@ def cmd_apply(args) -> int:
     if args.write and result.changed_files:
         print(f"wrote: {', '.join(result.changed_files)}", file=sys.stderr)
     return 0
+
+
+def cmd_doctor(args) -> int:
+    from . import doctor
+    findings = doctor.run(args.steam_root, args.retroarch_root, args.emudeck_settings)
+    if args.json:
+        print(json.dumps({"findings": [vars(f) for f in findings]}, indent=2))
+    else:
+        print(doctor.render(findings), end="")
+    return 1 if any(f.severity == "error" for f in findings) else 0

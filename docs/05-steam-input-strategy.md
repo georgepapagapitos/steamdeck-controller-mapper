@@ -57,6 +57,41 @@ Writing these files while Steam runs gets overwritten. map-helper only
 **reads** them (see below) and never writes them in v1
 ([ADR-004](adr/004-steam-input-stance.md)).
 
+### The per-game override in `doctor`
+
+A non-Steam shortcut set to "Disable Steam Input" breaks every emulator it
+launches: the environment is byte-identical either way, so SDL still ignores
+the physical pads while Steam stops feeding the virtual one, and EmuDeck's
+configs bind the virtual pad (spike S2, `game-steam-input-on/off`).
+`map-helper doctor` reports it as an **error** for any shortcut whose name,
+`Exe`, `StartDir` or `LaunchOptions` points at a frontend or emulator (ES-DE,
+EmuDeck launchers, RetroArch, Dolphin...). It reads:
+
+- `userdata/<account>/config/shortcuts.vdf` (binary KeyValues: `shortcuts` →
+  `<n>` → `appid` int32, `AppName`, `Exe`, `StartDir`, `LaunchOptions`; format
+  as `steam-shortcut-editor`, SRM's library, parses it) to name each shortcut
+  and get its id. The id is stored signed; Steam keys `localconfig.vdf` by the
+  same 32 bits read unsigned.
+- `userdata/<account>/config/localconfig.vdf` →
+  `UserLocalConfigStore/apps/<unsigned id>/UseSteamControllerConfig` = `"0"`.
+  An entry only under the old **signed** id is reported as info: current
+  Steam ignores it (SRM#891).
+
+**[VERIFY]** that Steam itself stores the Game Mode override there. On the
+owner's Deck it wasn't in `localconfig.vdf` 14 minutes after setting it. The
+SRM code and community fixes all use this key, and the community fixes say to
+close Steam before editing the file because Steam rewrites it from memory, so
+the likely explanation is that Steam saves it late (at exit or restart). The
+capture that settles it: set "Disable Steam Input" on a test shortcut in Game
+Mode, then **fully exit Steam** (switch to Desktop Mode, or reboot), and
+`grep -n UseSteamControllerConfig` plus the shortcut's unsigned id in
+`~/.local/share/Steam/userdata/*/config/localconfig.vdf`; then set it back to
+Default, exit Steam again and check the entry is gone or `"1"`. If it isn't
+there either time, look for the id under
+`steamapps/common/Steam Controller Configs/<account>/config/` and
+`userdata/<account>/241100/remote/`. Print only yes/no and key names, not the
+account id.
+
 ## What map-helper does
 
 1. **Detect the mode at launch, per physical pad.** Our launch wrapper is the process Steam starts, so it inherits Steam's launch environment. Signals, strongest first:
@@ -90,7 +125,9 @@ Checked 2026-10-22.
 - Steam virtual pad environment, info file format and SDL behaviour: see [04 Sources](04-controller-identification.md#sources) (SDL `SDL_steam_virtual_gamepad.c`, `SDL_joystick.c` `ShouldSwapFaceButtons` L1327–1346, SDL2 `SDL_gamecontroller.c` L2153–2166, Proton `bus_sdl.c`/`bus_udev.c`, SDL#14410, Proton#4707, Proton#150, steam-for-linux#13665).
 - Steam settings keys and stores: `SteamTracking/Protobufs` @ `5c2b73b24be75d4e0f85889cea48bd669916767f`, [`steam/steammessages_clientsettings.proto`](https://github.com/SteamTracking/Protobufs/blob/5c2b73b24be75d4e0f85889cea48bd669916767f/steam/steammessages_clientsettings.proto) L23–29 (`EClientSettingStore`: Install / UserRoaming / UserLocal) and L204–208 (`SteamController_PSSupport` int default 1, `_XBoxSupport`, `_XBoxDriver`, `_SwitchSupport`, `_GenericGamepadSupport`, all `ConfigStore_UserLocal`).
 - `localconfig.vdf` location of the `SteamController_*` keys: EmuDeck-WE [`functions/helperFunctions.ps1`](https://github.com/EmuDeck/emudeck-we/blob/037460efc88c1ab70256ab0833f8f10e7f2904b2/functions/helperFunctions.ps1) L1302–1324 (`steamEnableXboxInput` edits `userdata/*/config/localconfig.vdf`).
-- Per-game override: SRM `SteamGridDB/steam-rom-manager` @ `f68289a770ff8537ac8235618b3399844580359b`, [`src/lib/controller-manager.ts`](https://github.com/SteamGridDB/steam-rom-manager/blob/f68289a770ff8537ac8235618b3399844580359b/src/lib/controller-manager.ts) L72–76 (0 Disabled / 1 default / 2 Enabled), L79–83 (`controller_config`, `UserLocalConfigStore`), L105–116 (template dirs), L219–227 and L348–360 (`configset_controller_<type>.vdf` → `controller_config`), L431–432 (`userdata/<id>/config/localconfig.vdf`), L476–509 (`apps/<shortId>/UseSteamControllerConfig`, set at L503); [SRM#891](https://github.com/SteamGridDB/steam-rom-manager/issues/891) (unsigned app id).
+- Per-game override: SRM `SteamGridDB/steam-rom-manager` @ `f68289a770ff8537ac8235618b3399844580359b`, [`src/lib/controller-manager.ts`](https://github.com/SteamGridDB/steam-rom-manager/blob/f68289a770ff8537ac8235618b3399844580359b/src/lib/controller-manager.ts) L72–76 (0 Disabled / 1 default / 2 Enabled), L79–83 (`controller_config`, `UserLocalConfigStore`), L105–116 (template dirs), L219–227 and L348–360 (`configset_controller_<type>.vdf` → `controller_config`), L431–432 (`userdata/<id>/config/localconfig.vdf`), L476–509 (`apps/<shortId>/UseSteamControllerConfig`, set at L503); [SRM#891](https://github.com/SteamGridDB/steam-rom-manager/issues/891) (unsigned app id); `src/models/parser.model.ts` L168 (`steamInputEnabled` 0/1/2).
+- Hand edits need Steam closed, or Steam overwrites them: [Steam Deck bug report thread](https://steamcommunity.com/app/1675200/discussions/1/3877095200009314997/); per-shortcut script writing `apps/<short id>/UseSteamControllerConfig` = `"0"`: <https://pastebin.com/RSNgjRd3>. Both community sources, not Valve's.
+- shortcuts.vdf binary layout: [`tirish/steam-shortcut-editor` `lib/parser.js`](https://github.com/tirish/steam-shortcut-editor/blob/d755f03e28280e64c96e4a6039739fcb41e28f0e/lib/parser.js) @ `d755f03` (SRM's dependency); shortcut id = `crc32(exe + name) | 0x80000000` in SRM [`src/lib/helpers/steam/generate-app-id.ts`](https://github.com/SteamGridDB/steam-rom-manager/blob/f68289a770ff8537ac8235618b3399844580359b/src/lib/helpers/steam/generate-app-id.ts).
 - Deck built-ins absent from evdev while Steam runs: `hid-steam.c` L22–28 (see 04 Sources).
 - DSU servers: [kmicki/SteamDeckGyroDSU](https://github.com/kmicki/SteamDeckGyroDSU) README (port 26760, `SDGYRO_SERVER_PORT`, motion only), releases (v2.1.1, 2024-01-23), [issues](https://github.com/kmicki/SteamDeckGyroDSU/issues) (#79–#86, 2025-12 to 2026-08); [v1993/evdevhook2](https://github.com/v1993/evdevhook2) README (supported devices, v1.0.2 2024-04-06); [v1993/evdevhook](https://github.com/v1993/evdevhook) (archived); [joaorb64/joycond-cemuhook](https://github.com/joaorb64/joycond-cemuhook); [hhd-dev/hhd](https://github.com/hhd-dev/hhd), [ShadowBlip/InputPlumber](https://github.com/ShadowBlip/InputPlumber) (activity only).
 - DSU clients in source: [Cemu `src/input/api/DSU`](https://github.com/cemu-project/Cemu/tree/main/src/input/api/DSU), [Dolphin `DualShockUDPClient`](https://github.com/dolphin-emu/dolphin/tree/master/Source/Core/InputCommon/ControllerInterface/DualShockUDPClient), [Azahar `src/input_common/udp`](https://github.com/azahar-emu/azahar/tree/master/src/input_common/udp).

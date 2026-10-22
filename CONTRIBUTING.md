@@ -19,6 +19,12 @@ python3 -m maphelper devices --proc-file /proc/bus/input/devices   # on Linux / 
 cp -r ../tests/fixtures/dolphin/emudeck-default /tmp/dolphin-demo
 python3 -m maphelper apply --emulator dolphin --system gc --game GALE01 \
     --config-root /tmp/dolphin-demo --player sony.ds4.v2@mac:aa:bb:cc:dd:ee:ff --player ms.xbox-one
+
+# read-only checks for settings that defeat map-helper (exit 1 on errors). On a Deck the defaults are right:
+# Steam's userdata, RetroArch's Flatpak config and EmuDeck's settings.sh.
+python3 -m maphelper doctor
+python3 -m maphelper doctor --retroarch-root ../tests/fixtures/retroarch/dualsense-bt \
+    --steam-root ~/.local/share/Steam --emudeck-settings ~/.config/EmuDeck/settings.sh [--json]
 ```
 
 Everything above runs the same on macOS, Linux and Windows. On Windows, use Git Bash (the shell scripts in
