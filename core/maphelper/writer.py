@@ -1,14 +1,17 @@
 """Safe application of adapter patches to emulator config files. See docs/09.
 
 Prototype scope: managed-key enforcement, pristine snapshot, no-op skip, atomic
-replace, and a unified diff for --dry-run. Locking, the journal, drift hashes and
-the emulator-running check are still to do (docs/09 steps 2, 3, 7, 8).
+replace, a unified diff for --dry-run, and (when the emulator is named) the touched-file manifest that
+`restore` works from. Locking, the journal, drift hashes and the emulator-running check are still to do (docs/09
+steps 2, 3, 7, 8).
 """
 
 from __future__ import annotations
 
 import difflib
 import fnmatch
+import hashlib
+import json
 import os
 import shutil
 import tempfile
@@ -62,8 +65,16 @@ def _expand(patterns: list) -> list:
 
 
 def apply_patches(config_root: Path, patches: list, managed: dict, state_dir: Path | None = None,
-                  dry_run: bool = False) -> ApplyResult:
+                  dry_run: bool = False, emulator: str | None = None) -> ApplyResult:
+    """With state_dir and emulator, every write is recorded in the manifest (MANIFEST) so `restore` can undo it."""
     result = ApplyResult()
+    track = state_dir is not None and emulator is not None and not dry_run
+    manifest = load_manifest(Path(state_dir)) if track else None
+    if track:
+        tracked = manifest.setdefault(emulator, {"config_root": str(Path(config_root).resolve()), "files": {}})
+        if tracked["config_root"] != str(Path(config_root).resolve()):
+            raise RuntimeError(f"{emulator}: {state_dir} already tracks the config at {tracked['config_root']}; "
+                               f"restore it first or use another --state-dir. Nothing written")
     by_file: dict[str, list] = {}
     for patch in patches:
         if is_managed(patch, managed):
@@ -93,15 +104,56 @@ def apply_patches(config_root: Path, patches: list, managed: dict, state_dir: Pa
         result.changed_files.append(rel)
         if not dry_run:
             if state_dir is not None:
-                _snapshot_pristine(path, Path(state_dir), rel)
+                _snapshot_pristine(path, Path(state_dir), rel, emulator, tracked["files"] if track else None)
             _atomic_write(path, after)
+            if track:
+                tracked["files"][rel]["hash"] = file_hash(path)
+                save_manifest(Path(state_dir), manifest)
     result.diff = "".join(diffs)
     return result
 
 
-def _snapshot_pristine(path: Path, state_dir: Path, rel: str) -> None:
-    """First touch only: keep the file as it was before map-helper ever changed it."""
-    target = state_dir / "backups" / "pristine" / rel
+MANIFEST = "touched.json"   # in the state dir: {emulator: {"config_root": abs, "files": {rel: {"created", "hash"}}}}
+
+
+def file_hash(path: Path) -> Optional[str]:
+    return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
+
+
+def load_manifest(state_dir: Path) -> dict:
+    path = Path(state_dir) / MANIFEST
+    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+
+
+def save_manifest(state_dir: Path, manifest: dict) -> None:
+    _atomic_write(Path(state_dir) / MANIFEST, json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+
+
+def pristine_path(state_dir: Path, emulator: Optional[str], rel: str) -> Path:
+    """$STATE/backups/pristine/<emulator>/<rel> (docs/09); snapshots taken before the manifest existed have no
+    emulator directory, and are used when present."""
+    legacy = Path(state_dir) / "backups" / "pristine" / rel
+    if emulator is None or legacy.is_file():
+        return legacy
+    return Path(state_dir) / "backups" / "pristine" / emulator / rel
+
+
+def _snapshot_pristine(path: Path, state_dir: Path, rel: str, emulator: Optional[str] = None,
+                       files: Optional[dict] = None) -> None:
+    """First touch only: keep the file as it was before map-helper ever changed it. files: the manifest's entries
+    for this emulator; a file that didn't exist is recorded as created, since there's nothing to snapshot."""
+    target = pristine_path(state_dir, emulator, rel)
+    if files is not None:
+        entry = files.get(rel)
+        if entry is None:
+            files[rel] = {"created": not path.exists(), "hash": None}
+        elif entry["created"] and path.exists() and file_hash(path) != entry["hash"]:
+            # Someone else replaced a file we created (EmuDeck's abxy toggle renames Snes9x.rmp.disabled over
+            # Snes9x.rmp), so it's theirs now: its content becomes the pristine one and restore won't delete it.
+            entry["created"] = False
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(path, target)
+            return
     if target.exists() or not path.exists():
         return
     target.parent.mkdir(parents=True, exist_ok=True)
