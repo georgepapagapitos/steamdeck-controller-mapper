@@ -1,0 +1,2 @@
+info: retroarch: EmuDeck's ABXY remaps are parked as .rmp.disabled (not loaded) for 10 cores: Beetle VB, bsnes-hd beta, Gambatte, melonDS DS, Mesen, mGBA, Mupen64Plus-Next, Nestopia, SameBoy, Snes9x
+No problems found.

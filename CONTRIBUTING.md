@@ -24,6 +24,12 @@ python3 -m maphelper apply --emulator dolphin --system gc --game GALE01 \
 python3 -m maphelper backup --name before-melee      # or no --name for a timestamp; --list shows them
 python3 -m maphelper restore --dry-run               # what would change
 python3 -m maphelper restore --emulator dolphin      # or all emulators; --from before-melee for a backup
+
+# read-only checks for settings that defeat map-helper (exit 1 on errors). On a Deck the defaults are right:
+# Steam's userdata, RetroArch's Flatpak config and EmuDeck's settings.sh.
+python3 -m maphelper doctor
+python3 -m maphelper doctor --retroarch-root ../tests/fixtures/retroarch/dualsense-bt \
+    --steam-root ~/.local/share/Steam --emudeck-settings ~/.config/EmuDeck/settings.sh [--json]
 ```
 
 Everything above runs the same on macOS, Linux and Windows. On Windows, use Git Bash (the shell scripts in

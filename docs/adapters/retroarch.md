@@ -468,6 +468,42 @@ Select+R2 (the canonical fast-forward is always the toggle);
   RetroArch's menu only stick if the user saves the config. Ours are rewritten
   at each launch either way.
 
+## `doctor` checks
+
+`map-helper doctor` reads the RetroArch config root (default the Flatpak's) and
+reports what stops our core-level `.rmp` from taking effect. It never writes.
+Paths in its output are relative to the config root. EmuDeck's
+`input_remapping_directory` names the Flatpak root explicitly
+(`~/.var/app/org.libretro.RetroArch/config/retroarch/config/remaps`), so
+`doctor` reads that prefix as the root it was given.
+
+| Finding | Severity | Why |
+|---------|----------|-----|
+| `auto_remaps_enable = false` | error | `config_load_remap` never runs, so no `.rmp` loads |
+| `input_remap_binds_enable = false` | error | remaps are loaded but not applied |
+| `input_remap_sort_by_controller_enable = true` | error | remaps are looked up under `<core>/<device name>/`, never our core-level file |
+| `input_autodetect_enable = false` | error | `input_config_get_autoconfig_dir` returns NULL, so no profile loads; pads get only `retroarch.cfg` binds, which EmuDeck leaves `nul` |
+| non-`nul` `input_playerN_<button>_btn`/`_axis` in `retroarch.cfg` | warning | a user bind beats the profile's (`auto_binds` is used only for `NO_BTN`/`AXIS_NONE`), so the RetroPad source a press produces isn't the Steam Virtual Gamepad profile's, which our remaps assume |
+| any of the above in an override (`config/<core>/*.cfg`) | same | overrides load over `retroarch.cfg` when `auto_overrides_enable` is on (EmuDeck: on). The captured overrides are content-dir ones named after EmuDeck's ROM folders (`config/Beetle Cygne/wonderswan.cfg`) |
+| another `.rmp` in `<remap dir>/<core>/` | warning | a game or content-dir remap wins over ours when it matches (load precedence above) |
+| `<core>.rmp` next to EmuDeck's `<core>.rmp.disabled` | warning | EmuDeck's layout switch to ABXY moves `.rmp.disabled` over ours; switching back renames ours to `.rmp.disabled` |
+| `<core>.rmp` alone for one of EmuDeck's 10 toggled cores | warning | the switch to BAYX renames it to `.rmp.disabled` (with `controllerLayout=abxy` it's likely EmuDeck's own file) |
+| cores with only `.rmp.disabled` | info | EmuDeck's ABXY remaps are parked (normal under `baxy`) |
+
+"AutoMap" is EmuDeck's, and it doesn't touch RetroArch (only Dolphin, Cemu
+and the Switch emulators, [07](../07-launch-integration.md)). RetroArch's own
+counterpart is autoconfig, covered by the two `retroarch-autoconfig` rows.
+`doctor` checks EmuDeck AutoMap for Dolphin separately.
+
+Sources: `input/input_driver.c` @ `eb7335f`: `input_config_get_autoconfig_dir`
+(L14337), bind fallback to `auto_binds` (L1671–1677, L2805–2810),
+`input_key_pressed` (L9640); `tasks/task_autodetect.c` reads
+`input_autodetect_enable` on connect (L1823–1824); `config.def.h`
+`DEFAULT_INPUT_AUTODETECT_ENABLE true` (L1946). EmuDeck
+`functions/EmuScripts/emuDeckRetroArch.sh` @ `dddb302`:
+`RetroArch_setABXYstyle` (L363–374), `RetroArch_setBAYXstyle` (L376–386);
+`functions/helperFunctions.sh` `controllerLayout_ABXY`/`_BAYX` (L1307–1329).
+
 ## Sources
 
 RetroArch, master `eb7335f939c39be703662c2a0e07c106f99b64ac` (version 1.22.2), cross-checked at tag `v1.22.2`:
