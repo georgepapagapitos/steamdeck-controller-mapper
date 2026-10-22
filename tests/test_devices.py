@@ -158,6 +158,20 @@ class CapturedDeckTest(unittest.TestCase):
         # xpad leaves uniq empty (only the pad's keyboard/mouse HID nodes carry the USB serial), so the id is port-bound.
         self.assertTrue(stable_id(next(d for d in devices if is_gamepad(d) and d.vendor == "2dc8")).startswith("path:"))
 
+    def test_reorder_moves_pads_between_virtual_pads(self):
+        # Steam "Reorder controllers": Switch Pro, 8BitDo, DualSense, Deck. Virtual pad 0 (Deck before) is the Pro now.
+        ids = {}
+        for scenario in ("all-three", "all-three-reordered"):
+            root = REPO / "tests" / "fixtures" / "devices" / scenario
+            devices = parse_proc_input_devices((root / "proc-bus-input-devices").read_text(encoding="utf-8"))
+            info = parse_virtual_gamepad_info((root / "virtualgamepadinfo.txt").read_text(encoding="utf-8"))
+            ids[scenario] = [(s.slot, s.vid_pid, s.device_id, s.virtual is not None) for s in steam_slots(devices, info)]
+        self.assertEqual([v for _, v, _, _ in ids["all-three"]], ["28de:1205", "054c:0ce6", "2dc8:6012", "057e:2009"])
+        self.assertEqual([v for _, v, _, _ in ids["all-three-reordered"]],
+                         ["057e:2009", "2dc8:6012", "054c:0ce6", "28de:1205"])
+        self.assertEqual({d for _, _, d, _ in ids["all-three"]}, {d for _, _, d, _ in ids["all-three-reordered"]})
+        self.assertTrue(all(live for *_, live in ids["all-three-reordered"]))
+
     def test_steam_slots_map_to_physical_pads(self):
         slots = {s.slot: (s.vid_pid, s.type) for s in steam_slots(self.devices, self.info)}
         self.assertEqual(slots, {0: ("28de:1205", "steam"), 1: ("054c:0ce6", "ps5")})
