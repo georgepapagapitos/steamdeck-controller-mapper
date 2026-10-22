@@ -183,7 +183,7 @@ def cmd_apply(args) -> int:
     for n, spec in enumerate(args.player, start=1):
         model, _, device_id = spec.partition("@")
         controller = db.classify((device_id,) if device_id else (), claimed_model=model)
-        players[n] = resolver.resolve(report.rules, controller, target, layouts)
+        players[n] = resolver.set_by_rules(resolver.resolve(report.rules, controller, target, layouts))
 
     def current(file, section, key):
         path = args.config_root / file

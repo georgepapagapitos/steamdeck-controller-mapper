@@ -118,5 +118,32 @@ class DolphinTokenTest(unittest.TestCase):
         self.assertTrue(out.warnings)
 
 
+class UntouchedKeysTest(unittest.TestCase):
+    """Owner decision 2026-10-22: keys only shipped defaults decide keep the live value."""
+
+    def apply(self, rules_dir):
+        import contextlib, io, shutil, tempfile
+        from pathlib import Path
+        from maphelper.cli import main
+        tmp = Path(tempfile.mkdtemp())
+        shutil.copytree(REPO / "tests/fixtures/dolphin/dualsense-bt", tmp / "cfg")
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
+            main(["apply", "--emulator", "dolphin", "--system", "gc", "--config-root", str(tmp / "cfg"),
+                  "--player", "sony.dualsense", "--rules", str(rules_dir), "--state-dir", str(tmp / "state")])
+        return out.getvalue()
+
+    def test_no_user_rules_leaves_a_real_config_alone(self):
+        # The owner's live GCPadNew.ini predates EmuDeck's current template (Z = `Shoulder R`|Back,
+        # fast-forward Start+RT); shipped defaults alone must not rewrite it.
+        import tempfile
+        self.assertEqual(self.apply(tempfile.mkdtemp()).strip(), "No changes.")
+
+    def test_a_user_rule_still_applies(self):
+        diff = self.apply(REPO / "examples")
+        self.assertIn("+Emulation Speed/Disable Emulation Speed Limit = @(Back+`Trigger R`)", diff)
+        self.assertNotIn("Buttons/Z", diff)
+
+
 if __name__ == "__main__":
     unittest.main()
