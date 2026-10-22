@@ -263,8 +263,11 @@ handle (`SDL_GetGamepadSteamHandle`). The **GUID is unchanged**: it is still the
 (polled every 3 s) and sends `SDL_CONTROLLERSTEAMHANDLEUPDATED` /
 `SDL_EVENT_GAMEPAD_STEAM_HANDLE_UPDATED`. It also swaps A/B for Switch-type
 slots, because Steam's "Use Nintendo button layout" sends button 0 for the
-east button. SDL's Linux evdev backend returns player index −1, so the
-emulator gets no player index from Steam on Linux.
+east button. SDL's Linux evdev backend returns player index −1, but SDL3's
+joystick core gives a Steam virtual pad its slot `N` as the player index
+(`SDL_PrivateJoystickAdded` tries the Steam slot first) and any other gamepad
+the first free index. Emulators that number pads by player index (PCSX2's
+`SDL-<n>`) therefore see the Steam slot.
 
 **Consequences for the design:**
 
@@ -303,6 +306,10 @@ emulator index) does this at launch:
      `<n>` counts earlier same-named SDL devices in that order (`ControllerInterface::AddDevice`). Player 1's string
      also goes in `[Hotkeys] Device`, since hotkeys sit on P1's pad. Names and `<n>` confirmed on a Deck: EmuDeck's
      AutoMap wrote the same strings (docs/13 S1). **[VERIFY]** the order when nodes are out of slot order.
+   - **PCSX2** (`slots`: it bundles SDL3 since v2.3.199): `SDL-<n>` is the SDL *player index*, not the joystick
+     index, so a virtual pad is `SDL-<slot>` and other pads take the first free index after them. Every `SDL-<n>/`
+     in `[PadK]` (and in player 1's `[Hotkeys]`) is rewritten to the player's pad, since PCSX2 has no per-pad
+     device key ([adapters/pcsx2.md](adapters/pcsx2.md)). **[VERIFY]** on a Deck.
    With `nodes`, Steam's slot order and the emulator's order differ whenever Steam created the virtual pads out of
    slot order, which a Game Mode session did (S1); with `slots` they agree by construction.
 
@@ -335,7 +342,7 @@ Checked 2026-10-22. Upstream sources were read only (shallow clones), never buil
   - [`src/joystick/SDL_steam_virtual_gamepad.c`](https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/src/joystick/SDL_steam_virtual_gamepad.c): env var `SteamVirtualGamepadInfo` (L136), Wine exclusion (L138–146), `[slot N]` / `name` / `VID` / `PID` / `type` / `handle` parser (L159–243), 3 s mtime poll (L161–185)
   - [`src/joystick/linux/SDL_sysjoystick.c`](https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/src/joystick/linux/SDL_sysjoystick.c): `GetSteamVirtualGamepadSlot` parses `"pad "` + digits from `EVIOCGNAME` (L237–252), only for Valve `11ff` (L516–520); player index −1 (L1142–1145)
   - [`src/joystick/hidapi/SDL_hidapi_xbox360.c`](https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/src/joystick/hidapi/SDL_hidapi_xbox360.c): `GamePad-%d` slot (L289–294)
-  - [`src/joystick/SDL_joystick.c`](https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/src/joystick/SDL_joystick.c): name override (L1007–1035), Nintendo face swap (L1327–1346), steam handle (L1479–1483), handle-update events (L2922–2975), `SDL_IsJoystickSteamVirtualGamepad` (L3507–3514), VID/PID override vs unchanged GUID (L3756–3810)
+  - [`src/joystick/SDL_joystick.c`](https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/src/joystick/SDL_joystick.c): name override (L1007–1035), Nintendo face swap (L1327–1346), steam handle (L1479–1483), handle-update events (L2922–2975), `SDL_IsJoystickSteamVirtualGamepad` (L3507–3514), VID/PID override vs unchanged GUID (L3756–3810), `SDL_FindFreePlayerIndex` (L764–775), Steam slot as player index in `SDL_PrivateJoystickAdded` (L2600–2626)
   - [`src/joystick/usb_ids.h`](https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/src/joystick/usb_ids.h) (Sony L175–181, Nintendo L122–137, Microsoft L191–210, `STEAM_VIRTUAL_GAMEPAD 0x11ff` L211, 8BitDo L73–82) and [`controller_list.h`](https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/src/joystick/controller_list.h) (Sony L107–110, L177, L643; Xbox L199, L206, L363–373, L645–648; 8BitDo L487–489, L650–657; Nintendo L585–599; Valve L661–673)
 - **SDL2** `SDL2` branch @ `8acf7cfc0f88717e5c036f60f0314bfcafe39189`: same `SDL_steam_virtual_gamepad.c`; [`WhatsNew.txt`](https://github.com/libsdl-org/SDL/blob/8acf7cfc0f88717e5c036f60f0314bfcafe39189/WhatsNew.txt) L5–11 (2.30.0 added `SDL_GameControllerGetSteamHandle`, "could also change the name, VID, and PID"); [`src/joystick/SDL_gamecontroller.c`](https://github.com/libsdl-org/SDL/blob/8acf7cfc0f88717e5c036f60f0314bfcafe39189/src/joystick/SDL_gamecontroller.c) L2153–2166 (`SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEPAD`); [`include/SDL_hints.h`](https://github.com/libsdl-org/SDL/blob/8acf7cfc0f88717e5c036f60f0314bfcafe39189/include/SDL_hints.h) L529–555 (`IGNORE_DEVICES` format)
 - **Linux** `torvalds/linux` @ `2a08195e4db5aba84600db6518089a1dbe2d04c7`:

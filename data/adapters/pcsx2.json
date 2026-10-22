@@ -62,8 +62,19 @@
   },
   "device_ref": {
     "format": "SDL-{player_index}",
-    "index_semantics": "SDL player index (SDL_GetGamepadPlayerIndex); if negative or taken, first free index. Steam virtual pads report their Steam slot. Index-based: order matters.",
+    "index_semantics": "SDL player index (SDLInputSource::OpenDevice reads SDL_GetGamepadPlayerIndex; if it is negative or already used by an open pad, PCSX2 takes its own first free id). SDL3 gives a Steam virtual pad (28de:11ff) the N in its evdev name 'Microsoft X-Box 360 pad N', which is its Steam slot (GetSteamVirtualGamepadSlot, SDL_PrivateJoystickAdded), and any other gamepad the first player index free when it is added (SDL_FindFreePlayerIndex; the Linux backend's own player index is always -1). Index-based: order matters.",
     "persistent_ids": false,
+    "sdl_order": "slots",
+    "_order_note": "PCSX2 v2.3.199+ bundles SDL3, which adds Steam virtual pads first, by slot, then everything else by js index (docs/04 5.2). A virtual pad's index is its slot whatever the order; the order only decides which free index each pad Steam doesn't virtualise gets. [VERIFY] on a Deck (spike S1): the index PCSX2 shows for each pad, a slot gap (a stale slot kept for a pad that went away), hot-plug after PCSX2 started (then a pad takes the first index free at that moment), and native pads SDL opens through HIDAPI.",
+    "_order_sources": [
+      "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/Input/SDLInputSource.cpp#L1343-L1356",
+      "https://github.com/PCSX2/pcsx2/blob/7fe1e5525a2c219c119aa9586cee4ceae2f54ce1/pcsx2/Input/SDLInputSource.cpp#L1383-L1405",
+      "https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/src/joystick/SDL_joystick.c#L764-L775",
+      "https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/src/joystick/SDL_joystick.c#L2600-L2626",
+      "https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/src/joystick/linux/SDL_sysjoystick.c#L237-L252",
+      "https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/src/joystick/linux/SDL_sysjoystick.c#L509-L520",
+      "https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/src/joystick/linux/SDL_sysjoystick.c#L1137-L1145"
+    ],
     "other_sources": [
       "Keyboard",
       "Pointer-{n}",
@@ -84,7 +95,7 @@
     },
     "per_binding_scale_deadzone": "<Key>Scale, <Key>Deadzone in the same [PadN] section",
     "keyboard": "Keyboard/<Key>",
-    "unbound": "delete the key"
+    "unbound": "delete the key, or leave the value empty: an empty value splits into no chord parts, so no binding is added (InputManager::SplitChord, AddBinding)"
   },
   "physical_tokens": {
     "face_south": "FaceSouth",
@@ -278,7 +289,16 @@
       "hotkey.toggle_fullscreen": "ToggleFullscreen",
       "hotkey.pause": "TogglePause"
     },
-    "_note": "hotkey.fast_forward is the toggle (ToggleTurbo); hotkey.fast_forward_hold is HoldTurbo. Chords: 'SDL-0/Back & SDL-0/Start'. Profiles only supply hotkeys when the profile has [Pad] UseProfileHotkeyBindings = true."
+    "_note": "hotkey.fast_forward is the toggle (ToggleTurbo); hotkey.fast_forward_hold is HoldTurbo. Chords: 'SDL-0/Back & SDL-0/Start'. Profiles only supply hotkeys when the profile has [Pad] UseProfileHotkeyBindings = true.",
+    "device_keys": [
+      "ToggleSlowMotion",
+      "ResetVM",
+      "IncreaseUpscaleMultiplier",
+      "DecreaseUpscaleMultiplier",
+      "CycleAspectRatio",
+      "ToggleSoftwareRendering"
+    ],
+    "_device_keys_note": "Hotkeys EmuDeck binds to a pad (SDL-0) that have no canonical target (tests/fixtures/pcsx2/emudeck-default/PCSX2QT_setupControllers.ini). When apply assigns players, the SDL-<n> in these and in the target keys moves to player 1's pad, the way Dolphin's [Hotkeys] Device does; nothing else in the value changes. Only the first line of a repeated key is read and edited (ToggleSoftwareRendering's second line is Keyboard/F9)."
   },
   "options": {
     "rumble": {
@@ -457,54 +477,38 @@
     ]
   },
   "managed_keys": {
-    "PCSX2.ini": {
-      "Pad{n}": [
-        "Type (only with options.controller_type)",
-        "Up",
-        "Down",
-        "Left",
-        "Right",
-        "Cross",
-        "Circle",
-        "Square",
-        "Triangle",
-        "Select",
-        "Start",
-        "L1",
-        "R1",
-        "L2",
-        "R2",
-        "L3",
-        "R3",
-        "Analog",
-        "Pressure",
-        "LUp",
-        "LDown",
-        "LLeft",
-        "LRight",
-        "RUp",
-        "RDown",
-        "RLeft",
-        "RRight",
-        "LargeMotor",
-        "SmallMotor",
-        "Deadzone",
-        "ButtonDeadzone",
-        "AxisScale",
-        "LargeMotorScale",
-        "SmallMotorScale (options only)"
-      ],
-      "Pad": [
-        "MultitapPort1",
-        "MultitapPort2 (only for >2 players)"
-      ],
-      "Hotkeys": [
-        "only hotkey targets with rules"
-      ],
-      "InputSources": [
-        "SDLControllerEnhancedMode (native mode options only)"
-      ]
-    },
+    "inis/PCSX2.ini": [
+      {
+        "sections": "Pad{n}",
+        "keys": [
+          "Up|Down|Left|Right",
+          "Cross|Circle|Square|Triangle",
+          "Select|Start|Analog|Pressure",
+          "L1|R1|L2|R2|L3|R3",
+          "LUp|LDown|LLeft|LRight",
+          "RUp|RDown|RLeft|RRight",
+          "LargeMotor|SmallMotor",
+          "Type"
+        ],
+        "option_keys": [
+          "Deadzone"
+        ],
+        "_note": "Pad1 and Pad2 only (Pad3-8 need a multitap, not done yet). Type only with options.controller_type; Deadzone only with options.deadzones; motors with options.rumble, or re-pointed at the player's pad."
+      },
+      {
+        "section": "Hotkeys",
+        "keys": [
+          "<hotkeys.targets>",
+          "<hotkeys.device_keys>"
+        ],
+        "_note": "built in code from the hotkeys table; a key changes only with a hotkey rule, or when its SDL-<n> moves to player 1's pad"
+      }
+    ],
+    "not_yet": [
+      "[Pad] MultitapPort1|2 (more than 2 players)",
+      "ButtonDeadzone, AxisScale, LargeMotorScale, SmallMotorScale, InvertL|R (no option maps to them yet)",
+      "[InputSources] SDLControllerEnhancedMode (native mode options)"
+    ],
     "never_touch": [
       "[UI] SettingsVersion (if missing or != 1, PCSX2 resets every setting to defaults)",
       "[Folders]"

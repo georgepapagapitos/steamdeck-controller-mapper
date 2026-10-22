@@ -1,0 +1,155 @@
+--- a/inis/PCSX2.ini
++++ b/inis/PCSX2.ini
+@@ -493,7 +493,7 @@
+ 
+ 
+ [Hotkeys]
+-ToggleFullscreen = SDL-0/Start & SDL-0/LeftStick
++ToggleFullscreen = SDL-1/Start & SDL-1/LeftStick
+ CycleInterlaceMode = Keyboard/F5
+ CycleMipmapMode = Keyboard/Insert
+ GSDumpMultiFrame = Keyboard/Control & Keyboard/Shift & Keyboard/F8
+@@ -502,23 +502,23 @@
+ ZoomIn = Keyboard/Control & Keyboard/Plus
+ ZoomOut = Keyboard/Control & Keyboard/Minus
+ InputRecToggleMode = Keyboard/Shift & Keyboard/R
+-LoadStateFromSlot = SDL-0/Back & SDL-0/LeftShoulder
+-SaveStateToSlot = SDL-0/Back & SDL-0/RightShoulder
+-ShutdownVM = SDL-0/Back & SDL-0/Start
++LoadStateFromSlot = SDL-1/Back & SDL-1/LeftShoulder
++SaveStateToSlot = SDL-1/Back & SDL-1/RightShoulder
++ShutdownVM = SDL-1/Back & SDL-1/Start
+ ToggleFrameLimit = Keyboard/F4
+-ToggleSlowMotion = SDL-0/Back & SDL-0/+LeftTrigger
+-ToggleTurbo = SDL-0/Back & SDL-0/+RightTrigger
++ToggleSlowMotion = SDL-1/Back & SDL-1/+LeftTrigger
++ToggleTurbo = SDL-1/Back & SDL-1/+RightTrigger
+ HoldTurbo = Keyboard/Period
+-ResetVM = SDL-0/Back & SDL-0/LeftStick
+-OpenPauseMenu = SDL-0/Back & SDL-0/RightStick
+-IncreaseUpscaleMultiplier = SDL-0/Start & SDL-0/DPadUp
+-DecreaseUpscaleMultiplier = SDL-0/Start & SDL-0/DPadDown
+-CycleAspectRatio = SDL-0/Start & SDL-0/DPadRight
+-ToggleSoftwareRendering = SDL-0/Start & SDL-0/DPadLeft
++ResetVM = SDL-1/Back & SDL-1/LeftStick
++OpenPauseMenu = SDL-1/Back & SDL-1/RightStick
++IncreaseUpscaleMultiplier = SDL-1/Start & SDL-1/DPadUp
++DecreaseUpscaleMultiplier = SDL-1/Start & SDL-1/DPadDown
++CycleAspectRatio = SDL-1/Start & SDL-1/DPadRight
++ToggleSoftwareRendering = SDL-1/Start & SDL-1/DPadLeft
+ ToggleSoftwareRendering = Keyboard/F9
+-NextSaveStateSlot = SDL-0/Start & SDL-0/RightShoulder
+-PreviousSaveStateSlot = SDL-0/Start & SDL-0/LeftShoulder
+-TogglePause = SDL-0/Back & SDL-0/FaceSouth
++NextSaveStateSlot = SDL-1/Start & SDL-1/RightShoulder
++PreviousSaveStateSlot = SDL-1/Start & SDL-1/LeftShoulder
++TogglePause = SDL-1/Back & SDL-1/FaceSouth
+ 
+ 
+ [Pad]
+@@ -539,6 +539,43 @@
+ LargeMotorScale = 1.000000
+ SmallMotorScale = 1.000000
+ ButtonDeadzone = 0
++PressureModifier = 0.300000
++Up = SDL-1/DPadUp
++Right = SDL-1/DPadRight
++Down = SDL-1/DPadDown
++Left = SDL-1/DPadLeft
++Select = SDL-1/Back
++Start = SDL-1/Start
++L1 = SDL-1/LeftShoulder
++L2 = SDL-1/+LeftTrigger
++R1 = SDL-1/RightShoulder
++R2 = SDL-1/+RightTrigger
++L3 = SDL-1/LeftStick
++R3 = SDL-1/RightStick
++LUp = SDL-1/-LeftY
++LRight = SDL-1/+LeftX
++LDown = SDL-1/+LeftY
++LLeft = SDL-1/-LeftX
++RUp = SDL-1/-RightY
++RRight = SDL-1/+RightX
++RDown = SDL-1/+RightY
++RLeft = SDL-1/-RightX
++SmallMotor = SDL-1/SmallMotor
++LargeMotor = SDL-1/LargeMotor
++Analog = Keyboard/F6
++Pressure = Keyboard/S
++Triangle = SDL-1/FaceNorth
++Circle = SDL-1/FaceEast
++Cross = SDL-1/FaceSouth
++Square = SDL-1/FaceWest
++
++
++[Pad2]
++Type = DualShock2
++Deadzone = 0.000000
++AxisScale = 1.330000
++LargeMotorScale = 1.000000
++SmallMotorScale = 1.000000
+ PressureModifier = 0.300000
+ Up = SDL-0/DPadUp
+ Right = SDL-0/DPadRight
+@@ -552,6 +589,7 @@
+ R2 = SDL-0/+RightTrigger
+ L3 = SDL-0/LeftStick
+ R3 = SDL-0/RightStick
++Analog = SDL-0/Guide
+ LUp = SDL-0/-LeftY
+ LRight = SDL-0/+LeftX
+ LDown = SDL-0/+LeftY
+@@ -560,52 +598,14 @@
+ RRight = SDL-0/+RightX
+ RDown = SDL-0/+RightY
+ RLeft = SDL-0/-RightX
++LargeMotor = SDL-0/LargeMotor
+ SmallMotor = SDL-0/SmallMotor
+-LargeMotor = SDL-0/LargeMotor
+-Analog = Keyboard/F6
+-Pressure = Keyboard/S
+ Triangle = SDL-0/FaceNorth
+ Circle = SDL-0/FaceEast
+ Cross = SDL-0/FaceSouth
+ Square = SDL-0/FaceWest
+ 
+ 
+-[Pad2]
+-Type = DualShock2
+-Deadzone = 0.000000
+-AxisScale = 1.330000
+-LargeMotorScale = 1.000000
+-SmallMotorScale = 1.000000
+-PressureModifier = 0.300000
+-Up = SDL-1/DPadUp
+-Right = SDL-1/DPadRight
+-Down = SDL-1/DPadDown
+-Left = SDL-1/DPadLeft
+-Select = SDL-1/Back
+-Start = SDL-1/Start
+-L1 = SDL-1/LeftShoulder
+-L2 = SDL-1/+LeftTrigger
+-R1 = SDL-1/RightShoulder
+-R2 = SDL-1/+RightTrigger
+-L3 = SDL-1/LeftStick
+-R3 = SDL-1/RightStick
+-Analog = SDL-1/Guide
+-LUp = SDL-1/-LeftY
+-LRight = SDL-1/+LeftX
+-LDown = SDL-1/+LeftY
+-LLeft = SDL-1/-LeftX
+-RUp = SDL-1/-RightY
+-RRight = SDL-1/+RightX
+-RDown = SDL-1/+RightY
+-RLeft = SDL-1/-RightX
+-LargeMotor = SDL-1/LargeMotor
+-SmallMotor = SDL-1/SmallMotor
+-Triangle = SDL-1/FaceNorth
+-Circle = SDL-1/FaceEast
+-Cross = SDL-1/FaceSouth
+-Square = SDL-1/FaceWest
+-
+-
+ [Pad3]
+ Type = None
+ 

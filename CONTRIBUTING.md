@@ -32,7 +32,7 @@ python3 -m maphelper doctor --retroarch-root ../tests/fixtures/retroarch/dualsen
     --steam-root ~/.local/share/Steam --emudeck-settings ~/.config/EmuDeck/settings.sh [--json]
 
 # without --player: the pads connected now, in Steam's order, each player pointed at its own pad
-# (RetroArch's input_playerN_joypad_index, Dolphin's Device); here from a capture
+# (RetroArch's input_playerN_joypad_index, Dolphin's Device, the SDL-<n> in PCSX2's [PadN]); here from a capture
 cp -r ../tests/fixtures/retroarch/dualsense-bt /tmp/retroarch-demo
 python3 -m maphelper apply --emulator retroarch --system snes --config-root /tmp/retroarch-demo \
     --proc-file ../tests/fixtures/devices/all-three-reordered/proc-bus-input-devices \
