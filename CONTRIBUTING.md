@@ -37,9 +37,29 @@ cp -r ../tests/fixtures/retroarch/dualsense-bt /tmp/retroarch-demo
 python3 -m maphelper apply --emulator retroarch --system snes --config-root /tmp/retroarch-demo \
     --proc-file ../tests/fixtures/devices/all-three-reordered/proc-bus-input-devices \
     --virtual-info ../tests/fixtures/devices/all-three-reordered/virtualgamepadinfo.txt
+
+# the launch wrapper (docs/07): apply for the pads connected now, then run the command unchanged. It never prints;
+# each launch is one line in <state-dir>/logs/launch.log. On a Deck the defaults (EmuDeck's config dirs, /proc,
+# Steam's slot file) are right and only --emulator and the command are needed.
+python3 -m maphelper mh-run --emulator retroarch --config-root /tmp/retroarch-demo --state-dir /tmp/mh-state \
+    --proc-file ../tests/fixtures/devices/all-three-reordered/proc-bus-input-devices \
+    --virtual-info ../tests/fixtures/devices/all-three-reordered/virtualgamepadinfo.txt \
+    -- echo retroarch.sh -L snes9x_libretro.so "/home/deck/Emulation/roms/snes/Super Metroid.sfc"
+cat /tmp/mh-state/logs/launch.log
+# ES-DE's game-start event (no command; always exits 0)
+python3 -m maphelper mh-run --hook --config-root /tmp/retroarch-demo --state-dir /tmp/mh-state \
+    --proc-file ../tests/fixtures/devices/all-three-reordered/proc-bus-input-devices \
+    --virtual-info ../tests/fixtures/devices/all-three-reordered/virtualgamepadinfo.txt \
+    --es-de "/home/deck/Emulation/roms/snes/Super\ Metroid.sfc" "Super Metroid" snes "Super Nintendo"
+
+# put mh-run in the launch paths: the ~/.local/bin/mh-run shim, SRM's parsers, ES-DE's game-start script
+# (dry run; --write to do it). `uninstall` undoes exactly what it did. doctor reports what's missing.
+python3 -m maphelper setup
+python3 -m maphelper uninstall
 ```
 
-Everything above runs the same on macOS, Linux and Windows. On Windows, use Git Bash (the shell scripts in
+Everything above runs the same on macOS, Linux and Windows (mh-run's watchdog needs SIGALRM, so on Windows only its
+deadline checks apply). On Windows, use Git Bash (the shell scripts in
 `tools/` need it). Git checks every file out with LF line endings (`.gitattributes`), so fixtures and goldens
 compare byte for byte on every OS.
 

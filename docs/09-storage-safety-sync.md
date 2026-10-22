@@ -23,13 +23,15 @@ and safe to delete, though deleting it loses backups.
    `$STATE/backups/pristine/<emulator>/<relpath>`, and record the file in `$STATE/touched.json` (below). A file that
    doesn't exist yet has nothing to snapshot, so it's recorded as `created`. We never overwrite the snapshot unless
    the user re-baselines or an EmuDeck reset is detected.
-2. **Lock.** `flock $STATE/locks/<emulator>.lock`.
+2. **Lock.** `flock $STATE/locks/<emulator>.lock`, non-blocking: mh-run skips the apply if it's held (implemented in mh-run).
 3. **Is the emulator running?** If so, abort (the emulator would overwrite us
    on exit anyway). Check `/proc/*/exe` / cmdline for known binaries, including Flatpak `bwrap` children. **[VERIFY]**
 4. **Read → patch → serialize with a round-trip parser.** Only managed keys
    change. Formatting, comments, ordering and unknown keys are preserved.
 5. **No-op check.** If the output is byte-identical, skip the write entirely and don't touch the mtime.
 6. **Atomic write.** Write to `file.mh-tmp` in the same directory, `fsync`, then `rename`, keeping the mode and owner.
+   Every changed file is staged this way before any is renamed, with a gate in between, so mh-run can stop at
+   its deadline without leaving a half-written file or a half-applied set (implemented; [07](07-launch-integration.md)).
 7. **Journal entry.** Record `{ts, emulator, file, before_hash, after_hash, managed_hash, rule_trace_ref}` to `$STATE/journal/YYYY-MM.jsonl`.
 8. **Managed hash.** Hash only the managed keys' values after the write, and store it in `hashes.json`. This is what drift detection uses.
 

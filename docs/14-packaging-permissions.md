@@ -346,27 +346,35 @@ hooks must therefore never point into `~/homebrew/plugins/map-helper/`.
   `_main` runs it (payload = `DECKY_PLUGIN_DIR/py_modules`) when
   `VERSION` differs from `install.json`. The standalone CLI tarball runs the
   same command.
-- **`mh-run` fails open.** The shim does the prepare step under a timeout,
-  then the *shell* execs the original command, so no Python failure can stop
-  the launch:
+- **`mh-run` fails open.** The shim runs the apply step, then the *shell*
+  execs the original command, so no Python failure can stop the launch.
+  `map-helper setup` writes it (`setup.shim_text`), with absolute paths:
 
   ```sh
   #!/bin/sh
-  # map-helper launch shim (managed file). Never blocks a launch.
-  MH="$HOME/.local/lib/map-helper/current/mh_entry.py"
-  if [ -x /usr/bin/python3 ] && [ -f "$MH" ]; then
-      timeout 10 /usr/bin/python3 -I "$MH" prepare "$@" \
-          >>"$HOME/.local/state/map-helper/logs/mh-run.log" 2>&1 || true
+  # map-helper launch shim (managed file: `map-helper setup` wrote it, `map-helper uninstall` removes it).
+  # Applies controller mappings, then runs the command after -- unchanged. Never blocks a launch.
+  MH='/home/deck/.local/lib/map-helper/current/mh_entry.py'
+  PY='/usr/bin/python3'
+  if [ -x "$PY" ] && [ -f "$MH" ]; then
+      T=""
+      command -v timeout >/dev/null 2>&1 && T="timeout -s KILL 2"
+      $T "$PY" -I "$MH" mh-run --no-exec "$@" </dev/null >/dev/null 2>&1
   fi
+  [ "$1" = "--hook" ] && exit 0
   while [ "$#" -gt 0 ] && [ "$1" != "--" ]; do shift; done
-  [ "$1" = "--" ] && shift
-  exec "$@"
+  [ "$#" -gt 0 ] && shift
+  [ "$#" -gt 0 ] && exec "$@"
+  exit 0
   ```
 
   This keeps PID semantics for Steam (the emulator replaces the shell) and
-  satisfies "never block a launch" from [02](02-architecture.md). The timeout
-  value goes on the S5/S6 checklist. `timeout` is coreutils, which is in the
-  base image.
+  satisfies "never block a launch" from [02](02-architecture.md). mh-run keeps
+  its own 500 ms budget with an in-process watchdog and logs to
+  `$STATE/logs/launch.log` itself ([07](07-launch-integration.md)), so its
+  output goes to `/dev/null`; the emulator keeps the terminal. coreutils'
+  `timeout` (in the base image) is only a backstop for a hang the watchdog
+  can't interrupt, and is skipped where it doesn't exist (macOS).
 - **Removing the Decky plugin leaves the hook and CLI working.** Because
   `_uninstall` can't tell an update from an uninstall (§2), real uninstall is
   explicit: Settings → Uninstall, or `map-helper uninstall`. That restores

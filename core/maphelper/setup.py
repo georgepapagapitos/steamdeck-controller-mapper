@@ -93,14 +93,18 @@ class Report:
 
 def shim_text(entry: Path, python: str) -> str:
     # docs/14 §6. The shell, not Python, starts the command, so not even a broken install can stop a launch; Python's
-    # own output goes nowhere (the emulator keeps the terminal) and mh-run logs to $STATE/logs/launch.log.
+    # own output goes nowhere (the emulator keeps the terminal) and mh-run logs to $STATE/logs/launch.log. mh-run
+    # keeps its own 500 ms budget; coreutils' timeout (in SteamOS's base image) is only a backstop for a hang the
+    # in-process watchdog can't interrupt, and is skipped where it doesn't exist.
     return f"""#!/bin/sh
 # map-helper launch shim (managed file: `map-helper setup` wrote it, `map-helper uninstall` removes it).
 # Applies controller mappings, then runs the command after -- unchanged. Never blocks a launch.
 MH={_sh_quote(str(entry))}
 PY={_sh_quote(python)}
 if [ -x "$PY" ] && [ -f "$MH" ]; then
-    "$PY" -I "$MH" mh-run --no-exec "$@" </dev/null >/dev/null 2>&1
+    T=""
+    command -v timeout >/dev/null 2>&1 && T="timeout -s KILL 2"
+    $T "$PY" -I "$MH" mh-run --no-exec "$@" </dev/null >/dev/null 2>&1
 fi
 [ "$1" = "--hook" ] && exit 0
 while [ "$#" -gt 0 ] && [ "$1" != "--" ]; do shift; done
