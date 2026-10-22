@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "_verified_against": {
+    "retroarch": "libretro/RetroArch master eb7335f939c39be703662c2a0e07c106f99b64ac (version.all 1.22.2)",
+    "sdl2": "libsdl-org/SDL release-2.30.0 (859844eae358447be8d66e6da59b6fb3df0ed778), include/SDL_gamecontroller.h"
+  },
+
+  "file": "retroarch.cfg",
+  "driver_key": "input_joypad_driver",
+  "_key_rule": "Hotkeys (meta binds) use prefix 'input_' (input_config_get_prefix, configuration.c L8418). A joypad button is input_<base>_btn = \"<n>\", an axis input_<base>_axis = \"+<n>\" / \"-<n>\", unbound \"nul\" (save_keybind_joykey L8288, save_keybind_axis L8326). The keyboard (input_<base>) and mouse (input_<base>_mbtn) binds are separate keys and are not managed.",
+  "_enable_rule": "While input_enable_hotkey is bound, every other hotkey needs it held (input_hotkey_blocked L12083, input_keys_pressed L13561, input/input_driver.c). So a RetroArch hotkey is always <enable> + <action>, with one enable input shared by all hotkeys, including the ones map-helper doesn't manage.",
+
+  "enable": "enable_hotkey",
+  "targets": {
+    "hotkey.menu": "menu_toggle",
+    "hotkey.exit": "exit_emulator",
+    "hotkey.save_state": "save_state",
+    "hotkey.load_state": "load_state",
+    "hotkey.next_slot": "state_slot_increase",
+    "hotkey.prev_slot": "state_slot_decrease",
+    "hotkey.fast_forward": "hold_fast_forward",
+    "hotkey.fast_forward_toggle": "toggle_fast_forward",
+    "hotkey.rewind": "rewind",
+    "hotkey.screenshot": "screenshot",
+    "hotkey.pause": "pause_toggle",
+    "hotkey.toggle_fullscreen": "toggle_fullscreen"
+  },
+  "_targets_notes": "Bases are the names in input_config_bind_map (configuration.c L347-467). hotkey.fast_forward is the hold variant; EmuDeck's Select+R2 is the toggle (input_toggle_fast_forward_axis = \"+5\" in tests/fixtures/retroarch/emudeck-default/retroarch.cfg).",
+
+  "meta_bases": ["enable_hotkey", "menu_toggle", "exit_emulator", "close_content", "reset", "toggle_fast_forward", "hold_fast_forward", "toggle_slowmotion", "hold_slowmotion", "rewind", "pause_toggle", "frame_advance", "audio_mute", "volume_up", "volume_down", "load_state", "save_state", "state_slot_increase", "state_slot_decrease", "play_replay", "record_replay", "halt_replay", "save_replay_checkpoint", "prev_replay_checkpoint", "next_replay_checkpoint", "replay_slot_increase", "replay_slot_decrease", "disk_eject_toggle", "disk_next", "disk_prev", "shader_toggle", "shader_hold", "shader_next", "shader_prev", "cheat_toggle", "cheat_index_plus", "cheat_index_minus", "screenshot", "recording_toggle", "streaming_toggle", "turbo_fire_toggle", "grab_mouse_toggle", "game_focus_toggle", "toggle_fullscreen", "desktop_menu_toggle", "toggle_vrr_runloop", "runahead_toggle", "preempt_toggle", "video_filter_toggle", "headset_recenter", "laser_pointer_toggle", "headset_view_toggle", "fps_toggle", "toggle_statistics", "ai_service", "netplay_ping_toggle", "netplay_host_toggle", "netplay_game_watch", "netplay_player_chat", "netplay_fade_chat_toggle", "overlay_next", "osk_toggle"],
+  "_meta_bases_notes": "Every DECLARE_META_BIND base in input_config_bind_map (configuration.c L388-466), in order. Only read, to warn when an unmanaged hotkey shares a button with one we write.",
+
+  "drivers": {
+    "sdl2": {
+      "_source": "input/drivers_joypad/sdl2_joypad.c (ident \"sdl2\", L669): a pad SDL knows as a game controller is opened with SDL_GameControllerOpen (sdl2_pad_connect L121-125) and exposes SDL_CONTROLLER_BUTTON_MAX buttons and SDL_CONTROLLER_AXIS_MAX axes (L181-194). sdl2_pad_get_button passes the bind index straight to SDL_GameControllerGetButton (L59-65) and sdl2_pad_get_axis to SDL_GameControllerGetAxis (L81-97), so indices are SDL's SDL_GameControllerButton (SDL_gamecontroller.h L731-755) and SDL_GameControllerAxis (L620-630) enums.",
+      "buttons": {
+        "face_south": 0, "face_east": 1, "face_west": 2, "face_north": 3,
+        "select": 4, "guide": 5, "start": 6, "l3": 7, "r3": 8, "l1": 9, "r1": 10,
+        "dpad_up": 11, "dpad_down": 12, "dpad_left": 13, "dpad_right": 14
+      },
+      "axes": {
+        "ls_right": "+0", "ls_left": "-0", "ls_down": "+1", "ls_up": "-1",
+        "rs_right": "+2", "rs_left": "-2", "rs_down": "+3", "rs_up": "-3",
+        "l2": "+4", "r2": "+5"
+      },
+      "_notes": "Cross-checked against EmuDeck's retroarch.cfg (enable_hotkey 4 = Back, exit 6 = Start, save 10 = R1, load 9 = L1, slot -/+ 13/14 = D-left/right, rewind +4 = L2, fast-forward +5 = R2) and the sdl2 'Steam Virtual Gamepad.cfg' autoconfig (input_l_y_minus_axis = \"-1\" = left stick up). SDL's MISC1 (15), PADDLE1-4 (16-19) and TOUCHPAD (20) are left out: the Steam virtual pad is an Xbox 360 pad and has none of them, so a hotkey there would never fire. guide = 5 is [VERIFY]: Steam keeps the Guide/PS button for itself. Holds only while SDL sees the pad as a game controller (the Steam virtual pad is in SDL's mapping database) [VERIFY on a Deck]."
+    }
+  }
+}

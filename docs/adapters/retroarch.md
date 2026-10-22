@@ -165,8 +165,8 @@ A user bind in `retroarch.cfg` beats the autoconfig bind; the autoconfig bind
 applies only when the user bind is `nul` (`input_key_pressed`).
 
 Joypad driver default on Linux: `udev`; Steam builds with SDL: `sdl2`
-(`JOYPAD_DEFAULT_DRIVER`). **[VERIFY]** what EmuDeck sets in
-`input_joypad_driver`.
+(`JOYPAD_DEFAULT_DRIVER`). EmuDeck sets `input_joypad_driver = "sdl2"` (its
+shipped `retroarch.cfg`, and the owner's captured one).
 
 ### Steam virtual pad profiles (shipped)
 
@@ -321,14 +321,16 @@ Full tables are in the descriptors. These are the ones that matter most:
   `input_playerN_analog_dpad_mode`, `input_libretro_device_pN`,
   `input_remap_port_pN`, for the users we resolve. We leave the `input_turbo_*`
   keys RetroArch writes untouched.
-- In `retroarch.cfg`: **hotkeys only** (`input_enable_hotkey_btn`,
-  `input_save_state_btn`, `input_load_state_btn`, `input_menu_toggle_btn`,
-  `input_exit_emulator_btn`, `input_hold_fast_forward_btn`,
-  `input_toggle_fast_forward_btn`, `input_rewind_btn`, `input_screenshot_btn`,
-  `input_state_slot_increase_btn`, `input_state_slot_decrease_btn`,
-  `input_pause_toggle_btn`, `input_toggle_fullscreen_btn`, plus their `_axis`
-  twins), and only if hotkey rules exist. Hotkeys exist only for user 1
-  (`input_config_get_prefix`: meta binds use prefix `input`).
+- In `retroarch.cfg`: **hotkeys only**, by exact name: `input_<base>_btn`
+  and `input_<base>_axis` for `enable_hotkey` and each base in
+  [hotkeys.json](../../data/adapters/retroarch/hotkeys.json) `targets`
+  (`menu_toggle`, `exit_emulator`, `save_state`, `load_state`,
+  `state_slot_increase`, `state_slot_decrease`, `hold_fast_forward`,
+  `toggle_fast_forward`, `rewind`, `screenshot`, `pause_toggle`,
+  `toggle_fullscreen`). Nothing is written there unless a rule sets a hotkey.
+  The keyboard (`input_<base>`) and mouse (`input_<base>_mbtn`) binds are not
+  managed. Meta binds have no user number (`input_config_get_prefix`: prefix
+  `input`), so they are rendered from player 1's resolution.
 - We never touch autoconfig files EmuDeck ships. We may *add* a generated
   autoconfig for native-mode devices with no profile.
 
@@ -360,8 +362,74 @@ its **last** extension removed (`runloop_path_set_basename`), e.g.
 ## Hotkeys
 
 Keys and value syntax: see "Bind value syntax" above. The full list of bases is
-`input_config_bind_map` in `configuration.c`. EmuDeck's combos are **[VERIFY]**
-(S7).
+`input_config_bind_map` in `configuration.c` (meta binds L388–466, copied into
+`hotkeys.json` `meta_bases`). EmuDeck's combos are in
+[data/defaults/README.md](../../data/defaults/README.md#hotkey-scheme), read
+from its shipped `retroarch.cfg`.
+
+**One enable button for all.** While `input_enable_hotkey` is bound, every
+other hotkey needs it held (`input_hotkey_blocked`, `input_keys_pressed` in
+`input/input_driver.c`). A RetroArch hotkey is therefore always
+*enable + action*, and the enable input is shared by every hotkey, including
+the ones map-helper doesn't manage (EmuDeck's Select+X FPS, Select+Y next disc,
+Select+L3 reset, Select+D-Up run-ahead). EmuDeck's enable is Select
+(`input_enable_hotkey_btn = "4"`).
+
+**Rendering** (`RetroArchAdapter._render_hotkeys`), only when player 1's
+resolution has `hotkey.*` bindings that rules set:
+
+1. Read `input_joypad_driver` from `retroarch.cfg`. Indices are driver-specific,
+   and only `sdl2` has a table. Anything else (`udev`, `sdl3`, unset) writes no
+   hotkeys and warns; wrong indices would bind the wrong buttons.
+2. Each rule must be a two-input chord. The enable input is the one most
+   chords share (ties go to the live one); chord order doesn't matter, so
+   `start+select` and `select+start` are the same. A chord that doesn't
+   include it, a single input, a 3-input chord, or an input with no `sdl2`
+   index is skipped with a warning. `{"input": "none"}` unbinds the hotkey.
+3. Each bound base gets both keys: the one that applies (`_btn` for buttons,
+   `_axis` for triggers and stick directions) and `"nul"` in the other, so an
+   old bind on the other kind doesn't keep firing.
+4. A hotkey we don't render that is still bound to an input we just used
+   (action or enable) would fire with it. Managed ones are set to `"nul"`
+   with a warning (EmuDeck's Select+R2 fast-forward toggle when a rule puts
+   hold-fast-forward on R2). Unmanaged ones are only warned about.
+5. Moving the enable button warns, since every RetroArch hotkey moves with it.
+
+`input_menu_toggle_gamepad_combo = "2"` (L3+R3) and
+`input_quit_gamepad_combo = "4"` (Start+Select) in EmuDeck's config are
+separate combo settings, not binds, and are left alone. The quit combo keeps
+quitting on Start+Select even if a rule moves `hotkey.exit`.
+
+### SDL2 indices
+
+With `sdl2`, a pad that SDL knows as a game controller (the Steam virtual
+pad is in SDL's mapping database) is opened with `SDL_GameControllerOpen`, and
+`sdl2_pad_get_button` / `sdl2_pad_get_axis` pass the bind index straight to
+`SDL_GameControllerGetButton` / `SDL_GameControllerGetAxis`
+(`input/drivers_joypad/sdl2_joypad.c`). So the numbers are SDL's enums:
+
+| Canonical | `_btn` | | Canonical | `_axis` |
+|-----------|--------|-|-----------|---------|
+| `face_south` | 0 | | `ls_right` / `ls_left` | `+0` / `-0` |
+| `face_east` | 1 | | `ls_down` / `ls_up` | `+1` / `-1` |
+| `face_west` | 2 | | `rs_right` / `rs_left` | `+2` / `-2` |
+| `face_north` | 3 | | `rs_down` / `rs_up` | `+3` / `-3` |
+| `select` | 4 | | `l2` | `+4` |
+| `guide` | 5 **[VERIFY]** | | `r2` | `+5` |
+| `start` | 6 | | | |
+| `l3` / `r3` | 7 / 8 | | | |
+| `l1` / `r1` | 9 / 10 | | | |
+| `dpad_up/down/left/right` | 11–14 | | | |
+
+These match every value in EmuDeck's `retroarch.cfg` and the sdl2 Steam
+Virtual Gamepad autoconfig. SDL's `MISC1`, `PADDLE1`–`4` and `TOUCHPAD`
+(15–20) are left out: the Steam virtual pad is an Xbox 360 pad without them.
+**[VERIFY]** on a Deck: that RetroArch opens the Steam virtual pad through the
+GameController API (otherwise raw joystick indices apply), and whether Guide
+reaches RetroArch at all (Steam keeps it).
+
+`hotkey.fast_forward` is `hold_fast_forward`; `hotkey.fast_forward_toggle` is
+`toggle_fast_forward`, which is what EmuDeck binds to Select+R2.
 
 ## Known pitfalls
 
@@ -389,7 +457,11 @@ Keys and value syntax: see "Bind value syntax" above. The full list of bases is
 - `input_remap_binds_enable = false` disables remaps globally. Check it at apply
   time.
 - Bind values in `retroarch.cfg` are driver-specific (`sdl2` vs `udev` indices
-  differ). Read `input_joypad_driver` before writing hotkeys.
+  differ). The hotkey writer reads `input_joypad_driver` and writes nothing for
+  a driver it has no table for.
+- `config_save_on_exit` is false under EmuDeck, so hotkey edits made in
+  RetroArch's menu only stick if the user saves the config. Ours are rewritten
+  at each launch either way.
 
 ## Sources
 
@@ -401,6 +473,9 @@ RetroArch, master `eb7335f939c39be703662c2a0e07c106f99b64ac` (version 1.22.2), c
 - `libretro-common/include/libretro.h`: `RETRO_DEVICE_ID_JOYPAD_*` (L309–371), `RETRO_DEVICE_SUBCLASS` (L138). <https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/libretro-common/include/libretro.h>
 - `config.def.h`: `DEFAULT_CONFIG_SAVE_ON_EXIT` (L730), `DEFAULT_REMAP_SAVE_ON_EXIT` (L736), `DEFAULT_AUTO_REMAPS_ENABLE` (L1094). <https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/config.def.h>
 - `runloop.c`: `runloop_event_deinit_core` remap save (L5666–5679), `runloop_event_init_core` remap load (L6684–6718), `runloop_path_set_basename` (L11135), `runloop_path_set_basename_to_archive` (L6497). `retroarch.c`: `retroarch_main_quit_finish` (L10528–10585), `--appendconfig` help (L7802–7813). <https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/runloop.c>
+- `input/drivers_joypad/sdl2_joypad.c`: `sdl2_pad_get_button` (L59–65), `sdl2_pad_get_axis` (L81–97), `SDL_IsGameController` / `SDL_GameControllerOpen` in `sdl2_pad_connect` (L121–125), button/axis counts for game controllers (L181–194), ident `"sdl2"` (L669). <https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/input/drivers_joypad/sdl2_joypad.c>
+- `input/input_driver.c`: hotkey gating by the enable bind, `input_hotkey_blocked` (L12083) and `input_keys_pressed` (L13561).
+- SDL 2.30.0 (`release-2.30.0`, `859844e`) `include/SDL_gamecontroller.h`: `SDL_GameControllerAxis` (L620–630), `SDL_GameControllerButton` (L731–755). <https://github.com/libsdl-org/SDL/blob/859844eae358447be8d66e6da59b6fb3df0ed778/include/SDL_gamecontroller.h>
 - `tasks/task_autodetect.c`: `input_autoconfigure_tuple_affinity` (L205), `input_autoconfigure_get_config_file_affinity` (L261), directory scan (L929–1120, L1895–1920). v1.22.2 scan order: <https://github.com/libretro/RetroArch/blob/v1.22.2/tasks/task_autodetect.c>
 - `frontend/drivers/platform_unix.c`: base path `$XDG_CONFIG_HOME/retroarch` (L3149–3170), remap and autoconfig defaults (L3203–3215, L3315–3319), `unix_find_packaged_dir` (L2617). `menu/cbs/menu_cbs_ok.c`: `generic_action_ok_remap_file_operation` (L4104). `settings/settings_def_input_haptics.h`: `input_remap_binds_enable`, `input_remap_sort_by_controller_enable` (L77–86).
 - libretro docs, overrides and remaps: <https://github.com/libretro/docs/blob/a7043e4a8b984c3a0a1dc5d04b8fd0a0bc66b50f/docs/guides/overrides.md> (<https://docs.libretro.com/guides/overrides/>)
@@ -413,7 +488,7 @@ Cross-checked against EmuDeck's shipped `retroarch.cfg`
 (`tests/fixtures/retroarch/emudeck-default/`, `dragoonDorise/EmuDeck@dddb302`) and
 [data/defaults/README.md](../../data/defaults/README.md). This resolves several unknowns above:
 
-- `input_joypad_driver = "sdl2"`, so hotkey indices use SDL GameController order and autoconfig resolves under `autoconfig/sdl2/`.
+- `input_joypad_driver = "sdl2"`, so hotkey indices use SDL GameController order (see [SDL2 indices](#sdl2-indices)) and autoconfig resolves under `autoconfig/sdl2/`.
 - `config_save_on_exit = "false"`: `retroarch.cfg` is **not** rewritten at quit under EmuDeck.
 - `remap_save_on_exit = "true"`: whichever `.rmp` was loaded **is** rewritten when content closes, so drift detection must compare parsed values.
 - EmuDeck ships core-level remaps as `<core>.rmp.disabled` for 10 cores. Its `abxy` layout setting renames them to `.rmp` (A↔B / X↔Y swaps). Our core-level `.rmp` would replace those, so the pristine snapshot and uninstall must restore the `.rmp` / `.rmp.disabled` state exactly.

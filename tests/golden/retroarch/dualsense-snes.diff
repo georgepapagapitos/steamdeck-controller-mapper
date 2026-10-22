@@ -1,0 +1,25 @@
+--- a/config/remaps/Snes9x/Snes9x.rmp
++++ b/config/remaps/Snes9x/Snes9x.rmp
+@@ -0,0 +1,2 @@
++input_player1_btn_b = "8"
++input_player1_btn_a = "0"
+--- a/retroarch.cfg
++++ b/retroarch.cfg
+@@ -269,7 +269,7 @@
+ input_halt_replay_btn = "nul"
+ input_halt_replay_mbtn = "nul"
+ input_hold_fast_forward = "nul"
+-input_hold_fast_forward_axis = "nul"
++input_hold_fast_forward_axis = "+5"
+ input_hold_fast_forward_btn = "nul"
+ input_hold_fast_forward_mbtn = "nul"
+ input_hold_slowmotion = "nul"
+@@ -2803,7 +2803,7 @@
+ input_streaming_toggle_btn = "nul"
+ input_streaming_toggle_mbtn = "nul"
+ input_toggle_fast_forward = "nul"
+-input_toggle_fast_forward_axis = "+5"
++input_toggle_fast_forward_axis = "nul"
+ input_toggle_fast_forward_btn = "nul"
+ input_toggle_fast_forward_mbtn = "nul"
+ input_toggle_fullscreen = "nul"

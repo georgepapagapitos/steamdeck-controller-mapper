@@ -1,11 +1,12 @@
 """RetroArch adapter: per-player pad remaps in a core's own .rmp (prototype). See docs/adapters/retroarch.md.
 
-All RetroArch facts come from data/adapters/retroarch/ (retropad.json and one descriptor per core). Hotkeys in
-retroarch.cfg are not rendered yet.
+All RetroArch facts come from data/adapters/retroarch/ (retropad.json, hotkeys.json and one descriptor per core).
+Hotkeys go into retroarch.cfg, and only when some rule sets one.
 """
 
 from __future__ import annotations
 
+from collections import Counter
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -16,13 +17,15 @@ from .dolphin import Rendered
 
 DATA = Path(__file__).resolve().parents[3] / "data" / "adapters" / "retroarch"
 REMAP_DIR = "config/remaps"   # input_remapping_directory's default under the config root; EmuDeck keeps it
+SUFFIXES = ("_btn", "_axis")
 
 
 class RetroArchAdapter:
     id = "retroarch"
 
-    def __init__(self, retropad: Optional[dict] = None, cores: Optional[dict] = None):
+    def __init__(self, retropad: Optional[dict] = None, cores: Optional[dict] = None, hotkeys: Optional[dict] = None):
         self.pad = retropad or load_json(DATA / "retropad.json")
+        self.hotkeys = hotkeys or load_json(DATA / "hotkeys.json")
         self.cores = cores or {f.stem: load_json(f) for f in sorted((DATA / "cores").glob("*.json"))}
         self.ids = {**self.pad["retropad_ids"], **self.pad["analog_half_axis_ids"]}
 
@@ -47,7 +50,10 @@ class RetroArchAdapter:
         return f"{REMAP_DIR}/{desc['core']}/{desc['core']}.rmp"
 
     def managed_keys(self, desc: dict) -> dict:
-        return {self.remap_file(desc): {"keys": ["input_player[1-9]_btn_*", "input_player[1-9]_stk_*"]}}
+        hk = self.hotkeys
+        bases = [hk["enable"], *hk["targets"].values()]
+        return {self.remap_file(desc): {"keys": ["input_player[1-9]_btn_*", "input_player[1-9]_stk_*"]},
+                hk["file"]: {"keys": [f"input_{b}{s}" for b in bases for s in SUFFIXES]}}
 
     # -- render ----------------------------------------------------------------
 
@@ -72,6 +78,8 @@ class RetroArchAdapter:
                     remap[name] = self.pad["unmapped_value"]
             for name, target in remap.items():
                 out.patches.append(Patch(file, None, self._key(user, name), f'"{target}"'))
+        if 1 in players:
+            self._render_hotkeys(players[1], current, out)
         return out
 
     def _remap(self, user: int, resolution: Resolution, desc: dict, out: Rendered) -> dict:
@@ -95,6 +103,99 @@ class RetroArchAdapter:
                 continue
             remap[physical] = self.ids[core_input]
         return remap
+
+    # -- hotkeys (retroarch.cfg) -------------------------------------------------
+
+    def _render_hotkeys(self, resolution: Resolution, current: Callable, out: Rendered) -> None:
+        """Player 1's hotkey rules -> input_enable_hotkey + input_<action> in retroarch.cfg, in the indices of the
+        active joypad driver. RetroArch has one enable input for all hotkeys, so each rule must be enable + one."""
+        hk, cfg = self.hotkeys, self.hotkeys["file"]
+        chords, unbound = {}, []
+        for target, choice in sorted(resolution.bindings.items()):
+            if not target.startswith("hotkey."):
+                continue
+            base = hk["targets"].get(target)
+            chord = choice.value.get("chord") or []
+            if base is None:
+                out.warnings.append(f"retroarch: no hotkey for {target}")
+            elif choice.value.get("input") == "none":
+                unbound.append(base)
+            elif len(chord) != 2:
+                out.warnings.append(f"retroarch: {target}: a RetroArch hotkey is the enable button plus one more, "
+                                    f"not {'+'.join(chord) or choice.value.get('input')}")
+            else:
+                chords[target] = chord
+        if not chords and not unbound:
+            return
+        live = lambda key: (current(cfg, None, key) or "").strip('"')
+        driver = live(hk["driver_key"])
+        indices = hk["drivers"].get(driver)
+        if indices is None:
+            out.warnings.append(f"retroarch: {hk['driver_key']} is {driver or 'unset'!r}; map-helper only knows the "
+                                f"button numbers for {', '.join(hk['drivers'])}, so hotkeys were not written")
+            return
+
+        def bind(name: str) -> Optional[tuple]:
+            if name in indices["buttons"]:
+                return "_btn", str(indices["buttons"][name])
+            if name in indices["axes"]:
+                return "_axis", indices["axes"][name]
+            return None
+
+        binds = {}                                   # RetroArch base -> canonical physical input
+        if chords:
+            # The enable input is the one most chords share; on a tie, the one already live.
+            counts = Counter(i for chord in chords.values() for i in chord)
+            live_enable = {(s, live(f"input_{hk['enable']}{s}")) for s in SUFFIXES}
+            enable = max(sorted(counts), key=lambda i: (counts[i], bind(i) in live_enable))
+            if bind(enable) is None:
+                out.warnings.append(f"retroarch: the hotkey enable button {enable} has no {driver} index on the "
+                                    f"Steam virtual pad; hotkeys not written")
+                return
+            binds[hk["enable"]] = enable
+            for target, chord in chords.items():
+                action = next((i for i in chord if i != enable), None)
+                if enable not in chord or action is None:
+                    out.warnings.append(f"retroarch: {target}: all hotkeys share one enable button ({enable}); "
+                                        f"{'+'.join(chord)} is not {enable} plus another button")
+                elif bind(action) is None:
+                    out.warnings.append(f"retroarch: {target}: {action} has no {driver} index on the Steam "
+                                        f"virtual pad")
+                else:
+                    binds[hk["targets"][target]] = action
+            if len(binds) == 1:                      # no action left to enable
+                del binds[hk["enable"]]
+            elif bind(enable) not in live_enable:
+                out.warnings.append(f"retroarch: the hotkey enable button is now {enable}; every RetroArch hotkey "
+                                    f"moves with it, including the ones no rule sets")
+
+        written = {}                                 # (suffix, value) -> base, for every input we bind
+        for base, name in binds.items():
+            suffix, value = bind(name)
+            for s in SUFFIXES:
+                out.patches.append(Patch(cfg, None, f"input_{base}{s}", f'"{value}"' if s == suffix else '"nul"'))
+            if (suffix, value) in written:
+                out.warnings.append(f"retroarch: input_{base} and input_{written[suffix, value]} are on the same "
+                                    f"input; both fire")
+            written[(suffix, value)] = base
+        for base in unbound:
+            out.patches += [Patch(cfg, None, f"input_{base}{s}", '"nul"') for s in SUFFIXES]
+        # A hotkey still on an input one of ours now uses would fire with it. Managed ones let go, others are flagged.
+        managed = set(hk["targets"].values())
+        for base in hk["meta_bases"]:
+            if base in binds or base in unbound or base == hk["enable"]:
+                continue
+            for s in SUFFIXES:
+                other = written.get((s, live(f"input_{base}{s}")))
+                if other is None:
+                    continue
+                if base in managed:
+                    out.patches.append(Patch(cfg, None, f"input_{base}{s}", '"nul"'))
+                    out.warnings.append(f"retroarch: unbound input_{base}{s}, which was on the same input as "
+                                        f"input_{other}")
+                else:
+                    out.warnings.append(f"retroarch: input_{base}{s} is on the same input as input_{other}; "
+                                        f"both fire")
 
     @staticmethod
     def _key(user: int, name: str) -> str:
