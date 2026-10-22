@@ -46,7 +46,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--json", action="store_true")
 
     p = sub.add_parser("apply", help="resolve and write an emulator's input config (dry run by default)")
-    p.add_argument("--emulator", required=True, choices=["dolphin", "retroarch"])
+    p.add_argument("--emulator", required=True, choices=["dolphin", "pcsx2", "retroarch"])
     p.add_argument("--core", help="RetroArch core (descriptor id or library name); needed when several run the system")
     p.add_argument("--system", required=True)
     p.add_argument("--game")
@@ -66,7 +66,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--state-dir", type=Path, default=Path.home() / ".local" / "state" / "map-helper")
 
     p = sub.add_parser("restore", help="put the files map-helper wrote back to pristine, or to a backup")
-    p.add_argument("--emulator", choices=["dolphin", "retroarch"], help="only this emulator's files (default: all)")
+    p.add_argument("--emulator", choices=["dolphin", "pcsx2", "retroarch"],
+                   help="only this emulator's files (default: all)")
     p.add_argument("--from", dest="source", metavar="BACKUP", help="a backup name (default: pristine)")
     p.add_argument("--dry-run", action="store_true", help="list what would happen; change nothing")
     p.add_argument("--force", action="store_true", help="also restore files someone else changed since")
@@ -266,6 +267,7 @@ if __name__ == "__main__":
 
 def cmd_apply(args) -> int:
     from .adapters.dolphin import DolphinAdapter
+    from .adapters.pcsx2 import PCSX2Adapter
     from .adapters.retroarch import RetroArchAdapter
     from .formats.ini import IniDocument
     from .writer import apply_patches
@@ -277,7 +279,7 @@ def cmd_apply(args) -> int:
     layouts = load_layouts(DATA / "layouts")
     target = Target(system=args.system, emulator=args.emulator, game_id=args.game)
 
-    adapter = RetroArchAdapter() if args.emulator == "retroarch" else DolphinAdapter()
+    adapter = {"dolphin": DolphinAdapter, "pcsx2": PCSX2Adapter, "retroarch": RetroArchAdapter}[args.emulator]()
     players, assigned, joysticks = {}, {}, []
     if args.player:
         for n, spec in enumerate(args.player, start=1):

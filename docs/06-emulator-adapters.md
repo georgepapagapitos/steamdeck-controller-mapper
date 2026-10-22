@@ -52,7 +52,7 @@ and which install method each uses). Paths assume EmuDeck on SteamOS, and
 |----------|---------|-------------------|--------------|--------|-----------|----------------|----------|----------|
 | **RetroArch** | Most 2D/retro + many cores | Flatpak `org.libretro.RetroArch` ✓[^install] | `retroarch.cfg`, `autoconfig/<driver>/*.cfg`, `config/remaps/<core>/<game>.rmp` | RA cfg | name + VID/PID (autoconfig), port | ✅ remaps per core/dir/game | ✅ (autoconfig + remaps) | **P0** |
 | **Dolphin** | GC, Wii | Flatpak `org.DolphinEmu.dolphin-emu` ✓ | `GCPadNew.ini`, `WiimoteNew.ini`, `Profiles/GCPad/*.ini`, `GameSettings/<ID>.ini` | Dolphin INI (backtick exprs) | `SDL/<n>/<name>` or `evdev/<n>/<name>` | ✅ via `[Controls] PadProfile1=` | ✅ | **P0** |
-| **PCSX2** | PS2 | AppImage `pcsx2-Qt.AppImage` ✓ | `inis/PCSX2.ini` `[Pad1]..`, `inis/inputprofiles/*.ini`, `gamesettings/*.ini` | INI | `SDL-<n>` | ✅ input profile per game | ✅ | **P0** |
+| **PCSX2** | PS2 | AppImage `pcsx2-Qt.AppImage` ✓ | `inis/PCSX2.ini` `[Pad1]..`, `inputprofiles/*.ini`, `gamesettings/*.ini` | INI | `SDL-<n>` | ✅ input profile per game | ✅ | **P0** |
 | **DuckStation** | PS1 | AppImage `DuckStation.AppImage` ✓ | `settings.ini` `[Pad1]..`, `inputprofiles/*.ini`, `gamesettings/<serial>.ini` | INI | `SDL-<n>` | ✅ | ✅ | **P0** |
 | **PPSSPP** | PSP | Flatpak `org.ppsspp.PPSSPP` ✓ | `PSP/SYSTEM/controls.ini` | INI (`device-keycode`) | device class id | ❌ (global-swap) | ❌ | P1 |
 | **RPCS3** | PS3 | AppImage `rpcs3.AppImage` ✓ | `input_configs/global/Default.yml`, `input_configs/<serial>/...` | YAML | handler + device name | ✅ | ✅ | P1 |

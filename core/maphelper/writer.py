@@ -38,8 +38,11 @@ class ApplyResult:
 
 
 def is_managed(patch: Patch, managed: dict) -> bool:
-    """managed = {"GCPadNew.ini": {"sections": "GCPad{n}", "keys": ["Buttons/*", "Main Stick/Up|Down", ...]}}."""
+    """managed = {"GCPadNew.ini": {"sections": "GCPad{n}", "keys": ["Buttons/*", "Main Stick/Up|Down", ...]}}.
+    A file with several managed sections (PCSX2.ini: Pad{n} and Hotkeys) gives a list of such specs."""
     spec = managed.get(patch.file)
+    if isinstance(spec, list):
+        return any(is_managed(patch, {patch.file: s}) for s in spec)
     if not spec:
         return False
     sections = spec.get("sections") or spec.get("section")

@@ -96,15 +96,28 @@ Binding value syntax (`SDLInputSource::ParseKeyString` / `ConvertKeyToString`):
 | Chord | `SDL-0/Back & SDL-0/Start` |
 | Several bindings | repeat the key |
 | Per-binding scale/deadzone | `<Key>Scale`, `<Key>Deadzone` in the same `[PadN]` |
-| Unbound | delete the key |
+| Unbound | delete the key, or leave the value empty (`SplitChord` gives no parts, so `AddBinding` adds nothing). map-helper writes it empty. |
 
 ## Device references
 
 - `SDL-<n>`, where `n` is the **SDL player index** (`SDL_GetGamepadPlayerIndex`).
-  If that is negative or already taken, PCSX2 uses the first free index
-  (`SDLInputSource::OpenDevice`). Steam virtual pads report their Steam slot as
-  the player index **[VERIFY]** on device (spike S1).
-- No name or GUID in the binding, so slot ordering matters a lot (see [04 §5.2](../04-controller-identification.md)).
+  If that is negative or already used by an open pad, PCSX2 takes its own first
+  free id (`SDLInputSource::OpenDevice`, `GetFreePlayerId`).
+- SDL3 sets the player index when it adds a joystick (`SDL_PrivateJoystickAdded`):
+  a Steam virtual pad (`28de:11ff`) gets its **Steam slot**, the `N` in its evdev
+  name `Microsoft X-Box 360 pad N` (`GetSteamVirtualGamepadSlot`); any other
+  gamepad gets the first index free at that moment (`SDL_FindFreePlayerIndex`).
+  The Linux backend's own player index is always −1. SDL3 adds Steam's virtual
+  pads first (`slots` order, [04 §5.2](../04-controller-identification.md)), so
+  pads Steam doesn't virtualise fill the gaps after them, in js order.
+- So under Steam Input `SDL-<n>` is the Steam slot, whatever order the nodes were
+  created in. `apply` without `--player` points each player's `[PadN]` (and
+  player 1's `[Hotkeys]`) at its pad by rewriting the `SDL-<n>` in every binding
+  (`PCSX2Adapter.device_ref`). **[VERIFY]** on a Deck (spike S1): the index
+  PCSX2 shows for each pad, a slot gap (Steam keeps a slot for a pad that went
+  away), pads hot-plugged after PCSX2 started (they take the first index free
+  then), and native pads SDL opens through HIDAPI.
+- No name or GUID in the binding, so slot ordering matters a lot.
 - Other sources: `Keyboard/<key>`, `Pointer-<n>/…`, `XInput-<n>`, `DInput-<n>` (Windows).
 - `[InputSources] SDLControllerEnhancedMode` (default `true` for new configs,
   EmuDeck sets `false`) turns on DS4/DualSense HIDAPI extras (lightbar, rumble
@@ -161,12 +174,27 @@ Pads 3–8 are ignored unless the matching multitap is on.
 
 ## Managed keys
 
-- `[Pad<n>]` for resolved players: the binding keys in the target table, plus
-  `Type` only with `options.controller_type`, and `Deadzone`, `ButtonDeadzone`,
-  `AxisScale`, `LargeMotorScale`, `SmallMotorScale` only with options rules.
-- `[Pad] MultitapPort1|2` only when a rule asks for more than 2 players.
-- `[Hotkeys]` keys that have hotkey rules.
+Implemented (`core/maphelper/adapters/pcsx2.py`, players 1 and 2 only):
+
+- `[Pad1]`, `[Pad2]`: the binding keys in the target table and `LargeMotor`,
+  `SmallMotor` (with rules, `options.rumble.enabled`, or re-pointed at the
+  player's pad), `Type` only with `options.controller_type` (`dualshock2`,
+  `none`), `Deadzone` only with `options.deadzones.ls`/`rs` (one key for both
+  sticks: the larger wins, with a warning). A pad whose `Type` is `None` gets a
+  warning, since PCSX2 skips its bindings.
+- `[Hotkeys]`: the canonical hotkey keys (with rules), and the `SDL-<n>` in
+  those and in the other pad hotkeys EmuDeck binds (`hotkeys.device_keys`)
+  when `apply` moves player 1 to another pad. Keyboard bindings stay. Only the
+  first line of a repeated key is read and edited.
+- Re-pointing changes only `SDL-<n>/` in a value. Macros (`MacroN`) aren't
+  re-pointed yet.
+
+Not yet:
+
+- `[Pad] MultitapPort1|2` and `[Pad3]`–`[Pad8]` (more than 2 players: warned and skipped).
+- `ButtonDeadzone`, `AxisScale`, `LargeMotorScale`, `SmallMotorScale`, `InvertL|R` (no option maps to them yet).
 - `[InputSources] SDLControllerEnhancedMode` only in native mode with options that need it.
+- Detecting per-game input profiles and game INIs that shadow `[PadN]` (see below).
 - Never touch `[UI] SettingsVersion` (if it is missing or not `1`, PCSX2 resets
   every setting to defaults: `VMManager::Internal::CheckSettingsVersion`) or `[Folders]`.
 
@@ -263,3 +291,4 @@ Other:
 
 - EmuDeck: https://github.com/dragoonDorise/EmuDeck/blob/dddb30229adbbd54d5ff7283cfd70e11c4322c26/functions/EmuScripts/emuDeckPCSX2QT.sh#L4-L6 and `configs/pcsx2qt/.config/PCSX2/inis/PCSX2.ini`
 - SDL paddle order: https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/include/SDL3/SDL_gamepad.h#L171-L175
+- Player index: PCSX2 `pcsx2/Input/SDLInputSource.cpp` L1343–1356 (`GetFreePlayerId`), L1383–1405 (`OpenDevice`); `pcsx2/Input/InputManager.cpp` L192–220 (`SplitChord`), L563–598 (`AddBinding`); SDL `8adc0f98` `src/joystick/SDL_joystick.c` [L764–775](https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/src/joystick/SDL_joystick.c#L764-L775) (`SDL_FindFreePlayerIndex`), [L2600–2626](https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/src/joystick/SDL_joystick.c#L2600-L2626) (`SDL_PrivateJoystickAdded`), `src/joystick/linux/SDL_sysjoystick.c` [L237–252, L509–520, L1137–1145](https://github.com/libsdl-org/SDL/blob/8adc0f98837db84fd24f17c339e59dcf36a17156/src/joystick/linux/SDL_sysjoystick.c#L237-L252)

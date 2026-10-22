@@ -1,0 +1,22 @@
+--- a/inis/PCSX2.ini
++++ b/inis/PCSX2.ini
+@@ -550,8 +550,8 @@
+ L2 = SDL-0/+LeftTrigger
+ R1 = SDL-0/RightShoulder
+ R2 = SDL-0/+RightTrigger
+-L3 = SDL-0/LeftStick
+-R3 = SDL-0/RightStick
++L3 = SDL-0/Paddle1
++R3 = SDL-0/Paddle2
+ LUp = SDL-0/-LeftY
+ LRight = SDL-0/+LeftX
+ LDown = SDL-0/+LeftY
+@@ -572,7 +572,7 @@
+ 
+ [Pad2]
+ Type = DualShock2
+-Deadzone = 0.000000
++Deadzone = 0.180000
+ AxisScale = 1.330000
+ LargeMotorScale = 1.000000
+ SmallMotorScale = 1.000000
