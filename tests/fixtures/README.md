@@ -44,7 +44,7 @@ Captured from the owner's Steam Deck with `tools/deck.sh capture <scenario>`.
 These are the configs as they are on the
 device, scrubbed on the Deck by `tools/deck-scrub.py` before anything leaves
 it. MACs (also inside Steam's slot handles, including slots kept for pads that
-have disconnected) and USB serials in `uniq` become lookalikes: a MAC keeps
+have disconnected) and USB serials (in `uniq`, and in `usb-devices.tsv`) become lookalikes: a MAC keeps
 its real vendor half, a serial keeps its length and case, and the rest is an
 HMAC under a salt that exists only on the Deck
 (`~/.local/state/map-helper/capture-salt`), so fakes can't be reversed but one
@@ -56,6 +56,13 @@ pad keeps one fake in every capture. Credential values (`*password*`,
 send anything if an original value survives. Captures taken before the salt
 existed were converted with `deck-scrub.py --rekey` on the Deck. Versions are in each
 `devices/<scenario>/versions.txt`.
+
+`devices/<scenario>/usb-devices.tsv` lists every USB device except root hubs:
+bus id, product string, sysfs `serial`, sysfs path (as `S: Sysfs=` gives it)
+and VID:PID, for `usb-serial:` ids (docs/04 §1.2). The capture script records
+it from the next capture on; none of the scenarios below has it yet, so
+`UsbSerialTest` in `tests/test_devices.py` builds sysfs trees with made-up
+serials. Re-capture `8bitdo-u2-usb` and the wired 8BitDo docked to cover it.
 
 | Scenario | Setup |
 |----------|-------|

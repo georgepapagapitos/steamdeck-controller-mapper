@@ -10,7 +10,7 @@ from pathlib import Path
 
 from . import resolve as resolver
 from .devices import (ControllerDB, is_gamepad, parse_ignore_devices, parse_proc_input_devices,
-                      parse_virtual_gamepad_info, stable_id, steam_slots)
+                      parse_virtual_gamepad_info, stable_id, steam_slots, with_usb_serials)
 from .model import Target
 from .store import load_json, load_layouts, load_sources
 from .validate import validate_rule
@@ -29,6 +29,7 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("devices", help="list connected controllers")
     p.add_argument("--proc-file", type=Path, default=Path("/proc/bus/input/devices"),
                    help="read a saved copy instead of the live file")
+    p.add_argument("--sys-root", type=Path, default=Path("/sys"), help="where sysfs is (USB serials are read there)")
     # Steam sets the env var only inside a game's environment; outside one (a shell, ssh) the file is still there.
     p.add_argument("--virtual-info", type=Path,
                    default=os.environ.get("SteamVirtualGamepadInfo",
@@ -86,7 +87,7 @@ def cmd_validate(args) -> int:
 
 def cmd_devices(args) -> int:
     db = ControllerDB(load_json(DATA / "controllers.json"))
-    devices = parse_proc_input_devices(args.proc_file.read_text(encoding="utf-8"))
+    devices = with_usb_serials(parse_proc_input_devices(args.proc_file.read_text(encoding="utf-8")), args.sys_root)
     slots = []
     if args.virtual_info and Path(args.virtual_info).is_file():
         info = parse_virtual_gamepad_info(Path(args.virtual_info).read_text(encoding="utf-8"))

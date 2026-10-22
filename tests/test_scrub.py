@@ -26,6 +26,11 @@ H: Handlers=event9 js1
 """
 VGI = f"[slot 1]\nhandle=0x000d{MAC.replace(':', '')}\n[slot 2]\nhandle=0x0000{STALE.replace(':', '')}\n" \
       "[slot 3]\nhandle=0x12dc8310b1234567\n"
+HUB = "HUB0000042"  # made up, like the rest: a serial only usb-devices.tsv has
+USB = (f"1-1\tHub\t{HUB}\t/devices/pci0000:00/0000:00:08.1/0000:04:00.3/usb1/1-1\t2109:2817\n"
+       f"1-1.3\tPad\t{SERIAL}\t/devices/pci0000:00/0000:00:08.1/0000:04:00.3/usb1/1-1/1-1.3\t2dc8:310b\n"
+       "1-1.4\tOdd\t1\t/devices/pci0000:00/0000:00:08.1/0000:04:00.3/usb1/1-1/1-1.4\t1234:5678\n"
+       "1-1.5\tNone\t\t/devices/pci0000:00/0000:00:08.1/0000:04:00.3/usb1/1-1/1-1.5\t0b95:1790\n")
 TSV = f"event20\tDualSense\t{MAC}\t\t054c:0ce6\nevent9\tOdd\t1\t\t1234:5678\n"
 CFG = ('cheevos_password = "hunter2"\ninput_player1_btn_a = "0"\nnetplay_password =\nnetplay_port = "55435"\n'
        'twitch_stream_key = "live_abc"\nApiToken = xyz\nwebdav_url = "https://me:pw@dav.example/"\n'
@@ -40,6 +45,7 @@ class ScrubTest(unittest.TestCase):
         (root / "devices" / "proc-bus-input-devices").write_text(PROC, encoding="utf-8")
         (root / "devices" / "virtualgamepadinfo.txt").write_text(VGI, encoding="utf-8")
         (root / "devices" / "sys-class-input.tsv").write_text(TSV, encoding="utf-8")
+        (root / "devices" / "usb-devices.tsv").write_text(USB, encoding="utf-8")
         (root / "retroarch.cfg").write_text(CFG, encoding="utf-8")
 
     def scrub(self, rekey=False, salt=b"s" * 32):
@@ -55,6 +61,7 @@ class ScrubTest(unittest.TestCase):
                         bare = mac.replace(":", "")
                         s = s.replace(mac, ":".join(legacy(bare)[i:i + 2] for i in range(0, 12, 2)))
                         s = s.replace(bare, legacy(bare))
+                    s = s.replace(HUB, hashlib.sha1(HUB.encode()).hexdigest()[:len(HUB)].upper())
                     s = s.replace(SERIAL, hashlib.sha1(SERIAL.encode()).hexdigest()[:len(SERIAL)].upper())
                     f.write_text(s, encoding="utf-8")
         self.assertEqual(deck_scrub.main(tmp / "c", tmp / "salt", rekey), 0)
@@ -62,7 +69,7 @@ class ScrubTest(unittest.TestCase):
 
     def test_no_original_survives(self):
         out = "".join(self.scrub().values()).lower()
-        for original in (MAC, MAC.replace(":", ""), STALE.replace(":", ""), SERIAL.lower(), "hunter2", "live_abc",
+        for original in (MAC, MAC.replace(":", ""), STALE.replace(":", ""), SERIAL.lower(), HUB.lower(), "hunter2", "live_abc",
                          "xyz", "me:pw", "ffffeeeeddddccccbbbbaaaa99998888", "p1", "p2", "p3"):
             self.assertNotIn(original, out)
 
@@ -84,6 +91,15 @@ class ScrubTest(unittest.TestCase):
         fake = out["sys-class-input.tsv"].split("\t")[2]
         self.assertIn(fake, out["proc-bus-input-devices"])
         self.assertIn("0x000d" + fake.replace(":", ""), out["virtualgamepadinfo.txt"])
+
+    def test_usb_serials_get_the_same_fake_as_uniq(self):
+        out = self.scrub()
+        rows = [r.split("\t") for r in out["usb-devices.tsv"].splitlines()]
+        self.assertIn(f"U: Uniq={rows[1][2]}\n", out["proc-bus-input-devices"])
+        self.assertRegex(rows[0][2], r"^[0-9A-F]{10}$")
+        self.assertNotEqual(rows[2][2], "1")
+        self.assertEqual(rows[3][2], "")
+        self.assertEqual([r[3] for r in rows], [line.split("\t")[3] for line in USB.splitlines()])  # paths kept
 
     def test_blanking_never_touches_the_next_line(self):
         # An empty value once let the pattern run past the newline and wipe the following setting.

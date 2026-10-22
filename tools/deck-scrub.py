@@ -24,6 +24,8 @@ MAC = re.compile(r"\b(?:[0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}\b")
 # the MAC appears nowhere else). Wired X-input handles start 0x1<VID><PID> and hold no MAC.
 HANDLE = re.compile(r"^handle=0x00[0-9A-Fa-f]{2}([0-9A-Fa-f]{12})$", re.M)
 UNIQ = re.compile(r"^U: Uniq=(.*)$", re.M)
+# Tables whose third column is a uniq or a USB serial: sysfs input nodes, and USB devices with their `serial`.
+SERIAL_TABLES = ("sys-class-input.tsv", "usb-devices.tsv")
 SETTING = re.compile(r"^([ \t]*([^=\r\n;#\[][^=\r\n]*?)[ \t]*=[ \t]*)(.*)$", re.M)  # any key shape: a-b, a b, a/b
 # Fail closed: a key is a credential when any of these appears anywhere in it, ignoring case and separators, unless
 # it's a known look-alike. Over-blanking costs a fixture value; under-blanking ships a secret.
@@ -91,7 +93,7 @@ def main(root: pathlib.Path, salt_file: pathlib.Path, rekey: bool) -> int:
     macs = {m.lower().replace(":", "") for s in files.values() for m in MAC.findall(s)}
     macs |= {h.lower() for s in files.values() for h in HANDLE.findall(s)}
     uniqs = [u.strip() for s in files.values() for u in UNIQ.findall(s)]
-    uniqs += [row.split("\t")[2].strip() for f, s in files.items() if f.name == "sys-class-input.tsv"
+    uniqs += [row.split("\t")[2].strip() for f, s in files.items() if f.name in SERIAL_TABLES
               for row in s.splitlines() if row.count("\t") >= 4]
     serials = {u for u in uniqs if u and set(u) != {"0"} and not MAC.fullmatch(u)}
 
@@ -113,7 +115,7 @@ def main(root: pathlib.Path, salt_file: pathlib.Path, rekey: bool) -> int:
 
     for f, s in files.items():
         s = UNIQ.sub(lambda m: "U: Uniq=" + field(m[1]), s)
-        if f.name == "sys-class-input.tsv":
+        if f.name in SERIAL_TABLES:
             rows = [r.split("\t") for r in s.splitlines()]
             s = "".join("\t".join(r[:2] + [field(r[2])] + r[3:] if len(r) >= 5 else r) + "\n" for r in rows)
         if pattern:

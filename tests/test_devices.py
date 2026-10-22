@@ -1,8 +1,16 @@
+import contextlib
+import io
+import json
+import os
+import tempfile
 import unittest
+from pathlib import Path
 
 from tests.helpers import REPO
+from maphelper.cli import main
 from maphelper.devices import (ControllerDB, infer_style, is_gamepad, parse_ignore_devices,
-                               parse_proc_input_devices, parse_virtual_gamepad_info, stable_id, steam_slots)
+                               parse_proc_input_devices, parse_virtual_gamepad_info, stable_id, steam_slots,
+                               usable_serial, with_usb_serials)
 from maphelper.store import load_json
 
 # Hand-written in the /proc/bus/input/devices format; replace with captured fixtures (spike S8).
@@ -155,7 +163,8 @@ class CapturedDeckTest(unittest.TestCase):
         self.assertIsNone(slots[2].device_id)
         self.assertIsNotNone(slots[2].virtual)
         self.assertIsNone(slots[1].virtual)
-        # xpad leaves uniq empty (only the pad's keyboard/mouse HID nodes carry the USB serial), so the id is port-bound.
+        # xpad leaves uniq empty (only the pad's keyboard/mouse HID nodes carry the USB serial), so without sysfs
+        # (as here: the capture has no USB serials) the id is port-bound. UsbSerialTest covers it with sysfs.
         self.assertTrue(stable_id(next(d for d in devices if is_gamepad(d) and d.vendor == "2dc8")).startswith("path:"))
 
     def test_reorder_moves_pads_between_virtual_pads(self):
@@ -188,6 +197,97 @@ class CapturedDeckTest(unittest.TestCase):
     def test_steam_slots_map_to_physical_pads(self):
         slots = {s.slot: (s.vid_pid, s.type) for s in steam_slots(self.devices, self.info)}
         self.assertEqual(slots, {0: ("28de:1205", "steam"), 1: ("054c:0ce6", "ps5")})
+
+
+# The wired 8BitDo's USB device as the Deck's own port shows it (tests/fixtures/devices/8bitdo-u2-usb), and as it would
+# sit behind the dock's hub (port 3, like the Switch Pro in tests/fixtures/devices/docked). No capture holds the sysfs
+# serial yet, so the trees below are built here with made-up serials.
+# Windows can't make directories with ":" in the name, so the constructed trees leave the PCI part out.
+CAPTURED_PORT = "/devices/pci0000:00/0000:00:08.1/0000:04:00.3/usb1/1-1"
+PORT = "/devices/pci/usb1/1-1"
+DOCK = PORT + "/1-1.3"
+SERIAL = "E1F2A3B4C5"  # made up: never put a real device id in a test
+
+
+def make_sysfs(rows) -> Path:
+    """A minimal sysfs tree: rows of (USB device path as in "S: Sysfs=", "vid:pid", serial or None)."""
+    root = Path(tempfile.mkdtemp())
+    for path, vid_pid, serial in rows:
+        d = root / path.lstrip("/")
+        d.mkdir(parents=True, exist_ok=True)
+        vid, pid = vid_pid.split(":")
+        (d / "idVendor").write_text(vid + "\n", encoding="utf-8")
+        (d / "idProduct").write_text(pid + "\n", encoding="utf-8")
+        if serial is not None:
+            (d / "serial").write_text(serial + "\n", encoding="utf-8")
+    return root
+
+
+def xpad_node(usb_dir: str, phys: str, vid_pid: str = "2dc8:310b", uniq: str = "") -> str:
+    vid, pid = vid_pid.split(":")
+    return (f"I: Bus=0003 Vendor={vid} Product={pid} Version=0114\nN: Name=\"Pad\"\nP: Phys={phys}\n"
+            f"S: Sysfs={usb_dir}/{usb_dir.rsplit('/', 1)[1]}:1.0/input/input53\nU: Uniq={uniq}\n"
+            "H: Handlers=event23 js2\n")
+
+
+class UsbSerialTest(unittest.TestCase):
+    def ids(self, proc: str, sysfs: Path) -> list[str]:
+        return [stable_id(d) for d in with_usb_serials(parse_proc_input_devices(proc), sysfs) if is_gamepad(d)]
+
+    def test_wired_pad_keeps_its_id_when_docked(self):
+        handheld = self.ids(xpad_node(PORT, "usb-0000:04:00.3-1/input0"), make_sysfs([(PORT, "2dc8:310b", SERIAL)]))
+        docked = self.ids(xpad_node(DOCK, "usb-0000:04:00.3-1.3/input0"),
+                          make_sysfs([(PORT, "2109:2817", "HUB0000042"), (DOCK, "2dc8:310b", SERIAL)]))
+        self.assertEqual(handheld, ["usb-serial:2dc8:310b:e1f2a3b4c5"])
+        self.assertEqual(docked, handheld)
+
+    @unittest.skipIf(os.name == "nt", "the captured sysfs path has ':' in it")
+    def test_captured_wired_8bitdo_gets_a_usb_serial_id_and_keeps_its_steam_slot(self):
+        root = REPO / "tests" / "fixtures" / "devices" / "8bitdo-u2-usb"
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            main(["devices", "--json", "--proc-file", str(root / "proc-bus-input-devices"),
+                  "--virtual-info", str(root / "virtualgamepadinfo.txt"),
+                  "--sys-root", str(make_sysfs([(CAPTURED_PORT, "2dc8:310b", SERIAL)]))])
+        row = next(r for r in json.loads(out.getvalue())["controllers"] if r["vid_pid"] == "2dc8:310b")
+        self.assertEqual(row["id"], "usb-serial:2dc8:310b:e1f2a3b4c5")
+        self.assertEqual(row["steam_slot"], 2)  # wired handle has no MAC: linked by VID:PID, now to the serial id
+
+    def test_no_serial_or_only_a_hubs_stays_port_bound(self):
+        self.assertEqual(self.ids(xpad_node(PORT, "p0"), make_sysfs([(PORT, "2dc8:310b", None)])),
+                         ["path:2dc8:310b:p0"])
+        # The pad has no serial; the hub above it does. The hub's serial must not become the pad's.
+        self.assertEqual(self.ids(xpad_node(DOCK, "p3"),
+                                  make_sysfs([(PORT, "2109:2817", "HUB0000042"), (DOCK, "2dc8:310b", None)])),
+                         ["path:2dc8:310b:p3"])
+        self.assertEqual(self.ids(xpad_node(PORT, "p0"), Path(tempfile.mkdtemp())), ["path:2dc8:310b:p0"])
+
+    def test_usb_device_of_another_vid_pid_is_ignored(self):
+        self.assertEqual(self.ids(xpad_node(PORT, "p0"), make_sysfs([(PORT, "045e:028e", SERIAL)])),
+                         ["path:2dc8:310b:p0"])
+
+    def test_uniq_beats_the_usb_serial(self):
+        sysfs = make_sysfs([(PORT, "054c:0ce6", SERIAL)])
+        self.assertEqual(self.ids(xpad_node(PORT, "", "054c:0ce6", "A0:B1:C2:D3:E4:F5"), sysfs),
+                         ["mac:a0:b1:c2:d3:e4:f5"])
+
+    def test_only_usb_nodes_are_read(self):
+        sysfs = make_sysfs([("/devices/virtual/misc/uhid", "2dc8:6012", SERIAL)])
+        bt = ("I: Bus=0005 Vendor=2dc8 Product=6012 Version=0001\nP: Phys=x\n"
+              "S: Sysfs=/devices/virtual/misc/uhid/0005:2DC8:6012.000B/input/input48\nU: Uniq=\nH: Handlers=js1\n")
+        self.assertEqual(self.ids(bt, sysfs), ["path:2dc8:6012:x"])
+
+    def test_bogus_serials_are_not_ids(self):
+        for bogus in ("", "   ", "123", "000000", "FFFFFFFF", "0123456789", "XXXXXXXXXX", "AB CD12", "AB\x01CD12"):
+            self.assertEqual(usable_serial(bogus), "", repr(bogus))
+        self.assertEqual(usable_serial(" A1B2C3D4\n"), "a1b2c3d4")
+
+    def test_a_serial_two_connected_pads_share_is_not_an_id(self):
+        two = xpad_node(PORT + "/1-1.1", "p1") + "\n" + xpad_node(PORT + "/1-1.2", "p2")
+        same = make_sysfs([(PORT + "/1-1.1", "2dc8:310b", SERIAL), (PORT + "/1-1.2", "2dc8:310b", SERIAL)])
+        self.assertEqual(self.ids(two, same), ["path:2dc8:310b:p1", "path:2dc8:310b:p2"])
+        apart = make_sysfs([(PORT + "/1-1.1", "2dc8:310b", SERIAL), (PORT + "/1-1.2", "2dc8:310b", "E1F2A3B4C6")])
+        self.assertEqual(self.ids(two, apart), ["usb-serial:2dc8:310b:e1f2a3b4c5", "usb-serial:2dc8:310b:e1f2a3b4c6"])
 
 
 if __name__ == "__main__":

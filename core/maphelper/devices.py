@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from pathlib import Path
 from typing import Optional
 
 from .model import Controller
@@ -21,6 +22,8 @@ class InputDevice:
     uniq: str
     handlers: tuple
     props: int = 0  # "B: PROP=" bitmask, INPUT_PROP_* from linux/input-event-codes.h
+    sysfs: str = ""  # "S: Sysfs=", the node's path under /sys (drivers/input/input.c, kobject_get_path)
+    usb_serial: str = ""  # the USB device's serial, filled in by with_usb_serials()
 
     @property
     def vid_pid(self) -> str:
@@ -46,6 +49,8 @@ def parse_proc_input_devices(text: str) -> list[InputDevice]:
                 fields["phys"] = rest.removeprefix("Phys=")
             elif tag == "U":
                 fields["uniq"] = rest.removeprefix("Uniq=")
+            elif tag == "S":
+                fields["sysfs"] = rest.removeprefix("Sysfs=")
             elif tag == "H":
                 fields["handlers"] = rest.removeprefix("Handlers=")
             elif tag == "B" and rest.startswith("PROP="):
@@ -58,7 +63,7 @@ def parse_proc_input_devices(text: str) -> list[InputDevice]:
             name=fields.get("name", ""), bus=bus, vendor=vendor, product=product, version=version,
             phys=fields.get("phys", ""), uniq=fields.get("uniq", ""),
             handlers=tuple(fields.get("handlers", "").split()),
-            props=int(fields.get("props", "0"), 16),
+            props=int(fields.get("props", "0"), 16), sysfs=fields.get("sysfs", ""),
         ))
     return devices
 
@@ -73,16 +78,77 @@ def is_gamepad(device: InputDevice) -> bool:
 
 
 def stable_id(device: InputDevice) -> str:
-    """Preference order from docs/04 §1.2."""
+    """Preference order from docs/04 §1.2: uniq (MAC or serial), then the USB serial, then the port path."""
     # The prefix doesn't depend on the transport: hid-playstation and hid-nintendo put the Bluetooth MAC in uniq
     # over USB too (seen on a Deck with a DualSense), so one pad keeps one id either way.
     uniq = device.uniq.strip().lower()
     if uniq and set(uniq.replace(":", "")) != {"0"} and uniq != "xxxxxxxxxx":
         return f"mac:{uniq}" if _MAC.fullmatch(uniq) else f"serial:{uniq}"
+    # A USB serial is only unique within one VID:PID, so the id carries both.
+    if device.usb_serial:
+        return f"usb-serial:{device.vid_pid}:{device.usb_serial}"
     return f"path:{device.vid_pid}:{device.phys}"
 
 
 _MAC = re.compile(r"(?:[0-9a-f]{2}:){5}[0-9a-f]{2}")
+
+# Serials a cheap pad might ship on every unit. Anything shorter than 4 characters or one character repeated is
+# treated the same way.
+_PLACEHOLDER_SERIALS = {"xxxxxxxxxx", "0123456789", "123456789", "1234567890", "12345678", "0123456789abcdef"}
+
+
+def _usb_device_serial(device: InputDevice, sys_root: Path) -> tuple[Optional[Path], str]:
+    """The USB device behind an input node and its serial, read from sysfs; (None, "") when there's none.
+
+    xpad sets no uniq (drivers/input/joystick/xpad.c sets name and phys only), so for a wired X-input pad the USB
+    device's `serial` is the only per-unit id. sysfs nests the input node under the USB interface and the interface
+    under the USB device (seen on a Deck: `.../usb1/1-1/1-1:1.0/input/input53`, tests/fixtures/devices/8bitdo-u2-usb),
+    so walking up from the node, the first directory with an `idVendor` is the USB device. Its `serial` exists only
+    when the device has a serial-number string (drivers/usb/core/sysfs.c, usb_string_attr(serial) and
+    dev_string_attrs_are_visible). usbhid copies the same string into hid->uniq (drivers/hid/usbhid/hid-core.c), which
+    is why the 8BitDo's keyboard and mouse nodes show it (docs/13 S8)."""
+    if device.bus != "0003" or not device.sysfs.startswith("/devices/"):
+        return None, ""
+    top = sys_root / "devices"
+    node = sys_root / device.sysfs.lstrip("/")
+    for d in (node, *node.parents):
+        if d == top or top not in d.parents:
+            break
+        try:
+            if not (d / "idVendor").is_file():
+                continue
+            vid_pid = ((d / "idVendor").read_text(encoding="utf-8").strip() + ":"
+                       + (d / "idProduct").read_text(encoding="utf-8").strip()).lower()
+            serial_file = d / "serial"
+            serial = serial_file.read_text(encoding="utf-8", errors="replace").strip() if serial_file.is_file() else ""
+        except OSError:
+            return None, ""
+        # Not the pad itself (a hub, say): its serial says nothing about which pad this is.
+        return (d, serial) if vid_pid == device.vid_pid else (None, "")
+    return None, ""
+
+
+def usable_serial(serial: str) -> str:
+    """Lower-cased serial, or "" for one that can't tell units apart (docs/04 §1.2)."""
+    s = serial.strip().lower()
+    clean = all(c.isprintable() and not c.isspace() for c in s)
+    return s if clean and len(s) >= 4 and len(set(s)) > 1 and s not in _PLACEHOLDER_SERIALS else ""
+
+
+def with_usb_serials(devices: list[InputDevice], sys_root: Path = Path("/sys")) -> list[InputDevice]:
+    """Fill in usb_serial for USB input nodes from sysfs. Two connected USB devices of one VID:PID reporting the same
+    serial both keep none: that serial isn't per-unit, so those pads stay port-bound (path ids)."""
+    found = {}
+    for i, dev in enumerate(devices):
+        usb_dir, serial = _usb_device_serial(dev, sys_root)
+        serial = usable_serial(serial)
+        if usb_dir is not None and serial:
+            found[i] = (usb_dir, serial)
+    owners: dict[tuple, set] = {}
+    for i, (usb_dir, serial) in found.items():
+        owners.setdefault((devices[i].vid_pid, serial), set()).add(usb_dir)
+    return [replace(dev, usb_serial=found[i][1]) if i in found and len(owners[(dev.vid_pid, found[i][1])]) == 1
+            else dev for i, dev in enumerate(devices)]
 
 
 STEAM_VIRTUAL_PAD = "28de:11ff"
