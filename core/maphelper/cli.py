@@ -79,12 +79,32 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--steam-root", type=Path, default=doctor.STEAM_ROOT, help="Steam's install (has userdata/)")
     p.add_argument("--retroarch-root", type=Path, default=doctor.RETROARCH_ROOT, help="RetroArch's config directory")
     p.add_argument("--emudeck-settings", type=Path, default=doctor.EMUDECK_SETTINGS, help="EmuDeck's settings.sh")
+    p.add_argument("--home", type=Path, default=Path.home(),
+                   help="where to look for mh-run's shim, SRM's parsers and ES-DE (default: your home)")
     p.add_argument("--json", action="store_true")
 
+    for name, text in (("setup", "put mh-run in front of launches: the shim, SRM's parsers, ES-DE's game-start "
+                                 "script (dry run by default)"),
+                       ("uninstall", "undo exactly what setup changed (dry run by default)")):
+        p = sub.add_parser(name, help=text)
+        p.add_argument("--write", action="store_true", help="make the changes (default: list them only)")
+        p.add_argument("--home", type=Path, default=Path.home(), help=argparse.SUPPRESS)
+        p.add_argument("--state-dir", type=Path, help="where setup records what it changed "
+                                                      "(default: ~/.local/state/map-helper)")
+        if name == "setup":
+            p.add_argument("--entry", type=Path, help="the mh_entry.py the shim runs "
+                                                      "(default: ~/.local/lib/map-helper/current/mh_entry.py)")
+            p.add_argument("--python", default="/usr/bin/python3", help="the Python the shim runs it with")
+
+    if argv is None:
+        argv = sys.argv[1:]
+    if argv[:1] == ["mh-run"]:                     # the launch wrapper takes its own arguments (see mhrun.py)
+        from .mhrun import main as mh_run
+        return mh_run(argv[1:])
     args = parser.parse_args(argv)
     return {"validate": cmd_validate, "devices": cmd_devices, "explain": cmd_explain,
             "apply": cmd_apply, "backup": cmd_backup, "restore": cmd_restore,
-            "doctor": cmd_doctor}[args.command](args)
+            "doctor": cmd_doctor, "setup": cmd_setup, "uninstall": cmd_setup}[args.command](args)
 
 
 def add_probe_arguments(p) -> None:
@@ -323,9 +343,20 @@ def cmd_restore(args) -> int:
     return 1 if any(a.kind == "skip" for a in actions) else 0
 def cmd_doctor(args) -> int:
     from . import doctor
-    findings = doctor.run(args.steam_root, args.retroarch_root, args.emudeck_settings)
+    findings = doctor.run(args.steam_root, args.retroarch_root, args.emudeck_settings, home=args.home)
     if args.json:
         print(json.dumps({"findings": [vars(f) for f in findings]}, indent=2))
     else:
         print(doctor.render(findings), end="")
     return 1 if any(f.severity == "error" for f in findings) else 0
+
+
+def cmd_setup(args) -> int:
+    from . import setup
+    places = setup.Places(home=args.home, state_dir=args.state_dir, entry=getattr(args, "entry", None),
+                          python=getattr(args, "python", "/usr/bin/python3"))
+    report = (setup.setup if args.command == "setup" else setup.uninstall)(places, write=args.write)
+    print(setup.render(report), end="")
+    if not args.write and any(c.action in ("install", "update", "remove") for c in report.changes):
+        print("Dry run: nothing changed. Add --write to make these changes.")
+    return 1 if report.refused else 0
