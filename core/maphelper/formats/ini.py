@@ -42,6 +42,22 @@ class IniDocument:
         index = self._find_key(section, key)
         return None if index is None else _KEY.match(self.lines[index]).group("value")
 
+    def index(self) -> dict[tuple[Optional[str], str], str]:
+        """(section, key) -> value for every key, as get() finds them (first section of a name, first key in it),
+        in one pass: for callers that look up many keys of a large file (retroarch.cfg has ~2000 lines)."""
+        out, section, active, seen = {}, None, True, set()
+        for line in self.lines:
+            header = _SECTION.match(line)
+            if header:
+                section = header.group("name")
+                active = section not in seen
+                seen.add(section)
+                continue
+            m = _KEY.match(line) if active else None
+            if m:
+                out.setdefault((section, m.group("key").strip()), m.group("value"))
+        return out
+
     def items(self, section: str) -> list[tuple[str, str]]:
         start, end = self._section_bounds(section)
         if start is None:
@@ -112,11 +128,12 @@ class IniDocument:
     def _section_bounds(self, section: Optional[str]) -> tuple[Optional[int], int]:
         """section None is the top of the file, before any [header] (RetroArch .cfg/.rmp have no sections)."""
         if section is None:
-            first = next((i for i, line in enumerate(self.lines) if _SECTION.match(line)), len(self.lines))
+            first = next((i for i, line in enumerate(self.lines) if "[" in line and _SECTION.match(line)),
+                         len(self.lines))
             return -1, first
         start = None
         for i, line in enumerate(self.lines):
-            m = _SECTION.match(line)
+            m = _SECTION.match(line) if "[" in line else None
             if not m:
                 continue
             if start is not None:
@@ -130,7 +147,7 @@ class IniDocument:
         if start is None:
             return None
         for i in range(start + 1, end):
-            m = _KEY.match(self.lines[i])
+            m = _KEY.match(self.lines[i]) if key in self.lines[i] else None   # the substring test is only a shortcut
             if m and m.group("key").strip() == key:
                 return i
         return None

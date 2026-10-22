@@ -22,6 +22,7 @@ DATA = REPO / "data"
 
 
 def main(argv: list[str] | None = None) -> int:
+    from .pipeline import EMULATORS
     parser = argparse.ArgumentParser(prog="map-helper")
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -46,7 +47,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--json", action="store_true")
 
     p = sub.add_parser("apply", help="resolve and write an emulator's input config (dry run by default)")
-    p.add_argument("--emulator", required=True, choices=["dolphin", "pcsx2", "retroarch"])
+    p.add_argument("--emulator", required=True, choices=sorted(EMULATORS))
     p.add_argument("--core", help="RetroArch core (descriptor id or library name); needed when several run the system")
     p.add_argument("--system", required=True)
     p.add_argument("--game")
@@ -66,7 +67,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--state-dir", type=Path, default=Path.home() / ".local" / "state" / "map-helper")
 
     p = sub.add_parser("restore", help="put the files map-helper wrote back to pristine, or to a backup")
-    p.add_argument("--emulator", choices=["dolphin", "pcsx2", "retroarch"],
+    p.add_argument("--emulator", choices=sorted(EMULATORS),
                    help="only this emulator's files (default: all)")
     p.add_argument("--from", dest="source", metavar="BACKUP", help="a backup name (default: pristine)")
     p.add_argument("--dry-run", action="store_true", help="list what would happen; change nothing")
@@ -266,72 +267,17 @@ if __name__ == "__main__":
 
 
 def cmd_apply(args) -> int:
-    from .adapters.dolphin import DolphinAdapter
-    from .adapters.pcsx2 import PCSX2Adapter
-    from .adapters.retroarch import RetroArchAdapter
-    from .formats.ini import IniDocument
-    from .writer import apply_patches
-
-    db = ControllerDB(load_json(DATA / "controllers.json"))
-    report = load_sources([(DATA / "defaults", "shipped")] + [(d, "user") for d in (args.rules or [REPO / "examples"])])
-    for path, problem in report.problems:
-        print(f"warning: {path}: {problem}", file=sys.stderr)
-    layouts = load_layouts(DATA / "layouts")
-    target = Target(system=args.system, emulator=args.emulator, game_id=args.game)
-
-    adapter = {"dolphin": DolphinAdapter, "pcsx2": PCSX2Adapter, "retroarch": RetroArchAdapter}[args.emulator]()
-    players, assigned, joysticks = {}, {}, []
-    if args.player:
-        for n, spec in enumerate(args.player, start=1):
-            model, _, device_id = spec.partition("@")
-            controller = db.classify((device_id,) if device_id else (), claimed_model=model)
-            players[n] = resolver.set_by_rules(resolver.resolve(report.rules, controller, target, layouts))
-    else:
-        # No --player: the pads connected now, in Steam's order (docs/04 §5.1 steam-order), each player also pointed
-        # at its own pad in the emulator's numbering (§5.2).
-        try:
-            probe = Probe(args, db)
-        except OSError as e:
-            print(f"error: can't read the connected devices ({e}); pass --player or --proc-file", file=sys.stderr)
-            return 2
-        print(probe.describe(), file=sys.stderr)
-        joysticks, order = probe.players(adapter.sdl_order)
-        for n, joystick in enumerate(order, start=1):
-            device_id, vid_pid, name = probe.identity(joystick)
-            controller = db.classify((device_id,) if device_id else (), vid_pid, name)
-            if db.is_ambiguous(controller.model) or controller.model is None:
-                print(f"warning: player {n} ({name}) needs a model claim; resolving it as {controller.model or 'unknown'}"
-                      f" (style {controller.style})", file=sys.stderr)
-            players[n] = resolver.set_by_rules(resolver.resolve(report.rules, controller, target, layouts))
-            assigned[n] = joystick
-            slot = f"steam slot {joystick.slot.slot}" if joystick.slot else "not behind Steam"
-            print(f"player {n}: {name} ({slot}) -> {joystick.device.name} ({' '.join(joystick.device.handlers)}), "
-                  f"SDL index {joystick.index}", file=sys.stderr)
-        if not order:
-            print("warning: no controllers found; nothing to assign", file=sys.stderr)
-
-    def current(file, section, key):
-        path = args.config_root / file
-        return IniDocument.parse(path.read_text(encoding="utf-8")).get(section, key) if path.exists() else None
-
-    checks = []
-    if args.emulator == "retroarch":
-        try:
-            core = adapter.core_for(args.system, args.core)
-        except ValueError as e:
-            print(f"error: {e}", file=sys.stderr)
-            return 2
-        ports = {n: j.index for n, j in assigned.items()}
-        rendered = adapter.render(players, core, current=current, ports=ports)
-        managed = adapter.managed_keys(core)
-        checks = adapter.check(args.config_root, core, current, ports=bool(ports))
-    else:
-        devices = {n: adapter.device_ref(j, joysticks) for n, j in assigned.items()}
-        rendered = adapter.render(players, args.system, current=current, devices=devices)
-        managed = adapter.managed_keys
-    result = apply_patches(args.config_root, rendered.patches, managed,
-                           state_dir=args.state_dir, dry_run=not args.write, emulator=args.emulator)
-    for warning in [w for p in players.values() for w in p.warnings] + rendered.warnings + checks:
+    from . import pipeline
+    req = pipeline.Request(args.emulator, args.system, args.config_root, args.rules or [REPO / "examples"],
+                           core=args.core, game=args.game, players=args.player, probe_args=args,
+                           write=args.write, state_dir=args.state_dir)
+    try:
+        outcome = pipeline.run(req, log=lambda line: print(line, file=sys.stderr))
+    except pipeline.ApplyError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
+    result = outcome.result
+    for warning in outcome.warnings:
         print(f"warning: {warning}", file=sys.stderr)
     for patch in result.rejected:
         print(f"rejected (not a managed key): {patch}", file=sys.stderr)

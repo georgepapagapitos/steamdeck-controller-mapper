@@ -2,8 +2,12 @@
 
 Prototype scope: managed-key enforcement, pristine snapshot, no-op skip, atomic
 replace, a unified diff for --dry-run, and (when the emulator is named) the touched-file manifest that
-`restore` works from. Locking, the journal, drift hashes and the emulator-running check are still to do (docs/09
-steps 2, 3, 7, 8).
+`restore` works from. The journal, drift hashes and the emulator-running check are still to do (docs/09 steps 3, 7,
+8); mh-run takes the lock (step 2).
+
+Writing is in two phases so a caller with a deadline (mh-run) can stop without leaving a half-written set: every
+changed file is first staged, complete and fsynced, as a temp file next to it; then `gate()` decides; only then are
+the temp files renamed over the originals. A cut-off before the gate writes nothing; after it, only renames are left.
 """
 
 from __future__ import annotations
@@ -17,7 +21,7 @@ import shutil
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 from .formats.ini import IniDocument
 
@@ -35,6 +39,7 @@ class ApplyResult:
     changed_files: list = field(default_factory=list)
     diff: str = ""
     rejected: list = field(default_factory=list)   # patches outside managed keys
+    aborted: bool = False                           # the gate said no: nothing was written
 
 
 def is_managed(patch: Patch, managed: dict) -> bool:
@@ -68,8 +73,11 @@ def _expand(patterns: list) -> list:
 
 
 def apply_patches(config_root: Path, patches: list, managed: dict, state_dir: Path | None = None,
-                  dry_run: bool = False, emulator: str | None = None) -> ApplyResult:
-    """With state_dir and emulator, every write is recorded in the manifest (MANIFEST) so `restore` can undo it."""
+                  dry_run: bool = False, emulator: str | None = None,
+                  gate: Optional[Callable[[], bool]] = None) -> ApplyResult:
+    """With state_dir and emulator, every write is recorded in the manifest (MANIFEST) so `restore` can undo it.
+    gate: called once every changed file is staged; False discards the staged files and writes nothing
+    (result.aborted)."""
     result = ApplyResult()
     track = state_dir is not None and emulator is not None and not dry_run
     manifest = load_manifest(Path(state_dir)) if track else None
@@ -85,7 +93,7 @@ def apply_patches(config_root: Path, patches: list, managed: dict, state_dir: Pa
         else:
             result.rejected.append(patch)
 
-    diffs = []
+    diffs, outputs = [], []
     for rel, file_patches in sorted(by_file.items()):
         path = Path(config_root) / rel
         before = path.read_text(encoding="utf-8", errors="surrogateescape") if path.exists() else ""
@@ -105,15 +113,41 @@ def apply_patches(config_root: Path, patches: list, managed: dict, state_dir: Pa
             before.splitlines(keepends=True), after.splitlines(keepends=True),
             fromfile=f"a/{rel}", tofile=f"b/{rel}")))
         result.changed_files.append(rel)
-        if not dry_run:
-            if state_dir is not None:
-                _snapshot_pristine(path, Path(state_dir), rel, emulator, tracked["files"] if track else None)
-            _atomic_write(path, after)
-            if track:
-                tracked["files"][rel]["hash"] = file_hash(path)
-                save_manifest(Path(state_dir), manifest)
+        outputs.append((rel, path, after))
     result.diff = "".join(diffs)
+    if not dry_run and outputs:
+        _commit(outputs, Path(state_dir) if state_dir is not None else None, emulator,
+                (manifest, tracked) if track else None, gate, result)
     return result
+
+
+def _commit(outputs: list, state_dir: Optional[Path], emulator: Optional[str], track: Optional[tuple],
+            gate: Optional[Callable[[], bool]], result: ApplyResult) -> None:
+    staged = []
+    try:
+        for rel, path, after in outputs:
+            staged.append((rel, path, _stage(path, after)))
+        if gate is not None and not gate():
+            result.aborted = True
+            return
+        if state_dir is not None:
+            # Snapshots and manifest entries first: if the renames below are cut short, restore still knows every
+            # file (one whose hash no longer matches is skipped unless --force, never lost).
+            for rel, path, _ in staged:
+                _snapshot_pristine(path, state_dir, rel, emulator, track[1]["files"] if track else None)
+            if track:
+                save_manifest(state_dir, track[0])
+        for rel, path, tmp in staged:
+            os.replace(tmp, path)
+        staged = []
+        if track:
+            for rel, path, _ in outputs:
+                track[1]["files"][rel]["hash"] = file_hash(path)
+            save_manifest(state_dir, track[0])
+    finally:
+        for _, _, tmp in staged:
+            if os.path.exists(tmp):
+                os.unlink(tmp)
 
 
 MANIFEST = "touched.json"   # in the state dir: {emulator: {"config_root": abs, "files": {rel: {"created", "hash"}}}}
@@ -154,16 +188,37 @@ def _snapshot_pristine(path: Path, state_dir: Path, rel: str, emulator: Optional
             # Someone else replaced a file we created (EmuDeck's abxy toggle renames Snes9x.rmp.disabled over
             # Snes9x.rmp), so it's theirs now: its content becomes the pristine one and restore won't delete it.
             entry["created"] = False
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(path, target)
+            _copy(path, target)
             return
     if target.exists() or not path.exists():
         return
+    _copy(path, target)
+
+
+def _copy(src: Path, target: Path) -> None:
+    """copy2 through a temp file, so a snapshot cut short never stands in for the real one."""
     target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(path, target)
+    tmp = target.with_name(f".{target.name}.mh-tmp")
+    try:
+        shutil.copy2(src, tmp)
+        os.replace(tmp, target)
+    finally:
+        if tmp.exists():
+            tmp.unlink()
 
 
 def _atomic_write(path: Path, text: str) -> None:
+    tmp = _stage(path, text)
+    try:
+        os.replace(tmp, path)
+    except BaseException:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+        raise
+
+
+def _stage(path: Path, text: str) -> str:
+    """Write text to a temp file next to path (same mode), fsynced; the caller renames it into place."""
     path.parent.mkdir(parents=True, exist_ok=True)
     mode = path.stat().st_mode if path.exists() else None
     fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".mh-tmp")
@@ -174,8 +229,8 @@ def _atomic_write(path: Path, text: str) -> None:
             os.fsync(f.fileno())
         if mode is not None:
             os.chmod(tmp, mode)
-        os.replace(tmp, path)
     except BaseException:
         if os.path.exists(tmp):
             os.unlink(tmp)
         raise
+    return tmp
