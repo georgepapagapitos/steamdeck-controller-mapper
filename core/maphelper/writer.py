@@ -77,6 +77,12 @@ def apply_patches(config_root: Path, patches: list, managed: dict, state_dir: Pa
         after = doc.serialize()
         if after == before:
             continue                                   # no-op: don't touch the file or its mtime
+        # Belt and braces for "never write outside managed keys": whatever the editor did, every other line must come
+        # back unchanged. A parser bug fails here instead of silently rewriting a user's config.
+        keys = {(p.section, p.key) for p in file_patches}
+        old = IniDocument.parse(before)
+        if old.untouched_lines(keys) != IniDocument.parse(after).untouched_lines(keys, set(old.sections())):
+            raise RuntimeError(f"{rel}: the edit would change lines outside managed keys; nothing written")
         diffs.append("".join(difflib.unified_diff(
             before.splitlines(keepends=True), after.splitlines(keepends=True),
             fromfile=f"a/{rel}", tofile=f"b/{rel}")))

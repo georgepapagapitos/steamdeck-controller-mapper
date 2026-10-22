@@ -24,8 +24,22 @@ MAC = re.compile(r"\b(?:[0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}\b")
 # the MAC appears nowhere else). Wired X-input handles start 0x1<VID><PID> and hold no MAC.
 HANDLE = re.compile(r"^handle=0x00[0-9A-Fa-f]{2}([0-9A-Fa-f]{12})$", re.M)
 UNIQ = re.compile(r"^U: Uniq=(.*)$", re.M)
-SECRET = re.compile(r"^([ \t]*\w*(?:password|token|username|nickname|api_?key)\w*[ \t]*=[ \t]*).*$"
-                    r"|^(ID[ \t]*=[ \t]*)[0-9a-f]{32}$", re.I | re.M)  # the second is Dolphin.ini's [Analytics] ID
+SETTING = re.compile(r"^([ \t]*([\w.]+)[ \t]*=[ \t]*)(.*)$", re.M)
+CREDENTIAL_WORDS = {"password", "passwd", "token", "secret", "username", "nickname", "cookie", "credential",
+                    "credentials", "auth"}
+URL_USERINFO = re.compile(r"(?<=://)[^/@\s\"']+@")
+
+
+def is_analytics_id(m: re.Match) -> bool:
+    return m[2] == "ID" and re.fullmatch(r"[0-9a-f]{32}", m[3].strip()) is not None
+
+
+def is_credential(key: str) -> bool:
+    """A whole word of the key names a credential: twitch_stream_key, webdav_password and ApiToken yes;
+    mgba_audio_low_pass_filter, vibrate_on_keypress and netplay_show_passworded no."""
+    words = [w.lower() for w in re.findall(r"[A-Z]?[a-z0-9]+|[A-Z]+(?![a-z])", key)]
+    joined = "".join(words)
+    return bool(CREDENTIAL_WORDS & set(words)) or joined.endswith(("streamkey", "apikey"))
 
 
 def main(root: pathlib.Path, salt_file: pathlib.Path, rekey: bool) -> int:
@@ -55,8 +69,9 @@ def main(root: pathlib.Path, salt_file: pathlib.Path, rekey: bool) -> int:
         if f.is_file():
             try:
                 files[f] = f.read_text(encoding="utf-8")
-            except UnicodeDecodeError:
-                pass
+            except UnicodeDecodeError:  # can't be scrubbed as text, so it doesn't leave the Deck
+                print(f"scrub: dropped {f.relative_to(root)} (not UTF-8 text)", file=sys.stderr)
+                f.unlink()
 
     macs = {m.lower().replace(":", "") for s in files.values() for m in MAC.findall(s)}
     macs |= {h.lower() for s in files.values() for h in HANDLE.findall(s)}
@@ -88,13 +103,17 @@ def main(root: pathlib.Path, salt_file: pathlib.Path, rekey: bool) -> int:
             s = "".join("\t".join(r[:2] + [field(r[2])] + r[3:] if len(r) >= 5 else r) + "\n" for r in rows)
         if pattern:
             s = pattern.sub(lambda m: swap[m[0].lower()], s)
-        files[f] = SECRET.sub(lambda m: m[1] or m[2], s)
+        # Blank credentials, keeping the key (the quotes go too), and Dolphin.ini's per-install [Analytics] ID.
+        s = SETTING.sub(lambda m: m[1] if is_credential(m[2]) or is_analytics_id(m) else m[0], s)
+        files[f] = URL_USERINFO.sub("", s)
 
     survivors = [f for f, s in files.items() for original in swap if original in s.lower()]
     survivors += [f for f, s in files.items() for u in serials
                   if re.search(r"^U: Uniq=" + re.escape(u) + "$", s, re.M) or "\t" + u + "\t" in s]
+    survivors += [f for f, s in files.items() if URL_USERINFO.search(s)
+                  or any((is_credential(m[2]) and m[3].strip()) or is_analytics_id(m) for m in SETTING.finditer(s))]
     if survivors:
-        print(f"scrub: an original value survived in {survivors[0].name}", file=sys.stderr)
+        print(f"scrub: an original value or a credential survived in {survivors[0].name}", file=sys.stderr)
         return 1
     for f, s in files.items():
         f.write_text(s, encoding="utf-8")

@@ -27,7 +27,10 @@ H: Handlers=event9 js1
 VGI = f"[slot 1]\nhandle=0x000d{MAC.replace(':', '')}\n[slot 2]\nhandle=0x0000{STALE.replace(':', '')}\n" \
       "[slot 3]\nhandle=0x12dc8310b1234567\n"
 TSV = f"event20\tDualSense\t{MAC}\t\t054c:0ce6\nevent9\tOdd\t1\t\t1234:5678\n"
-CFG = 'cheevos_password = "hunter2"\ninput_player1_btn_a = "0"\nnetplay_password =\nnetplay_port = "55435"\n'
+CFG = ('cheevos_password = "hunter2"\ninput_player1_btn_a = "0"\nnetplay_password =\nnetplay_port = "55435"\n'
+       'twitch_stream_key = "live_abc"\nApiToken = xyz\nwebdav_url = "https://me:pw@dav.example/"\n'
+       'mgba_audio_low_pass_filter = "enabled"\nvibrate_on_keypress = "false"\nnetplay_show_passworded = "true"\n'
+       '[Analytics]\nID = ffffeeeeddddccccbbbbaaaa99998888\n[Other]\nID = 3\n')
 
 
 class ScrubTest(unittest.TestCase):
@@ -58,7 +61,8 @@ class ScrubTest(unittest.TestCase):
 
     def test_no_original_survives(self):
         out = "".join(self.scrub().values()).lower()
-        for original in (MAC, MAC.replace(":", ""), STALE.replace(":", ""), SERIAL.lower(), "hunter2"):
+        for original in (MAC, MAC.replace(":", ""), STALE.replace(":", ""), SERIAL.lower(), "hunter2", "live_abc",
+                         "xyz", "me:pw", "ffffeeeeddddccccbbbbaaaa99998888"):
             self.assertNotIn(original, out)
 
     def test_shape_is_kept(self):
@@ -95,6 +99,20 @@ class ScrubTest(unittest.TestCase):
         once = (tmp / "c" / "retroarch.cfg").read_text(encoding="utf-8")
         deck_scrub.main(tmp / "c", tmp / "salt", False)
         self.assertEqual((tmp / "c" / "retroarch.cfg").read_text(encoding="utf-8"), once)
+
+    def test_lookalike_keys_are_kept(self):
+        cfg = self.scrub()["retroarch.cfg"]
+        for line in ('mgba_audio_low_pass_filter = "enabled"', 'vibrate_on_keypress = "false"',
+                     'netplay_show_passworded = "true"', "ID = 3", 'webdav_url = "https://dav.example/"'):
+            self.assertIn(line + "\n", cfg)
+
+    def test_undecodable_file_never_leaves(self):
+        tmp = Path(tempfile.mkdtemp())
+        (tmp / "c").mkdir()
+        (tmp / "c" / "blob.bin").write_bytes(b"\xff\xfe" + MAC.encode())
+        (tmp / "salt").write_bytes(b"s" * 32)
+        self.assertEqual(deck_scrub.main(tmp / "c", tmp / "salt", False), 0)
+        self.assertFalse((tmp / "c" / "blob.bin").exists())
 
     def test_salt_changes_every_fake(self):
         self.assertNotEqual(self.scrub(salt=b"a" * 32), self.scrub(salt=b"b" * 32))
