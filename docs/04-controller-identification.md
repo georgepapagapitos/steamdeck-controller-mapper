@@ -39,7 +39,22 @@ with one exception. **[VERIFY]** (S3) on device with `evtest` /
 In order of preference:
 
 1. `uniq`, if non-empty, not all zeros and not the placeholder `XXXXXXXXXX` → `mac:<aa:bb:cc:dd:ee:ff>` (lower-cased) when it parses as a MAC, else `serial:<uniq>`
-2. USB serial from sysfs `serial` → `usb-serial:<serial>`
+2. USB serial from sysfs `serial` → `usb-serial:<vid>:<pid>:<serial>` (lower-cased). A serial is only unique
+   within one VID:PID, so the id carries both. Only for USB input nodes (bus `0003`): starting at the node's
+   `S: Sysfs=` path from `/proc/bus/input/devices`, walk up to the first directory with an `idVendor`, which is
+   the USB device (`.../usb1/1-1/1-1:1.0/input/inputN` → `.../usb1/1-1`; behind the dock's hub
+   `.../1-1/1-1.3/1-1.3:1.0/...` → `.../1-1.3`). Its `idVendor:idProduct` must equal the node's, so a hub's
+   serial is never taken for the pad's. The serial is ignored, and the pad falls to step 3, when it is:
+   - absent (the attribute only exists when the device has a serial-number string) or empty;
+   - shorter than 4 characters, one character repeated (`0000`, `FFFFFFFF`), a known placeholder
+     (`0123456789`, `12345678`, `XXXXXXXXXX`, ...), or holds whitespace or control characters;
+   - shared by two connected USB devices of the same VID:PID. Then neither is per-unit, so both stay
+     port-bound. This only catches a constant serial while two such pads are plugged in; a model that ships
+     one serial on every unit looks fine with one pad. **[VERIFY]** per model; if one turns up, flag the model
+     in `data/controllers.json` rather than growing the placeholder list.
+
+   Wired xpad pads need this: they have no `uniq`, and docking moves their port path (`…-1/input0` to
+   `…-1.3/input0` behind the dock's hub, docs/13 S9), so a `path:` id changes between handheld and docked.
 3. Fallback: `path:<vid>:<pid>:<usb port path>`. This only stays stable if the
    pad is plugged into the same port, and the UI marks it as "port-bound".
 
@@ -68,8 +83,12 @@ pads.
 | Steam virtual pad (uinput) | **[VERIFY]** (expected empty) | **[VERIFY]** (expected empty) | S1 |
 
 For xpad pads, the USB `serial` attribute (sysfs, parent USB device) is the
-only per-unit id. Whether Xbox One/Series pads and 8BitDo dongles report one
-is **[VERIFY]** (S8).
+only per-unit id (§1.2 step 2). The wired 8BitDo Ultimate 2 (`2dc8:310b`)
+reports a 10-hex-digit one: usbhid copies the USB serial string into `uniq` on
+its keyboard and mouse HID nodes, and on the Deck it matched sysfs `serial`
+(docs/13 S8). No capture holds sysfs `serial` itself yet; `tools/deck-capture.sh`
+now records it (`devices/usb-devices.tsv`). Whether Xbox One/Series pads and
+8BitDo dongles report one is **[VERIFY]** (S8).
 
 ## 2. Controller DB (`data/controllers.json`)
 
@@ -284,6 +303,9 @@ Checked 2026-10-22. Upstream sources were read only (shallow clones), never buil
   - [`drivers/hid/hid-steam.c`](https://github.com/torvalds/linux/blob/2a08195e4db5aba84600db6518089a1dbe2d04c7/drivers/hid/hid-steam.c): input device removed while client has hidraw open (L22–28, L1465–1482), name/`uniq` = serial (L1122–1126), `XXXXXXXXXX` fallback (L1392–1394)
   - [`drivers/hid/hid-microsoft.c`](https://github.com/torvalds/linux/blob/2a08195e4db5aba84600db6518089a1dbe2d04c7/drivers/hid/hid-microsoft.c) L427–438 (Xbox BT + 8BitDo SN30 Pro+ BT)
   - [`drivers/input/joystick/xpad.c`](https://github.com/torvalds/linux/blob/2a08195e4db5aba84600db6518089a1dbe2d04c7/drivers/input/joystick/xpad.c): Microsoft L123–134, 8BitDo L382–389, vendor matches L516–517 / L565–566, name/phys only (L1955–1956, L2076, L2096)
+  - [`drivers/usb/core/sysfs.c`](https://github.com/torvalds/linux/blob/2a08195e4db5aba84600db6518089a1dbe2d04c7/drivers/usb/core/sysfs.c): `serial` attribute (L143), hidden when the device has no serial string (`dev_string_attrs_are_visible`, L829–845), `idVendor` / `idProduct` (L703–704)
+  - [`drivers/hid/usbhid/hid-core.c`](https://github.com/torvalds/linux/blob/2a08195e4db5aba84600db6518089a1dbe2d04c7/drivers/hid/usbhid/hid-core.c) L1439 (`hid->uniq` = USB serial string) and [`drivers/hid/hid-input.c`](https://github.com/torvalds/linux/blob/2a08195e4db5aba84600db6518089a1dbe2d04c7/drivers/hid/hid-input.c) L2143 (`input_dev->uniq = hid->uniq`)
+  - [`drivers/input/input.c`](https://github.com/torvalds/linux/blob/2a08195e4db5aba84600db6518089a1dbe2d04c7/drivers/input/input.c) L1182 (`S: Sysfs=` is the node's kobject path, relative to `/sys`)
   - [`net/bluetooth/hidp/core.c`](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/net/bluetooth/hidp/core.c) L800–807 (`phys` = src adapter, `uniq` = dst device)
   - [`drivers/gpu/drm/drm_sysfs.c`](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/gpu/drm/drm_sysfs.c) L229–240 and `drm_connector.c` `drm_get_connector_status_name` (connected/disconnected/unknown)
   - [`Documentation/ABI/testing/sysfs-class-power`](https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-class-power) (`online`, `type`)

@@ -20,6 +20,15 @@ for d in /sys/class/input/*/device; do
   printf '%s\t%s\t%s\t%s\t%s:%s\n' "$(basename "$(dirname "$d")")" "$(cat "$d/name")" "$(cat "$d/uniq" 2>/dev/null)" \
     "$(cat "$d/phys" 2>/dev/null)" "$(cat "$d/id/vendor" 2>/dev/null)" "$(cat "$d/id/product" 2>/dev/null)"
 done | sort -u > "$t/devices/sys-class-input.tsv"
+# USB devices (not root hubs: their serial is the PCI address) with their sysfs `serial`, for usb-serial: ids (docs/04
+# §1.2). The path column matches "S: Sysfs=" in proc-bus-input-devices; the serial (column 3) is scrubbed below.
+for d in /sys/bus/usb/devices/*; do
+  [ -r "$d/idVendor" ] || continue
+  case "$(basename "$d")" in usb*) continue ;; esac
+  real=$(cd "$d" && pwd -P)
+  printf '%s\t%s\t%s\t%s\t%s:%s\n' "$(basename "$d")" "$(cat "$d/product" 2>/dev/null)" "$(cat "$d/serial" 2>/dev/null)" \
+    "${real#/sys}" "$(cat "$d/idVendor")" "$(cat "$d/idProduct")"
+done | sort > "$t/devices/usb-devices.tsv"
 for f in /sys/class/drm/card*-*/status; do echo "$f $(cat "$f")"; done > "$t/devices/drm-status.txt" 2>/dev/null
 for p in /sys/class/power_supply/*; do echo "$p type=$(cat "$p/type") online=$(cat "$p/online" 2>/dev/null)"; done > "$t/devices/power-supply.txt" 2>/dev/null
 grab ~/.local/share/Steam/config/virtualgamepadinfo.txt devices
