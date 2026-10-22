@@ -9,8 +9,10 @@ import sys
 from pathlib import Path
 
 from . import resolve as resolver
-from .devices import (ControllerDB, is_gamepad, parse_ignore_devices, parse_proc_input_devices,
-                      parse_virtual_gamepad_info, stable_id, steam_slots, with_usb_serials)
+from .devices import (STEAM_VIRTUAL_PAD, ControllerDB, is_gamepad, parse_ignore_devices, parse_proc_input_devices,
+                      parse_virtual_gamepad_info, physical_ids, sdl_joysticks, stable_id, steam_slots, with_usb_serials,
+                      POLICY_EXTERNAL_FIRST, POLICY_STEAM_ORDER, docked, parse_drm_status,
+                      player_order, read_drm_status)
 from .model import Target
 from .store import load_json, load_layouts, load_sources
 from .validate import validate_rule
@@ -27,16 +29,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("paths", nargs="+", type=Path)
 
     p = sub.add_parser("devices", help="list connected controllers")
-    p.add_argument("--proc-file", type=Path, default=Path("/proc/bus/input/devices"),
-                   help="read a saved copy instead of the live file")
-    p.add_argument("--sys-root", type=Path, default=Path("/sys"), help="where sysfs is (USB serials are read there)")
-    # Steam sets the env var only inside a game's environment; outside one (a shell, ssh) the file is still there.
-    p.add_argument("--virtual-info", type=Path,
-                   default=os.environ.get("SteamVirtualGamepadInfo",
-                                          Path.home() / ".local/share/Steam/config/virtualgamepadinfo.txt"),
-                   help="Steam's virtual gamepad info file (default: $SteamVirtualGamepadInfo, else Steam's config dir)")
-    p.add_argument("--ignore-devices", default=os.environ.get("SDL_GAMECONTROLLER_IGNORE_DEVICES", ""),
-                   help="pads behind Steam Input (default: $SDL_GAMECONTROLLER_IGNORE_DEVICES)")
+    add_probe_arguments(p)
     p.add_argument("--json", action="store_true")
 
     p = sub.add_parser("explain", help="show which rule sets each binding")
@@ -58,8 +51,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--system", required=True)
     p.add_argument("--game")
     p.add_argument("--config-root", type=Path, required=True, help="the emulator's config directory")
-    p.add_argument("--player", action="append", required=True, metavar="MODEL[@DEVICE_ID]",
-                   help="controller model per player, in order (repeatable), e.g. sony.ds4.v2@mac:aa:bb:..")
+    p.add_argument("--player", action="append", metavar="MODEL[@DEVICE_ID]",
+                   help="controller model per player, in order (repeatable), e.g. sony.ds4.v2@mac:aa:bb:..; "
+                        "default: the connected pads in Steam's order, each also set as that player's device")
+    add_probe_arguments(p)
     p.add_argument("--rules", type=Path, action="append", help="user rule directory (default: examples/)")
     p.add_argument("--write", action="store_true", help="write the files (default: print the diff only)")
     p.add_argument("--state-dir", type=Path, default=Path.home() / ".local" / "state" / "map-helper",
@@ -90,6 +85,84 @@ def main(argv: list[str] | None = None) -> int:
             "doctor": cmd_doctor}[args.command](args)
 
 
+def add_probe_arguments(p) -> None:
+    p.add_argument("--proc-file", type=Path, default=Path("/proc/bus/input/devices"),
+                   help="read a saved copy instead of the live file")
+    p.add_argument("--sys-root", type=Path, default=Path("/sys"), help="where sysfs is (USB serials are read there)")
+    # Steam sets the env var only inside a game's environment; outside one (a shell, ssh) the file is still there.
+    p.add_argument("--virtual-info", type=Path,
+                   default=os.environ.get("SteamVirtualGamepadInfo",
+                                          Path.home() / ".local/share/Steam/config/virtualgamepadinfo.txt"),
+                   help="Steam's virtual gamepad info file (default: $SteamVirtualGamepadInfo, else Steam's config dir)")
+    p.add_argument("--ignore-devices", default=os.environ.get("SDL_GAMECONTROLLER_IGNORE_DEVICES", ""),
+                   help="pads behind Steam Input (default: $SDL_GAMECONTROLLER_IGNORE_DEVICES)")
+    p.add_argument("--policy", choices=["auto", POLICY_STEAM_ORDER, POLICY_EXTERNAL_FIRST], default="auto",
+                   help="player order; auto: external-first when docked, else steam-order (docs/04 5.1)")
+    p.add_argument("--drm-status", type=Path, help="saved DRM connector states (a capture's drm-status.txt) "
+                                                   "instead of <sys-root>/class/drm")
+
+
+class Probe:
+    """What's connected: evdev devices, Steam's slots, and which physical pads are behind Steam."""
+
+    def __init__(self, args, db: ControllerDB):
+        self.devices = with_usb_serials(parse_proc_input_devices(args.proc_file.read_text(encoding="utf-8")),
+                                        args.sys_root)
+        self.slots = []
+        if args.virtual_info and Path(args.virtual_info).is_file():
+            info = parse_virtual_gamepad_info(Path(args.virtual_info).read_text(encoding="utf-8"))
+            self.slots = steam_slots(self.devices, info)
+        # A pad with a live Steam slot is behind Steam. Steam's ignore list can't say that: it names every pad type
+        # Steam supports, connected or not (793 entries on a Deck, tests/fixtures/devices/game-steam-input-on), so
+        # it's only a fallback when there's no slot file.
+        live = {s.vid_pid for s in self.slots if s.virtual}
+        self.behind_steam = live if self.slots else parse_ignore_devices(args.ignore_devices)
+        self.pads = [d for d in self.devices if is_gamepad(d) and not db.is_virtual(d.vid_pid)]
+        self.ids = physical_ids(self.slots, self.pads)   # Steam slot -> physical pad's stable id
+        self.policy, self.policy_reason = self._policy(args)
+
+    def _policy(self, args) -> tuple:
+        if args.policy != "auto":
+            return args.policy, "chosen with --policy"
+        drm = (parse_drm_status(args.drm_status.read_text(encoding="utf-8")) if args.drm_status
+               else read_drm_status(args.sys_root))
+        is_docked, why = docked(drm)
+        if is_docked is None:
+            return POLICY_STEAM_ORDER, f"can't tell docked from handheld ({why}), so Steam's order"
+        return (POLICY_EXTERNAL_FIRST, f"docked: {why}") if is_docked else (POLICY_STEAM_ORDER, f"handheld: {why}")
+
+    def describe(self) -> str:
+        return f"policy: {self.policy} ({self.policy_reason})"
+
+    def players(self, order: str) -> list:
+        """Joysticks in an emulator's SDL order (see devices.sdl_joysticks), and the players under the policy."""
+        joysticks = sdl_joysticks(self.devices, self.slots, self.behind_steam, order)
+        return joysticks, player_order(joysticks, self.policy)
+
+    def identity(self, joystick) -> tuple:
+        """(stable id or None, VID:PID, name) of the physical pad behind a joystick."""
+        if joystick.slot:
+            return self.ids.get(joystick.slot.slot), joystick.slot.vid_pid, joystick.slot.name
+        if joystick.device.vid_pid == STEAM_VIRTUAL_PAD:
+            return None, "", joystick.device.name     # a virtual pad with no slot entry: nothing says what's behind
+        return stable_id(joystick.device), joystick.device.vid_pid, joystick.device.name
+
+
+def emulator_ports(probe: Probe) -> dict:
+    """virtual or native evdev node -> {"player", "retroarch_port", "dolphin_device"}."""
+    from .adapters.dolphin import DolphinAdapter
+    from .adapters.retroarch import RetroArchAdapter
+    out = {}
+    _, players = probe.players(RetroArchAdapter().sdl_order)
+    for n, j in enumerate(players, start=1):
+        out[j.device] = {"player": n, "retroarch_port": j.index}
+    dolphin = DolphinAdapter()
+    joysticks, _ = probe.players(dolphin.sdl_order)
+    for j in joysticks:
+        out.setdefault(j.device, {})["dolphin_device"] = dolphin.device_ref(j, joysticks)
+    return out
+
+
 def cmd_validate(args) -> int:
     failed = 0
     for path in args.paths:
@@ -107,53 +180,55 @@ def cmd_validate(args) -> int:
 
 def cmd_devices(args) -> int:
     db = ControllerDB(load_json(DATA / "controllers.json"))
-    devices = with_usb_serials(parse_proc_input_devices(args.proc_file.read_text(encoding="utf-8")), args.sys_root)
+    probe = Probe(args, db)
+    ports = emulator_ports(probe)
     slots = []
-    if args.virtual_info and Path(args.virtual_info).is_file():
-        info = parse_virtual_gamepad_info(Path(args.virtual_info).read_text(encoding="utf-8"))
-        for s in steam_slots(devices, info):
-            slots.append({"slot": s.slot, "physical_vid_pid": s.vid_pid, "physical_id": s.device_id,
-                          "type": s.type, "name": s.name,
-                          "physical_model": db.model_for(s.vid_pid),
-                          "virtual_node": s.virtual.handlers if s.virtual else None})
-    # A pad with a live Steam slot is behind Steam. Steam's ignore list can't say that: it names every pad type Steam
-    # supports, connected or not (793 entries on a Deck, tests/fixtures/devices/game-steam-input-on), so it's only a
-    # fallback when there's no slot file.
-    live = {s["physical_vid_pid"] for s in slots if s["virtual_node"]}
-    behind_steam = live if slots else parse_ignore_devices(args.ignore_devices)
-    slot_of = {s["physical_id"]: s["slot"] for s in slots if s["physical_id"]}
-    # A wired X-input pad's handle holds no MAC; fall back to VID:PID when only one live slot and one pad have it.
-    pads = [d for d in devices if is_gamepad(d) and not db.is_virtual(d.vid_pid)]
-    for s in slots:
-        same = [d for d in pads if d.vid_pid == s["physical_vid_pid"]]
-        live = [t for t in slots if t["virtual_node"] and t["physical_vid_pid"] == s["physical_vid_pid"]]
-        if not s["physical_id"] and s["virtual_node"] and len(same) == 1 and len(live) == 1:
-            slot_of.setdefault(stable_id(same[0]), s["slot"])
+    for s in probe.slots:
+        slots.append({"slot": s.slot, "physical_vid_pid": s.vid_pid, "physical_id": s.device_id,
+                      "type": s.type, "name": s.name,
+                      "physical_model": db.model_for(s.vid_pid),
+                      "virtual_node": s.virtual.handlers if s.virtual else None,
+                      **(ports.get(s.virtual, {}) if s.virtual else {})})
+    slot_of = {}   # physical pad id -> its Steam slot; a live slot beats a stale one Steam kept for the same pad
+    live = {s.slot for s in probe.slots if s.virtual}
+    for slot, pad_id in sorted(probe.ids.items(), key=lambda item: item[0] in live):
+        slot_of[pad_id] = slot
     rows = []
-    for dev in devices:
-        if not is_gamepad(dev) or db.is_virtual(dev.vid_pid):
-            continue
+    for dev in probe.pads:
         ctrl = db.classify((stable_id(dev),), dev.vid_pid, dev.name)
         rows.append({
             "name": dev.name, "vid_pid": dev.vid_pid, "id": stable_id(dev),
-            "mode": "passthrough" if dev.vid_pid in behind_steam else "native",
+            "mode": "passthrough" if dev.vid_pid in probe.behind_steam else "native",
             "steam_slot": slot_of.get(stable_id(dev)),
             "model": ctrl.model, "family": ctrl.family, "brand": ctrl.brand, "style": ctrl.style,
             "needs_claim": db.is_ambiguous(ctrl.model) or ctrl.model is None,
+            **ports.get(dev, {}),
         })
     if args.json:
-        print(json.dumps({"controllers": rows, "steam_slots": slots}, indent=2))
+        print(json.dumps({"controllers": rows, "steam_slots": slots,
+                          "policy": {"name": probe.policy, "reason": probe.policy_reason}}, indent=2))
         return 0
+    print(probe.describe())
     if not rows:
         print("No external controllers connected. (The Deck's own controls appear only as a Steam slot below.)")
     for r in rows:
         tag = " [needs claim]" if r["needs_claim"] else ""
         slot = f" steam_slot={r['steam_slot']}" if r["steam_slot"] is not None else ""
-        print(f"{r['vid_pid']}  {r['name']:<40} model={r['model']} style={r['style']} mode={r['mode']}{slot}{tag}")
+        print(f"{r['vid_pid']}  {r['name']:<40} model={r['model']} style={r['style']} mode={r['mode']}{slot}{tag}"
+              f"{_ports_text(r)}")
     for s in slots:
         node = " ".join(s["virtual_node"]) if s["virtual_node"] else "not connected (Steam keeps the slot)"
-        print(f"steam slot {s['slot']}: {s['name']} ({s['physical_vid_pid']}, model={s['physical_model']}) -> {node}")
+        print(f"steam slot {s['slot']}: {s['name']} ({s['physical_vid_pid']}, model={s['physical_model']}) -> {node}"
+              f"{_ports_text(s)}")
     return 0
+
+
+def _ports_text(row: dict) -> str:
+    """Where a pad lands in each emulator (only rows the emulators can see have these)."""
+    if "player" not in row:
+        return ""
+    return (f"\n    player {row['player']}: retroarch port {row['retroarch_port']}, "
+            f"dolphin {row.get('dolphin_device')}")
 
 
 def cmd_explain(args) -> int:
@@ -202,11 +277,36 @@ def cmd_apply(args) -> int:
     layouts = load_layouts(DATA / "layouts")
     target = Target(system=args.system, emulator=args.emulator, game_id=args.game)
 
-    players = {}
-    for n, spec in enumerate(args.player, start=1):
-        model, _, device_id = spec.partition("@")
-        controller = db.classify((device_id,) if device_id else (), claimed_model=model)
-        players[n] = resolver.set_by_rules(resolver.resolve(report.rules, controller, target, layouts))
+    adapter = RetroArchAdapter() if args.emulator == "retroarch" else DolphinAdapter()
+    players, assigned, joysticks = {}, {}, []
+    if args.player:
+        for n, spec in enumerate(args.player, start=1):
+            model, _, device_id = spec.partition("@")
+            controller = db.classify((device_id,) if device_id else (), claimed_model=model)
+            players[n] = resolver.set_by_rules(resolver.resolve(report.rules, controller, target, layouts))
+    else:
+        # No --player: the pads connected now, in Steam's order (docs/04 §5.1 steam-order), each player also pointed
+        # at its own pad in the emulator's numbering (§5.2).
+        try:
+            probe = Probe(args, db)
+        except OSError as e:
+            print(f"error: can't read the connected devices ({e}); pass --player or --proc-file", file=sys.stderr)
+            return 2
+        print(probe.describe(), file=sys.stderr)
+        joysticks, order = probe.players(adapter.sdl_order)
+        for n, joystick in enumerate(order, start=1):
+            device_id, vid_pid, name = probe.identity(joystick)
+            controller = db.classify((device_id,) if device_id else (), vid_pid, name)
+            if db.is_ambiguous(controller.model) or controller.model is None:
+                print(f"warning: player {n} ({name}) needs a model claim; resolving it as {controller.model or 'unknown'}"
+                      f" (style {controller.style})", file=sys.stderr)
+            players[n] = resolver.set_by_rules(resolver.resolve(report.rules, controller, target, layouts))
+            assigned[n] = joystick
+            slot = f"steam slot {joystick.slot.slot}" if joystick.slot else "not behind Steam"
+            print(f"player {n}: {name} ({slot}) -> {joystick.device.name} ({' '.join(joystick.device.handlers)}), "
+                  f"SDL index {joystick.index}", file=sys.stderr)
+        if not order:
+            print("warning: no controllers found; nothing to assign", file=sys.stderr)
 
     def current(file, section, key):
         path = args.config_root / file
@@ -214,18 +314,18 @@ def cmd_apply(args) -> int:
 
     checks = []
     if args.emulator == "retroarch":
-        adapter = RetroArchAdapter()
         try:
             core = adapter.core_for(args.system, args.core)
         except ValueError as e:
             print(f"error: {e}", file=sys.stderr)
             return 2
-        rendered = adapter.render(players, core, current=current)
+        ports = {n: j.index for n, j in assigned.items()}
+        rendered = adapter.render(players, core, current=current, ports=ports)
         managed = adapter.managed_keys(core)
-        checks = adapter.check(args.config_root, core, current)
+        checks = adapter.check(args.config_root, core, current, ports=bool(ports))
     else:
-        adapter = DolphinAdapter()
-        rendered = adapter.render(players, args.system, current=current)
+        devices = {n: adapter.device_ref(j, joysticks) for n, j in assigned.items()}
+        rendered = adapter.render(players, args.system, current=current, devices=devices)
         managed = adapter.managed_keys
     result = apply_patches(args.config_root, rendered.patches, managed,
                            state_dir=args.state_dir, dry_run=not args.write, emulator=args.emulator)

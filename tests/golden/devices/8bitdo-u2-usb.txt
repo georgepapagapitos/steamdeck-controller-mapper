@@ -1,0 +1,7 @@
+policy: steam-order (handheld: no external display connected)
+2dc8:310b  8BitDo Ultimate 2 Wireless Controller    model=8bitdo.ultimate2 style=xbox mode=passthrough steam_slot=2
+steam slot 0: #SettingsController_SteamController (28de:1205, model=valve.steamdeck) -> event10 js0
+    player 1: retroarch port 0, dolphin SDL/0/#SettingsController_SteamController
+steam slot 1: 8Bitdo Ultimate 2 Wireless Controller (2dc8:6012, model=8bitdo.ultimate2) -> not connected (Steam keeps the slot)
+steam slot 2: 8BitDo Ultimate 2 Wireless Controller (2dc8:310b, model=8bitdo.ultimate2) -> event25 js4
+    player 2: retroarch port 1, dolphin SDL/0/8BitDo Ultimate 2 Wireless Controller

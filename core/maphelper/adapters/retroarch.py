@@ -1,11 +1,13 @@
 """RetroArch adapter: per-player pad remaps in a core's own .rmp (prototype). See docs/adapters/retroarch.md.
 
 All RetroArch facts come from data/adapters/retroarch/ (retropad.json, hotkeys.json and one descriptor per core).
-Hotkeys go into retroarch.cfg, and only when some rule sets one.
+Hotkeys go into retroarch.cfg, and only when some rule sets one; so does each assigned player's joypad port
+(input_playerN_joypad_index).
 """
 
 from __future__ import annotations
 
+import re
 from collections import Counter
 from pathlib import Path
 from typing import Callable, Optional
@@ -18,6 +20,7 @@ from .dolphin import Rendered
 DATA = Path(__file__).resolve().parents[3] / "data" / "adapters" / "retroarch"
 REMAP_DIR = "config/remaps"   # input_remapping_directory's default under the config root; EmuDeck keeps it
 SUFFIXES = ("_btn", "_axis")
+_PORT_LINE = re.compile(r"^\s*input_player\d+_joypad_index\s*=", re.MULTILINE)
 
 
 class RetroArchAdapter:
@@ -28,6 +31,7 @@ class RetroArchAdapter:
         self.hotkeys = hotkeys or load_json(DATA / "hotkeys.json")
         self.cores = cores or {f.stem: load_json(f) for f in sorted((DATA / "cores").glob("*.json"))}
         self.ids = {**self.pad["retropad_ids"], **self.pad["analog_half_axis_ids"]}
+        self.sdl_order = self.pad["joypad_ports"]["sdl_order"]
 
     # -- cores -----------------------------------------------------------------
 
@@ -53,15 +57,20 @@ class RetroArchAdapter:
         hk = self.hotkeys
         bases = [hk["enable"], *hk["targets"].values()]
         return {self.remap_file(desc): {"keys": ["input_player[1-9]_btn_*", "input_player[1-9]_stk_*"]},
-                hk["file"]: {"keys": [f"input_{b}{s}" for b in bases for s in SUFFIXES]}}
+                hk["file"]: {"keys": [f"input_{b}{s}" for b in bases for s in SUFFIXES]
+                             + ["input_player[1-9]_joypad_index", "input_player1[0-6]_joypad_index"]}}
 
     # -- render ----------------------------------------------------------------
 
     def render(self, players: dict[int, Resolution], desc: dict,
-               current: Optional[Callable[[str, Optional[str], str], Optional[str]]] = None) -> Rendered:
-        """players: RetroArch user number -> resolution. current(file, section, key) reads the live value."""
+               current: Optional[Callable[[str, Optional[str], str], Optional[str]]] = None,
+               ports: Optional[dict[int, int]] = None) -> Rendered:
+        """players: RetroArch user number -> resolution. current(file, section, key) reads the live value.
+        ports: user number -> the joypad port (SDL index) of that user's pad, written as input_playerN_joypad_index."""
         current = current or (lambda *_: None)
         out, file = Rendered(), self.remap_file(desc)
+        for user, port in sorted((ports or {}).items()):
+            out.patches.append(Patch(self.hotkeys["file"], None, self.pad["joypad_ports"]["key"].format(N=user), f'"{port}"'))
         for user, resolution in sorted(players.items()):
             remap = self._remap(user, resolution, desc, out)
             if not remap:
@@ -226,9 +235,9 @@ class RetroArchAdapter:
     # -- checks ----------------------------------------------------------------
 
     def check(self, config_root: Path, desc: dict,
-              current: Callable[[str, Optional[str], str], Optional[str]]) -> list[str]:
-        """Things that make RetroArch ignore the core-level remap we write."""
-        warnings = []
+              current: Callable[[str, Optional[str], str], Optional[str]], ports: bool = False) -> list[str]:
+        """Things that make RetroArch ignore the core-level remap we write (and, with ports, the joypad ports)."""
+        warnings = self._check_ports(config_root, desc, current) if ports else []
         for key, why in (("auto_remaps_enable", "remap files aren't loaded at all"),
                          ("input_remap_binds_enable", "remaps are ignored")):
             if (current("retroarch.cfg", None, key) or "").strip('"') == "false":
@@ -242,4 +251,26 @@ class RetroArchAdapter:
             if shadow.name != mine:
                 warnings.append(f"retroarch: {shadow.relative_to(config_root)} is a game or folder remap; when it "
                                 f"matches, RetroArch loads it instead of {mine} (no layering)")
+        return warnings
+
+    def _check_ports(self, config_root: Path, desc: dict,
+                     current: Callable[[str, Optional[str], str], Optional[str]]) -> list[str]:
+        warnings, cfg = [], self.hotkeys["file"]
+        driver = (current(cfg, None, "input_joypad_driver") or "").strip('"')
+        if driver != "sdl2":
+            warnings.append(f"retroarch: input_joypad_driver is {driver or 'unset'}, not sdl2; joypad ports are worked "
+                            f"out in SDL's order, so players may land on the wrong pads")
+        if (current(cfg, None, "input_assign_ports_on_button_press") or "").strip('"') == "true":
+            warnings.append("retroarch: input_assign_ports_on_button_press is on; RetroArch hands out ports as pads "
+                            "press a button, so the joypad ports we write don't hold")
+        for user in range(1, 17):
+            if (current(cfg, None, f"input_player{user}_device_reservation_type") or "0").strip('"') != "0":
+                warnings.append(f"retroarch: player {user} has a reserved device; RetroArch moves players to their "
+                                f"reserved pads on connect, over the joypad ports we write")
+                break
+        folder = Path(config_root) / "config" / desc["core"]
+        for override in sorted(folder.glob("*.cfg")) if folder.is_dir() else []:
+            if _PORT_LINE.search(override.read_text(encoding="utf-8", errors="replace")):
+                warnings.append(f"retroarch: {override.relative_to(config_root)} sets joypad ports; an override "
+                                f"beats retroarch.cfg, so its players keep the pads it names")
         return warnings

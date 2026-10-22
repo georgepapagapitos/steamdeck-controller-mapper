@@ -112,6 +112,17 @@
       "SDL/0/PS4 Controller",
       "SDL/0/Steam Deck"
     ],
+    "sdl_order": "slots",
+    "_order_note": "Which pad gets which <index>: Dolphin adds SDL devices in SDL_GetJoysticks() order at populate (SDL.cpp) and gives each the first id free among same-named SDL devices (ControllerInterface::AddDevice). Dolphin bundles SDL3 (Externals/SDL @ fa2c02bb), which lists Steam virtual pads first, sorted by the slot N in 'pad N' (LINUX_ScanSteamVirtualGamepads), and names each after Steam's slot entry (SDL_GetJoystickName, SDL_GetGamepadName when the pad has a Steam handle). So for a virtual pad, name = the slot's name= and index = how many earlier slots have that same name. Confirmed on a Deck (2026-10-22, Game Mode, docked, docs/13 S1): EmuDeck's AutoMap wrote SDL/0/DualSense Wireless Controller, SDL/0/Steam Deck Controller, SDL/0/Nintendo Switch Pro Controller for slots 0-2, i.e. slot names with n = 0 per distinct name. [VERIFY] still: the order when the virtual pads' nodes are out of slot order (that run had them in order), and Desktop Mode, where the Deck's slot is '#SettingsController_SteamController'.",
+    "_order_sources": [
+      "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/InputCommon/ControllerInterface/SDL/SDL.cpp#L265-L306",
+      "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/InputCommon/ControllerInterface/ControllerInterface.cpp#L249-L271",
+      "https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/Source/Core/InputCommon/ControllerInterface/SDL/SDLGamepad.cpp#L22-L27",
+      "https://github.com/libsdl-org/SDL/blob/fa2c02bb6e21974a89ea9824bc53c9932abe5f9c/src/joystick/linux/SDL_sysjoystick.c#L867-L965",
+      "https://github.com/libsdl-org/SDL/blob/fa2c02bb6e21974a89ea9824bc53c9932abe5f9c/src/joystick/SDL_joystick.c#L980-L1010",
+      "https://github.com/libsdl-org/SDL/blob/fa2c02bb6e21974a89ea9824bc53c9932abe5f9c/src/joystick/SDL_joystick.c#L1960-L1982",
+      "https://github.com/libsdl-org/SDL/blob/fa2c02bb6e21974a89ea9824bc53c9932abe5f9c/src/joystick/SDL_gamepad.c#L3978-L3986"
+    ],
     "per_binding_override": "`SDL/1/PS4 Controller:Button S` (device prefix inside the expression, then ':')"
   },
   "binding_syntax": {
@@ -1163,7 +1174,7 @@
         "Device",
         "<hotkey targets above>"
       ],
-      "_note": "only with hotkey rules"
+      "_note": "Device: player 1's pad when apply assigns players; hotkey keys only with hotkey rules"
     }
   },
   "save_behaviour": {

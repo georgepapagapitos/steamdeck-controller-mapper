@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 
+from ..devices import Joystick
 from ..resolve import Resolution
 from ..store import load_json
 from ..writer import Patch
@@ -18,6 +19,7 @@ from ..writer import Patch
 TABLE = Path(__file__).resolve().parents[3] / "data" / "adapters" / "dolphin.json"
 _LETTERS_ONLY = re.compile(r"^[A-Za-z]+$")
 AXES = ("ls_x", "ls_y", "rs_x", "rs_y")
+GC_PORTS = 4
 
 
 @dataclass
@@ -33,6 +35,7 @@ class DolphinAdapter:
     def __init__(self, table: Optional[dict] = None):
         self.table = table or load_json(TABLE)
         self.tokens = self.table["physical_tokens"]
+        self.sdl_order = self.table["device_ref"]["sdl_order"]
 
     @property
     def managed_keys(self) -> dict:
@@ -42,19 +45,34 @@ class DolphinAdapter:
         return managed
 
     def render(self, players: dict[int, Resolution], system: str = "gc",
-               current: Optional[Callable[[str, str, str], Optional[str]]] = None) -> Rendered:
+               current: Optional[Callable[[str, str, str], Optional[str]]] = None,
+               devices: Optional[dict[int, str]] = None) -> Rendered:
         """players: 1-based player number -> resolution for that player's controller.
-        current(file, section, key) returns the value on disk, so we can avoid needless rewrites."""
+        current(file, section, key) returns the value on disk, so we can avoid needless rewrites.
+        devices: player number -> Dolphin device string (device_ref) of that player's pad."""
         self._current = current or (lambda *_: None)
         out = Rendered()
         if system not in self.systems:
             out.warnings.append(f"dolphin: rendering for {system!r} is not implemented")
             return out
+        key = self.table["device_ref"]["key"]
+        for player, ref in sorted((devices or {}).items()):
+            if player <= GC_PORTS:
+                out.patches.append(Patch("GCPadNew.ini", f"GCPad{player}", key, ref))
+            if player == 1:   # hotkeys live on player 1's pad (EmuDeck's convention, data/defaults/README.md)
+                out.patches.append(Patch(self.table["hotkeys"]["file"], self.table["hotkeys"]["section"], key, ref))
         for player, resolution in sorted(players.items()):
             self._render_pad(player, resolution, out)
             if player == 1:
                 self._render_hotkeys(resolution, out)
         return out
+
+    def device_ref(self, joystick: Joystick, joysticks: list[Joystick]) -> str:
+        """SDL/<n>/<name>: n counts the same-named SDL devices Dolphin added before this one (AddDevice gives the
+        first free id per source and name, and populates in SDL's order)."""
+        n = sum(1 for j in joysticks if j.name == joystick.name and j.index < joystick.index)
+        return self.table["device_ref"]["format"].format(source=self.table["device_ref"]["sources"]["sdl"],
+                                                         index=n, name=joystick.name)
 
     # -- pads ------------------------------------------------------------------
 

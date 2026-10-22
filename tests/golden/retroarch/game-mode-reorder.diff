@@ -1,0 +1,25 @@
+--- a/config/remaps/Snes9x/Snes9x.rmp
++++ b/config/remaps/Snes9x/Snes9x.rmp
+@@ -0,0 +1,2 @@
++input_player1_btn_b = "8"
++input_player1_btn_a = "0"
+--- a/retroarch.cfg
++++ b/retroarch.cfg
+@@ -1462,7 +1462,7 @@
+ input_player1_gun_trigger_axis = "nul"
+ input_player1_gun_trigger_btn = "nul"
+ input_player1_gun_trigger_mbtn = "1"
+-input_player1_joypad_index = "0"
++input_player1_joypad_index = "1"
+ input_player1_l = "q"
+ input_player1_l2 = "nul"
+ input_player1_l2_axis = "nul"
+@@ -1609,7 +1609,7 @@
+ input_player2_gun_trigger_axis = "nul"
+ input_player2_gun_trigger_btn = "nul"
+ input_player2_gun_trigger_mbtn = "1"
+-input_player2_joypad_index = "1"
++input_player2_joypad_index = "0"
+ input_player2_l = "nul"
+ input_player2_l2 = "nul"
+ input_player2_l2_axis = "nul"

@@ -223,6 +223,141 @@ def steam_slots(devices: list[InputDevice], info: dict[int, dict]) -> list[Steam
     return out
 
 
+def physical_ids(slots: list[SteamSlot], pads: list[InputDevice]) -> dict[int, str]:
+    """Steam slot -> stable id of the physical pad behind it. pads: the physical gamepad nodes.
+
+    From the handle when it holds a MAC; a wired X-input pad's doesn't, so fall back to VID:PID when exactly one live
+    slot and one connected pad have it."""
+    out = {s.slot: s.device_id for s in slots if s.device_id}
+    for s in slots:
+        same = [d for d in pads if d.vid_pid == s.vid_pid]
+        live = [t for t in slots if t.virtual and t.vid_pid == s.vid_pid]
+        if s.slot not in out and s.virtual and len(same) == 1 and len(live) == 1:
+            out[s.slot] = stable_id(same[0])
+    return out
+
+
+# How an SDL emulator numbers joysticks on Linux (docs/04 §5.2), per SDL's src/joystick/linux/SDL_sysjoystick.c.
+SDL_ORDER_NODES = "nodes"    # every joystick by js index (sort_entries), as SDL < 2.30 does; Steam's slots play no
+                             # part. Also what RetroArch's Flatpak did on a Deck, though it runs sdl2-compat over
+                             # SDL3 (docs/13 S1); why is unknown [VERIFY]
+SDL_ORDER_SLOTS = "slots"    # SDL >= 2.30 and SDL3: Steam virtual pads first, by the N in "pad N"
+                             # (LINUX_ScanSteamVirtualGamepads), then everything else by js index
+
+
+@dataclass(frozen=True)
+class Joystick:
+    """One device as an SDL emulator enumerates it."""
+    index: int                          # SDL device index: RetroArch's joypad port, Dolphin's add order
+    name: str                           # the name SDL reports
+    device: InputDevice                 # its evdev node (a Steam virtual pad, or a pad Steam doesn't virtualise)
+    slot: Optional[SteamSlot] = None    # the Steam slot, for a virtual pad that has one
+
+
+def _node_key(device: InputDevice) -> tuple:
+    """SDL's sort_entries: by js index when the node has one (those first), else by event index."""
+    def number(prefix: str) -> Optional[int]:
+        found = [h[len(prefix):] for h in device.handlers if h.startswith(prefix) and h[len(prefix):].isdigit()]
+        return int(found[0]) if found else None
+    js, event = number("js"), number("event")
+    return (0, js) if js is not None else (1, event if event is not None else 1 << 30)
+
+
+def sdl_joysticks(devices: list[InputDevice], slots: list[SteamSlot], behind_steam: set[str],
+                  order: str) -> list[Joystick]:
+    """The joysticks an SDL emulator sees, in its index order.
+
+    Physical pads behind Steam Input are left out: Steam lists them in SDL_GAMECONTROLLER_IGNORE_DEVICES and SDL drops
+    them (SDL_ShouldIgnoreJoystick). behind_steam: their VID:PIDs. Slots with no virtual node (a pad that went away)
+    don't appear. Under SDL_ORDER_SLOTS a virtual pad takes the name in Steam's slot entry (SDL_GetJoystickName), which
+    needs $SteamVirtualGamepadInfo readable inside the emulator's sandbox, [VERIFY] per Flatpak (S1)."""
+    slot_of = {s.virtual: s for s in slots if s.virtual is not None}
+    virtual, other = [], []
+    for dev in devices:
+        if not is_gamepad(dev):
+            continue
+        if dev.vid_pid == STEAM_VIRTUAL_PAD:
+            virtual.append(dev)
+        elif dev.vid_pid not in behind_steam:
+            other.append(dev)
+    if order == SDL_ORDER_SLOTS:
+        numbered = [d for d in virtual if _VIRTUAL_SLOT.search(d.name)]
+        first = sorted(numbered, key=lambda d: int(_VIRTUAL_SLOT.search(d.name).group(1)))
+        rest = sorted([d for d in virtual if d not in numbered] + other, key=_node_key)
+    elif order == SDL_ORDER_NODES:
+        first, rest = [], sorted(virtual + other, key=_node_key)
+    else:
+        raise ValueError(f"unknown SDL order {order!r}")
+    out = []
+    for index, dev in enumerate(first + rest):
+        slot = slot_of.get(dev)
+        name = slot.name if slot and slot.name and order == SDL_ORDER_SLOTS else dev.name
+        out.append(Joystick(index, name, dev, slot))
+    return out
+
+
+def steam_order(joysticks: list[Joystick]) -> list[Joystick]:
+    """Policy steam-order (docs/04 §5.1): player K is the K-th live Steam slot, so Steam's "Reorder controllers"
+    decides. Pads Steam doesn't virtualise come after them; their order among themselves is the emulator's own
+    [VERIFY] (SDL may open them through HIDAPI, which this doesn't model)."""
+    return (sorted((j for j in joysticks if j.slot), key=lambda j: j.slot.slot)
+            + [j for j in joysticks if not j.slot])
+
+
+DECK_CONTROLS = "28de:1205"   # the Deck's own controls, as Steam's slot reports them (data/controllers.json)
+
+POLICY_STEAM_ORDER = "steam-order"
+POLICY_EXTERNAL_FIRST = "external-first"
+
+
+def player_order(joysticks: list[Joystick], policy: str) -> list[Joystick]:
+    """Players under a policy (docs/04 §5.1). external-first is steam-order with the Deck's own controls moved last,
+    so a docked Deck never takes player 1 from a pad in hand, whatever order Steam's session left the slots in."""
+    players = steam_order(joysticks)
+    if policy == POLICY_STEAM_ORDER:
+        return players
+    if policy == POLICY_EXTERNAL_FIRST:
+        deck = [j for j in players if j.slot and j.slot.vid_pid == DECK_CONTROLS]
+        return [j for j in players if j not in deck] + deck
+    raise ValueError(f"unknown player policy {policy!r}")
+
+
+def parse_drm_status(text: str) -> dict[str, str]:
+    """Lines "<path>/card0-DP-1/status connected" (tools/deck-capture.sh) -> {"DP-1": "connected"}."""
+    out = {}
+    for line in text.splitlines():
+        path, _, status = line.strip().partition(" ")
+        connector = Path(path).parent.name
+        if "-" in connector:
+            out[connector.split("-", 1)[1]] = status.strip()
+    return out
+
+
+def read_drm_status(sys_root: Path) -> dict[str, str]:
+    """The live connectors under <sys_root>/class/drm, in parse_drm_status's shape."""
+    lines = []
+    for status in sorted(Path(sys_root).glob("class/drm/card*-*/status")):
+        try:
+            lines.append(f"{status} {status.read_text(encoding='utf-8').strip()}")
+        except OSError:
+            continue
+    return parse_drm_status("\n".join(lines))
+
+
+def docked(drm: dict[str, str]) -> tuple:
+    """(True/False, or None when it can't be told; why). Docked means an external display is connected (owner's
+    decision, docs/04 §5.1): a TV that's off or charging in handheld is handheld. Connector names from S9 (the docked
+    capture): eDP is the internal panel and Writeback a virtual connector (always "unknown"); every other is external."""
+    external = {name: status for name, status in drm.items()
+                if not name.startswith("eDP") and not name.startswith("Writeback")}
+    lit = sorted(name for name, status in external.items() if status == "connected")
+    if lit:
+        return True, f"{', '.join(lit)} connected"
+    if not external:
+        return None, "no external display connector found"
+    return False, "no external display connected"
+
+
 class ControllerDB:
     def __init__(self, doc: dict):
         self.doc = doc

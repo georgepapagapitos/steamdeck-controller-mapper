@@ -1,0 +1,6 @@
+policy: steam-order (handheld: no external display connected)
+057e:2009  Nintendo Co., Ltd. Pro Controller        model=nintendo.switch-pro style=nintendo mode=passthrough steam_slot=1 [needs claim]
+steam slot 0: #SettingsController_SteamController (28de:1205, model=valve.steamdeck) -> event10 js0
+    player 1: retroarch port 0, dolphin SDL/0/#SettingsController_SteamController
+steam slot 1: Nintendo Switch Pro Controller (057e:2009, model=nintendo.switch-pro) -> event22 js2
+    player 2: retroarch port 1, dolphin SDL/0/Nintendo Switch Pro Controller

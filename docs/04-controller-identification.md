@@ -196,21 +196,30 @@ Getting player order right matters a lot for couch play and for the docked Deck.
 
 | Policy | Behaviour |
 |--------|-----------|
-| `steam-order` (default) | Match whatever order Steam assigns its virtual gamepads. Steam's slot number is in each virtual pad's evdev name (`Microsoft X-Box 360 pad <N>`), and `virtualgamepadinfo.txt` says which physical model is in each slot (§5.2). Whether `<N>` is exactly Steam's player number, and whether "Reorder controllers" renumbers it, is **[VERIFY]** (S1). |
-| `external-first` | External controllers become P1..Pn in connection order. Deck built-in controls go last, or are disabled for emulation. This is the "docked" experience. |
+| `steam-order` (default) | Match whatever order Steam assigns its virtual gamepads. Player K is the K-th live slot in `virtualgamepadinfo.txt` (slots with no virtual pad are skipped). Steam's slot number is in each virtual pad's evdev name (`Microsoft X-Box 360 pad <N>`), and the file says which physical pad is in each slot (§5.2). "Reorder controllers" rewrites the file and re-feeds the virtual pads at once (S1, `all-three-reordered`), so the user picks P1 in Steam. Implemented (`devices.steam_order`). |
+| `external-first` | External controllers become P1..Pn in Steam's order, and the Deck's own controls go last. This is the "docked" experience, and the default when docked (owner's decision, 2026-10-22). Implemented (`devices.player_order`). |
 | `pinned` | The user pins devices to slots: "Blue DS4 is always P1, 8BitDo P2". Unpinned devices fill the gaps. |
 | `deck-only` | Only the built-in controls (handheld). |
 
-Docked detection can switch the policy automatically:
-`handheld → deck-only`, `docked → external-first`. Signals, in order of
-reliability:
+Docked detection switches the policy automatically (`--policy auto`, the
+default for `devices` and `apply`): `docked → external-first`, handheld keeps
+`steam-order` (owner's decision, 2026-10-22). Both commands print the policy and
+why (`policy: external-first (docked: DP-1 connected)`). When docked can't be
+decided (no external DRM connector to read), they fall back to `steam-order`
+and say so. `--policy` overrides it.
 
-1. **External display**: any `/sys/class/drm/card*-*/status` other than the internal panel (`card*-eDP-*`) reading `connected`. The kernel's `status` attribute is always one of `connected` / `disconnected` / `unknown` (`drm_sysfs.c` `status_show` → `drm_get_connector_status_name`). Don't hard-code `card0` vs `card1`, since the index differs between SteamOS releases and models. Glob, and skip `eDP`. On the Deck an external screen arrives as a `DP-*` connector through USB-C DP alt-mode (dock or adapter) **[VERIFY]** (S9): the connector name on LCD vs OLED.
-2. **External power**: `/sys/class/power_supply/*` with `type` = `Mains` or `USB` and `online` = `1` (kernel ABI `sysfs-class-power`). The Deck's supply name (`ACAD`?) is **[VERIFY]** (S9), so glob by `type` rather than name. Power alone isn't "docked" (charging in handheld), so only use it as a tiebreaker.
-3. **External controller count > 0** is the strongest *intent* signal and is already known from the probe.
+**Docked means an external display is connected** (owner's decision, 2026-10-22):
 
-Rule: `docked = external_display_connected || (external_power && external_pads > 0)`.
-Re-evaluate at launch only. No daemon is needed.
+- **External display**: any `/sys/class/drm/card*-*/status` other than the internal panel (`card*-eDP-*`) reading `connected`. The kernel's `status` attribute is always one of `connected` / `disconnected` / `unknown` (`drm_sysfs.c` `status_show` → `drm_get_connector_status_name`). Don't hard-code `card0` vs `card1`, since the index differs between SteamOS releases and models. Glob, and skip `eDP`. On the Deck an external screen arrives as a `DP-*` connector through USB-C DP alt-mode (dock or adapter) **[VERIFY]** (S9): the connector name on LCD vs OLED.
+
+Rule: `docked = external_display_connected`. Power and controller count don't
+count: a dock with the TV off, or charging in handheld, is handheld, so
+`steam-order`. Re-evaluate at launch only; no daemon is needed. Implemented in
+`devices.docked`: connectors other than `eDP-*` and `Writeback-*` (virtual,
+always `unknown`) are external. No external connector to read at all is
+undecided, so `steam-order` with that reason shown. The `docked` capture reads
+docked (`DP-1` connected); every handheld capture reads handheld (`DP-1`
+disconnected).
 
 ### 5.2 Mapping slots to what the emulator sees
 
@@ -261,22 +270,55 @@ emulator gets no player index from Steam on Linux.
 
 1. **map-helper can do the same thing SDL does, outside the emulator.** Our launch wrapper is the command Steam runs, so it inherits `SteamVirtualGamepadInfo`. It reads the file, lists `28de:11ff` evdev nodes, and parses `<N>` from each name. That gives us **slot N → physical VID:PID + type** without any on-device guesswork. This answers most of S1.
 2. **`SDL_GAMECONTROLLER_IGNORE_DEVICES` answers "is this pad behind Steam Input?"** (spike S2). A physical pad whose `0xVVVV/0xPPPP` is in the list is virtualised. Pads not in the list are native. See [05](05-steam-input-strategy.md).
-3. **Identical pads are still ambiguous.** Two DS4 v2s give two slots with the same VID/PID/type, and nothing in the file links a slot to a MAC. `handle` is an opaque Steam API handle. **Disambiguation by input correlation:** if S3 confirms we can read physical evdev nodes while Steam runs, the wizard asks "press a button on the controller you want as P1". The same press shows up on exactly one `Microsoft X-Box 360 pad <N>` node, which links MAC → slot exactly. Without that, fall back to user claims per slot.
+3. **Identical pads: the handle tells them apart.** Two DS4 v2s give two slots with the same VID/PID/type. On a Deck the `handle` of a Bluetooth-capable pad holds its MAC in the low 48 bits (S1 on device, `SteamSlot.device_id`), which links each slot to one exact pad. A wired X-input pad's handle holds no MAC; it's linked by VID:PID when that's unique (`devices.physical_ids`). For the rest, **disambiguation by input correlation:** if S3 confirms we can read physical evdev nodes while Steam runs, the wizard asks "press a button on the controller you want as P1". The same press shows up on exactly one `Microsoft X-Box 360 pad <N>` node, which links MAC → slot exactly. Without that, fall back to user claims per slot.
 4. **Emulators on SDL ≥ 2.30 / SDL3 see real names.** Under Steam, an SDL 2.30+ emulator reports the virtual pad as e.g. `PS4 Controller` with VID `054c`, not "Xbox 360 Controller". Name-keyed device strings (Dolphin `SDL/0/<name>`, RetroArch autoconfig by name/VID/PID) therefore follow the **physical** model. GUID-keyed configs (yuzu-family, Ryujinx) still see the virtual GUID. Each adapter must record which one its emulator uses and which SDL version its Flatpak/AppImage bundles. **[VERIFY]** per emulator (S6).
-5. **The emulator's SDL index order is not guaranteed to equal slot order.** SDL numbers joysticks in discovery order, and the slot is only metadata. Adapters that bind by index (`SDL-N`) must compute the index by enumerating the same way SDL does (evdev nodes in order). Adapters that can bind by name should prefer the slot-aware name. **[VERIFY]** (S1): does SDL index order match `<N>` order with 3+ pads and after hot-plug?
+5. **The emulator's SDL index order depends on its SDL version, not only on the slots.** See "From Steam slot to emulator index" below. **[VERIFY]** after hot-plug.
 6. **Virtual pads are recreated at every launch.** Steam tears down and recreates `Microsoft X-Box 360 pad 0` each time a game or shortcut starts (steam-for-linux #13665). The wrapper must probe *after* Steam has created the pads for this launch. Poll for the `28de:11ff` nodes and an updated `virtualgamepadinfo.txt` mtime for up to ~2 s **[VERIFY]** (timing). It must not cache an earlier launch's view.
 7. **Flatpak emulators**: the environment variable crosses into `flatpak run`, but the file must be readable in the sandbox, and SDL's 3 s polling still applies. **[VERIFY]** for each Flatpak (S1/S6).
 8. **Proton/Wine-hosted Windows emulators** ignore the info file (Proton's winebus clears the hint and maps slots from the evdev name itself). Same slot logic, different consumer.
 
+#### From Steam slot to emulator index (implemented)
+
+`apply` without `--player` (and `devices`, which shows each slot's player and
+emulator index) does this at launch:
+
+1. **Physical pad → Steam slot**: the slot's handle (MAC), else VID:PID (point 3).
+2. **Slot → virtual node**: the `28de:11ff` gamepad node named `pad <N>`. A slot with no node is stale and skipped.
+3. **Node → the emulator's joystick index**, by enumerating the way the emulator's SDL does on Linux
+   (`src/joystick/linux/SDL_sysjoystick.c`). Physical pads behind Steam are left out: Steam lists them in
+   `SDL_GAMECONTROLLER_IGNORE_DEVICES` and `SDL_ShouldIgnoreJoystick` drops them. Two orders exist:
+   - **`nodes`**: every joystick by js index (`sort_entries`), which is what SDL < 2.30 does. The `pad <N>` name
+     means nothing to it.
+   - **SDL ≥ 2.30 and SDL3** (`slots`): Steam virtual pads first, sorted by `<N>` (`LINUX_ScanSteamVirtualGamepads`,
+     SDL commit 5b26d4e "Sort Steam virtual gamepads by Steam controller slot", first in 2.30.0), then everything
+     else by js index. These SDLs also name a virtual pad after its slot's `name=` (`SDL_GetJoystickName`).
+   Each adapter records which order its emulator uses (`data/adapters/…`).
+4. **Index → the emulator's player binding**:
+   - **RetroArch** (`nodes`, seen on the owner's Deck: Flatpak 1.22.2 numbered users by js node and showed the pads
+     as `Microsoft X-Box 360 pad <N>`, docs/13 S1): `input_playerK_joypad_index = "<index>"` in `retroarch.cfg`, a
+     managed key. With the `sdl2` driver, joypad port i is SDL index i (`sdl2_joypad_init`). We write every assigned
+     player, so the indices stay a permutation. The node order was observed despite SDL3 underneath (the Flatpak's
+     SDL2 is the runtime's sdl2-compat over SDL3 3.2.30, and it can read the slot file); why SDL3's slot sort didn't apply is unknown **[VERIFY]** (maybe `SteamVirtualGamepadInfo` isn't in the Flatpak's environment, or the sdl2-compat path differs).
+   - **Dolphin** (`slots`: it bundles SDL3): `[GCPadK] Device = SDL/<n>/<name>`, where `<name>` is the slot's name and
+     `<n>` counts earlier same-named SDL devices in that order (`ControllerInterface::AddDevice`). Player 1's string
+     also goes in `[Hotkeys] Device`, since hotkeys sit on P1's pad. Names and `<n>` confirmed on a Deck: EmuDeck's
+     AutoMap wrote the same strings (docs/13 S1). **[VERIFY]** the order when nodes are out of slot order.
+   With `nodes`, Steam's slot order and the emulator's order differ whenever Steam created the virtual pads out of
+   slot order, which a Game Mode session did (S1); with `slots` they agree by construction.
+
+Pads Steam doesn't virtualise (Steam Input off for them) are players after the Steam pads (owner confirmed).
+Their order among themselves follows the emulator's enumeration **[VERIFY]**: SDL may open them through HIDAPI,
+whose order isn't modelled.
+
 #### Policies on top of that
 
-- `steam-order` with Steam Input on: P1 = slot 0. We know the model in each slot from the info file, so per-model rules resolve without a user claim.
+- `steam-order` with Steam Input on: P1 = the first live slot. We know the model in each slot from the info file, so per-model rules resolve without a user claim (except models flagged ambiguous, which `apply` warns about).
 - `external-first` / `pinned`: we can't reorder Steam's slots (no stable API; Steam's "Reorder controllers" UI only). We **rewrite each emulator's player config** so that player K points at the device for the slot holding the wanted controller (by index or name, per adapter). Point 3 covers identical models.
 - Native mode (Steam Input off for that pad): emulators see the real pad. Prefer **GUID or name matching** where the emulator supports it (yuzu-family, Ryujinx, Citra-family, Dolphin by name, RetroArch by name + VID/PID). Use the index only where an emulator can do nothing else (PCSX2/DuckStation `SDL-N`, **[VERIFY]**).
 
 This is still the riskiest technical area. Spike S1 in
 [13](13-research-spikes.md) now has to *confirm* the mechanism above on device
-and settle points 3, 5, 6 and 7. It no longer has to discover the mechanism.
+and settle points 5 (hot-plug, and why RetroArch ignores the slot sort), 6 and 7. It no longer has to discover the mechanism.
 
 ## 6. Capabilities
 
