@@ -1,6 +1,6 @@
 # ADR-001: Apply mappings at launch time, by wrapping the launch command
 
-**Status:** Proposed (revised after spike S5)
+**Status:** Accepted (revised after spike S5; mh-run and setup implemented)
 
 ## Context
 
@@ -25,13 +25,20 @@ we put in front of the launcher. See [07](../07-launch-integration.md).
 ## Decision
 
 1. **Steam / SRM launches:** wrap the command. `mh-run --emulator <id> -- %command%`
-   goes in the shortcut's launch options, set in bulk by an SRM parser setting
-   or by map-helper's setup step. Non-Steam shortcuts support `%command%`
-   (EmuDeck's own parsers use it).
-2. **ES-DE launches:** an ES-DE `game-start` custom event script calls `mh-run`.
-   ES-DE launches RetroArch, PCSX2 and DuckStation directly, not through launchers.
+   goes in the shortcut's launch options. `map-helper setup` puts it in every
+   SRM parser for a managed emulator (`userConfigurations.json`), so it reaches
+   Steam at the user's next "Save to Steam"; map-helper never writes
+   `shortcuts.vdf`. Parsers that append their args to the Exe (RetroArch) are
+   switched to launch options, which gives those shortcuts new app ids
+   (docs/07 "`map-helper setup` and `uninstall`").
+2. **ES-DE launches:** an ES-DE `game-start` custom event script calls
+   `mh-run --hook --es-de`, which works out the emulator and core from ES-DE's
+   system commands and the gamelist's alternative emulator. setup installs the
+   script and turns on `CustomEventScripts`. ES-DE launches RetroArch, PCSX2 and
+   DuckStation directly, not through launchers.
 3. **Turn off EmuDeck AutoMap** for every emulator map-helper manages.
-   map-helper's setup offers to do it, and `doctor` warns if it's back on.
+   map-helper's setup reports it (it doesn't write EmuDeck's settings yet), and
+   `doctor` warns if it's back on.
 4. **Long term:** propose an upstream hook in EmuDeck that runs at the end of
    `emulatorInit` (after AutoMap). That is the one point where every frontend
    converges and EmuDeck's own writes are finished. Move to it once it ships.
@@ -44,5 +51,12 @@ we put in front of the launcher. See [07](../07-launch-integration.md).
 - ➖ Depends on AutoMap being off. If EmuDeck re-enables it (e.g. on a settings
   reset), Dolphin bindings revert silently until `doctor`/the plugin notices.
 - ➖ SRM regenerating shortcuts can drop launch options unless the parser config carries them.
-- ➖ Launch latency budget (500 ms max, fail-open).
-- [VERIFY] When ES-DE's `game-start` event fires relative to the emulator starting, and how Steam expands `%command%` when the shortcut's Exe field already holds args.
+- ➖ Launch latency budget (500 ms max, fail-open). A cut-off stops before the
+  writer commits, so it never leaves a half-written file; the shim, not Python,
+  starts the emulator, so nothing in map-helper can stop a launch (docs/07).
+- ➖ RetroArch's SRM shortcuts get new Steam app ids once (their Exe changes).
+- ES-DE's `game-start` fires before the emulator starts and blocks until the
+  script ends, per ES-DE's source (docs/07 Option E). [VERIFY] on a Deck, with
+  the latency mh-run adds there, and that Steam runs
+  `VAR=x <mh-run> --emulator <id> -- %command% <args>` launch options as
+  expected.

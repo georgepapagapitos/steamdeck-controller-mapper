@@ -1,0 +1,2075 @@
+{
+ "schema_version": 1,
+ "frontend": "es-de",
+ "sources": [
+  "https://gitlab.com/es-de/emulationstation-de/-/blob/a529a9d38c0af09b6fd7e38d10c8076cb0a21050/resources/systems/linux/es_systems.xml",
+  "https://github.com/dragoonDorise/EmuDeck/blob/dddb30229adbbd54d5ff7283cfd70e11c4322c26/configs/emulationstation/custom_systems/es_systems.xml",
+  "https://github.com/dragoonDorise/EmuDeck/blob/dddb30229adbbd54d5ff7283cfd70e11c4322c26/functions/ToolScripts/emuDeckESDE.sh"
+ ],
+ "_conventions": {
+  "systems": "ES-DE system name -> its <command> tags in order, [label, command], copied verbatim from ES-DE's bundled Linux es_systems.xml. Only systems where some command runs an emulator map-helper manages (a RetroArch core with a descriptor in data/adapters/retroarch/cores/, %EMULATOR_DOLPHIN%, %EMULATOR_PCSX2%). The first command is ES-DE's default; a gamelist's alternativeEmulator label (or a game's altemulator) picks another by label (FileData::launchGame). consolearcade and triforce are left out: their games aren't a console map-helper has layouts for.",
+  "custom": "A system in ~/ES-DE/custom_systems/es_systems.xml replaces the bundled one (INSTALL.md, 'Custom es_systems.xml'); map-helper reads that file at launch. EmuDeck's custom file overrides none of these systems on x86 (its nds and saturn entries sit inside an <!--armcores ... armcores--> comment that ESDE_addArmCores removes only on ARM).",
+  "aliases": "ES-DE system name -> map-helper system id where they differ (identity otherwise). Each is the console the ES-DE system emulates, per its <fullname>/<platform> in the same file.",
+  "emudeck_defaults": "EmuDeck's ESDE_setDefaultEmulators writes alternativeEmulator labels into gamelists: 'Dolphin (Standalone)' for gc and wii, 'PCSX2 (Standalone)' for ps2, 'DuckStation (Standalone)' for psx, 'PPSSPP (Standalone)' for psp, 'Beetle Saturn' for saturn, 'melonDS DS' for nds (when the melonDS standalone isn't installed)."
+ },
+ "aliases": {
+  "cps": "arcade",
+  "famicom": "nes",
+  "fbneo": "arcade",
+  "mame": "arcade",
+  "mark3": "mastersystem",
+  "megacd": "segacd",
+  "megacdjp": "segacd",
+  "megadrive": "genesis",
+  "megadrivejp": "genesis",
+  "n64dd": "n64",
+  "naomi2": "naomi",
+  "naomigd": "naomi",
+  "neogeocd": "neogeo",
+  "neogeocdjp": "neogeo",
+  "satellaview": "snes",
+  "saturnjp": "saturn",
+  "sega32x": "32x",
+  "sega32xjp": "32x",
+  "sega32xna": "32x",
+  "sfc": "snes",
+  "sg-1000": "sg1000",
+  "sgb": "gb",
+  "snesna": "snes",
+  "sufami": "snes"
+ },
+ "systems": {
+  "arcade": [
+   [
+    "MAME - Current",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2010",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2010_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2003-Plus",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2003_plus_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2003",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2003_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2000",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2000_libretro.so %ROM%"
+   ],
+   [
+    "HBMAME",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/hbmame_libretro.so %ROM%"
+   ],
+   [
+    "MAME (Standalone)",
+    "%STARTDIR%=~/.mame %EMULATOR_MAME% -rompath %GAMEDIR%\\;%ROMPATH%/arcade %BASENAME%"
+   ],
+   [
+    "GroovyMAME (Standalone)",
+    "%STARTDIR%=~/.mame %EMULATOR_GROOVYMAME% -rompath %GAMEDIR%\\;%ROMPATH%/arcade %BASENAME%"
+   ],
+   [
+    "FinalBurn Neo",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbneo_libretro.so %ROM%"
+   ],
+   [
+    "FinalBurn Neo (Standalone)",
+    "%EMULATOR_FINALBURN-NEO% -fullscreen %BASENAME%"
+   ],
+   [
+    "FB Alpha 2012",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbalpha2012_libretro.so %ROM%"
+   ],
+   [
+    "Geolith",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/geolith_libretro.so %ROM%"
+   ],
+   [
+    "Flycast",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/flycast_libretro.so %ROM%"
+   ],
+   [
+    "Flycast (Standalone)",
+    "%EMULATOR_FLYCAST% %ROM%"
+   ],
+   [
+    "Flycast Dojo (Standalone)",
+    "%EMULATOR_FLYCAST-DOJO% %ROM%"
+   ],
+   [
+    "Kronos",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/kronos_libretro.so %ROM%"
+   ],
+   [
+    "DICE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/dice_libretro.so %ROM%"
+   ],
+   [
+    "sm2-emu (Standalone)",
+    "%EMULATOR_SM2-EMU% %ROM%"
+   ],
+   [
+    "Supermodel",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/supermodel_libretro.so %ROM%"
+   ],
+   [
+    "Supermodel (Standalone)",
+    "%STARTDIR%=%GAMEDIR% %EMULATOR_SUPERMODEL% -log-output=%GAMEDIR%/Config/Supermodel.log %INJECT%=%BASENAME%.commands %ROM%"
+   ],
+   [
+    "Lindbergh Loader (Standalone)",
+    "%STARTDIR%=%GAMEENTRYDIR% %EMULATOR_LINDBERGH-LOADER% %INJECT%=%BASENAME%/%BASENAME%.commands"
+   ],
+   [
+    "Linux Loader (Standalone)",
+    "%STARTDIR%=%GAMEENTRYDIR% %EMULATOR_LINUX-LOADER% %INJECT%=%BASENAME%/%BASENAME%.commands"
+   ],
+   [
+    "PCSX2x6 (Standalone)",
+    "%EMULATOR_PCSX2X6% -batch %ROM%"
+   ],
+   [
+    "Play! Arcade (Standalone)",
+    "%EMULATOR_PLAY!% --fullscreen --arcade %GAMEDIR%/%BASENAME%"
+   ],
+   [
+    "MFME (Wine)",
+    "%PRECOMMAND_WINE% %EMULATOR_MFME-WINDOWS% \"%ROMRAWWIN%\""
+   ],
+   [
+    "MFME (Proton)",
+    "%PRECOMMAND_PROTON% %EMULATOR_MFME-WINDOWS% \"%ROMRAWWIN%\""
+   ],
+   [
+    "Shortcut or script",
+    "%ENABLESHORTCUTS% %EMULATOR_OS-SHELL% %ROM%"
+   ]
+  ],
+  "atomiswave": [
+   [
+    "Flycast",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/flycast_libretro.so %ROM%"
+   ],
+   [
+    "Flycast (Standalone)",
+    "%EMULATOR_FLYCAST% %ROM%"
+   ],
+   [
+    "Flycast Dojo (Standalone)",
+    "%EMULATOR_FLYCAST-DOJO% %ROM%"
+   ]
+  ],
+  "cps": [
+   [
+    "MAME - Current",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2010",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2010_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2003-Plus",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2003_plus_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2003",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2003_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2000",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2000_libretro.so %ROM%"
+   ],
+   [
+    "MAME (Standalone)",
+    "%STARTDIR%=~/.mame %EMULATOR_MAME% -rompath %GAMEDIR%\\;%ROMPATH%/cps %BASENAME%"
+   ],
+   [
+    "FinalBurn Neo",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbneo_libretro.so %ROM%"
+   ],
+   [
+    "FinalBurn Neo (Standalone)",
+    "%EMULATOR_FINALBURN-NEO% -fullscreen %BASENAME%"
+   ],
+   [
+    "FB Alpha 2012",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbalpha2012_libretro.so %ROM%"
+   ],
+   [
+    "FB Alpha 2012 CPS-1",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbalpha2012_cps1_libretro.so %ROM%"
+   ],
+   [
+    "FB Alpha 2012 CPS-2",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbalpha2012_cps2_libretro.so %ROM%"
+   ],
+   [
+    "FB Alpha 2012 CPS-3",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbalpha2012_cps3_libretro.so %ROM%"
+   ]
+  ],
+  "cps1": [
+   [
+    "MAME - Current",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2010",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2010_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2003-Plus",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2003_plus_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2003",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2003_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2000",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2000_libretro.so %ROM%"
+   ],
+   [
+    "MAME (Standalone)",
+    "%STARTDIR%=~/.mame %EMULATOR_MAME% -rompath %GAMEDIR%\\;%ROMPATH%/cps1 %BASENAME%"
+   ],
+   [
+    "FinalBurn Neo",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbneo_libretro.so %ROM%"
+   ],
+   [
+    "FinalBurn Neo (Standalone)",
+    "%EMULATOR_FINALBURN-NEO% -fullscreen %BASENAME%"
+   ],
+   [
+    "FB Alpha 2012",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbalpha2012_libretro.so %ROM%"
+   ],
+   [
+    "FB Alpha 2012 CPS-1",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbalpha2012_cps1_libretro.so %ROM%"
+   ]
+  ],
+  "cps2": [
+   [
+    "MAME - Current",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2010",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2010_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2003-Plus",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2003_plus_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2003",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2003_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2000",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2000_libretro.so %ROM%"
+   ],
+   [
+    "MAME (Standalone)",
+    "%STARTDIR%=~/.mame %EMULATOR_MAME% -rompath %GAMEDIR%\\;%ROMPATH%/cps2 %BASENAME%"
+   ],
+   [
+    "FinalBurn Neo",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbneo_libretro.so %ROM%"
+   ],
+   [
+    "FinalBurn Neo (Standalone)",
+    "%EMULATOR_FINALBURN-NEO% -fullscreen %BASENAME%"
+   ],
+   [
+    "FB Alpha 2012",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbalpha2012_libretro.so %ROM%"
+   ],
+   [
+    "FB Alpha 2012 CPS-2",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbalpha2012_cps2_libretro.so %ROM%"
+   ]
+  ],
+  "cps3": [
+   [
+    "MAME - Current",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2010",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2010_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2003-Plus",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2003_plus_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2003",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2003_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2000",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2000_libretro.so %ROM%"
+   ],
+   [
+    "MAME (Standalone)",
+    "%STARTDIR%=~/.mame %EMULATOR_MAME% -rompath %GAMEDIR%\\;%ROMPATH%/cps3 %BASENAME%"
+   ],
+   [
+    "FinalBurn Neo",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbneo_libretro.so %ROM%"
+   ],
+   [
+    "FinalBurn Neo (Standalone)",
+    "%EMULATOR_FINALBURN-NEO% -fullscreen %BASENAME%"
+   ],
+   [
+    "FB Alpha 2012",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbalpha2012_libretro.so %ROM%"
+   ],
+   [
+    "FB Alpha 2012 CPS-3",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbalpha2012_cps3_libretro.so %ROM%"
+   ]
+  ],
+  "dreamcast": [
+   [
+    "Flycast",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/flycast_libretro.so %ROM%"
+   ],
+   [
+    "Flycast (Standalone)",
+    "%EMULATOR_FLYCAST% %ROM%"
+   ],
+   [
+    "Flycast Dojo (Standalone)",
+    "%EMULATOR_FLYCAST-DOJO% %ROM%"
+   ],
+   [
+    "Redream (Standalone)",
+    "%EMULATOR_REDREAM% %ROM%"
+   ]
+  ],
+  "famicom": [
+   [
+    "Mesen",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen_libretro.so %ROM%"
+   ],
+   [
+    "Mesen (Standalone)",
+    "%EMULATOR_MESEN% --fullscreen %ROM%"
+   ],
+   [
+    "MesenCE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen2_libretro.so %ROM%"
+   ],
+   [
+    "Nestopia UE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/nestopia_libretro.so %ROM%"
+   ],
+   [
+    "Nestopia UE (Standalone)",
+    "%EMULATOR_NESTOPIA-UE% --fullscreen %ROM%"
+   ],
+   [
+    "FCEUmm",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fceumm_libretro.so %ROM%"
+   ],
+   [
+    "QuickNES",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/quicknes_libretro.so %ROM%"
+   ],
+   [
+    "RustyNES",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/rustynes_libretro.so %ROM%"
+   ],
+   [
+    "puNES (Standalone)",
+    "%EMULATOR_PUNES% -u yes %ROM%"
+   ],
+   [
+    "Mednafen (Standalone)",
+    "%EMULATOR_MEDNAFEN% -force_module nes %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Famicom\" %ROM%"
+   ],
+   [
+    "ares FDS (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Famicom Disk System\" %ROM%"
+   ],
+   [
+    "jgenesis (Standalone)",
+    "%EMULATOR_JGENESIS% --file-path %ROM%"
+   ],
+   [
+    "Plastic (Standalone)",
+    "%EMULATOR_PLASTIC% %ROM%"
+   ],
+   [
+    "3dSen (Standalone)",
+    "%EMULATOR_3DSEN% -id=%INJECT%=%BASENAME%.3dsen"
+   ],
+   [
+    "3dSen (Wine)",
+    "%STARTDIR%=%EMUDIR% %PRECOMMAND_WINE% %EMULATOR_3DSEN-WINDOWS% -id=%INJECT%=%BASENAME%.3dsen"
+   ],
+   [
+    "3dSen (Proton)",
+    "%STARTDIR%=%EMUDIR% %PRECOMMAND_PROTON% %EMULATOR_3DSEN-WINDOWS% -id=%INJECT%=%BASENAME%.3dsen"
+   ]
+  ],
+  "fbneo": [
+   [
+    "FinalBurn Neo",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbneo_libretro.so %ROM%"
+   ],
+   [
+    "FinalBurn Neo (Standalone)",
+    "%EMULATOR_FINALBURN-NEO% -fullscreen %BASENAME%"
+   ]
+  ],
+  "fds": [
+   [
+    "Mesen",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen_libretro.so %ROM%"
+   ],
+   [
+    "Mesen (Standalone)",
+    "%EMULATOR_MESEN% --fullscreen %ROM%"
+   ],
+   [
+    "MesenCE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen2_libretro.so %ROM%"
+   ],
+   [
+    "Nestopia UE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/nestopia_libretro.so %ROM%"
+   ],
+   [
+    "Nestopia UE (Standalone)",
+    "%EMULATOR_NESTOPIA-UE% --fullscreen %ROM%"
+   ],
+   [
+    "FCEUmm",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fceumm_libretro.so %ROM%"
+   ],
+   [
+    "RustyNES",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/rustynes_libretro.so %ROM%"
+   ],
+   [
+    "Mednafen (Standalone)",
+    "%EMULATOR_MEDNAFEN% -force_module nes %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Famicom Disk System\" %ROM%"
+   ]
+  ],
+  "gamegear": [
+   [
+    "Genesis Plus GX",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_libretro.so %ROM%"
+   ],
+   [
+    "Genesis Plus GX Wide",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_wide_libretro.so %ROM%"
+   ],
+   [
+    "Gearsystem",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/gearsystem_libretro.so %ROM%"
+   ],
+   [
+    "SMS Plus GX",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/smsplus_libretro.so %ROM%"
+   ],
+   [
+    "PicoDrive",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/picodrive_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/blastem_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm (Standalone)",
+    "%EMULATOR_BLASTEM% -m gg %ROM%"
+   ],
+   [
+    "Mednafen (Standalone)",
+    "%EMULATOR_MEDNAFEN% -force_module gg %ROM%"
+   ],
+   [
+    "Mesen (Standalone)",
+    "%EMULATOR_MESEN% --fullscreen %ROM%"
+   ],
+   [
+    "MesenCE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen2_libretro.so %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Game Gear\" %ROM%"
+   ],
+   [
+    "jgenesis (Standalone)",
+    "%EMULATOR_JGENESIS% --file-path %ROM%"
+   ],
+   [
+    "Emulicious (Standalone)",
+    "%EMULATOR_EMULICIOUS% %ROM%"
+   ]
+  ],
+  "gb": [
+   [
+    "Gambatte",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/gambatte_libretro.so %ROM%"
+   ],
+   [
+    "SameBoy",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/sameboy_libretro.so %ROM%"
+   ],
+   [
+    "SameBoy (Standalone)",
+    "%EMULATOR_SAMEBOY% -f %ROM%"
+   ],
+   [
+    "Gearboy",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/gearboy_libretro.so %ROM%"
+   ],
+   [
+    "Gearboy (Standalone)",
+    "%EMULATOR_GEARBOY% %ROM%"
+   ],
+   [
+    "TGB Dual",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/tgbdual_libretro.so %ROM%"
+   ],
+   [
+    "DoubleCherryGB",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/DoubleCherryGB_libretro.so %ROM%"
+   ],
+   [
+    "IroGB",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/irogb_libretro.so %ROM%"
+   ],
+   [
+    "Mesen-S",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen-s_libretro.so %ROM%"
+   ],
+   [
+    "Mesen (Standalone)",
+    "%EMULATOR_MESEN% --fullscreen %ROM%"
+   ],
+   [
+    "MesenCE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen2_libretro.so %ROM%"
+   ],
+   [
+    "bsnes",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes_libretro.so %ROM%"
+   ],
+   [
+    "mGBA",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mgba_libretro.so %ROM%"
+   ],
+   [
+    "mGBA (Standalone)",
+    "%EMULATOR_MGBA% -f %ROM%"
+   ],
+   [
+    "VBA-M",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/vbam_libretro.so %ROM%"
+   ],
+   [
+    "VBA-M (Standalone)",
+    "%EMULATOR_VBA-M% -f %ROM%"
+   ],
+   [
+    "SkyEmu",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/skyemu_libretro.so %ROM%"
+   ],
+   [
+    "SkyEmu (Standalone)",
+    "%EMULATOR_SKYEMU% %ROM%"
+   ],
+   [
+    "Mednafen (Standalone)",
+    "%EMULATOR_MEDNAFEN% -force_module gb %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Game Boy\" %ROM%"
+   ],
+   [
+    "jgenesis (Standalone)",
+    "%EMULATOR_JGENESIS% --file-path %ROM%"
+   ],
+   [
+    "Missingno (Standalone)",
+    "%EMULATOR_MISSINGNO% %ROM%"
+   ],
+   [
+    "Emulicious (Standalone)",
+    "%EMULATOR_EMULICIOUS% %ROM%"
+   ]
+  ],
+  "gba": [
+   [
+    "mGBA",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mgba_libretro.so %ROM%"
+   ],
+   [
+    "mGBA (Standalone)",
+    "%EMULATOR_MGBA% -f %ROM%"
+   ],
+   [
+    "VBA-M",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/vbam_libretro.so %ROM%"
+   ],
+   [
+    "VBA-M (Standalone)",
+    "%EMULATOR_VBA-M% -f %ROM%"
+   ],
+   [
+    "VBA Next",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/vba_next_libretro.so %ROM%"
+   ],
+   [
+    "gpSP",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/gpsp_libretro.so %ROM%"
+   ],
+   [
+    "NooDS",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/noods_libretro.so %ROM%"
+   ],
+   [
+    "NooDS (Standalone)",
+    "%EMULATOR_NOODS% %ROM%"
+   ],
+   [
+    "SkyEmu",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/skyemu_libretro.so %ROM%"
+   ],
+   [
+    "SkyEmu (Standalone)",
+    "%EMULATOR_SKYEMU% %ROM%"
+   ],
+   [
+    "Mednafen (Standalone)",
+    "%EMULATOR_MEDNAFEN% -force_module gba %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Game Boy Advance\" %ROM%"
+   ],
+   [
+    "Mesen (Standalone)",
+    "%EMULATOR_MESEN% --fullscreen %ROM%"
+   ],
+   [
+    "MesenCE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen2_libretro.so %ROM%"
+   ]
+  ],
+  "gbc": [
+   [
+    "Gambatte",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/gambatte_libretro.so %ROM%"
+   ],
+   [
+    "SameBoy",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/sameboy_libretro.so %ROM%"
+   ],
+   [
+    "Sameboy (Standalone)",
+    "%EMULATOR_SAMEBOY% -f %ROM%"
+   ],
+   [
+    "Gearboy",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/gearboy_libretro.so %ROM%"
+   ],
+   [
+    "Gearboy (Standalone)",
+    "%EMULATOR_GEARBOY% %ROM%"
+   ],
+   [
+    "TGB Dual",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/tgbdual_libretro.so %ROM%"
+   ],
+   [
+    "DoubleCherryGB",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/DoubleCherryGB_libretro.so %ROM%"
+   ],
+   [
+    "IroGB",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/irogb_libretro.so %ROM%"
+   ],
+   [
+    "Mesen-S",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen-s_libretro.so %ROM%"
+   ],
+   [
+    "Mesen (Standalone)",
+    "%EMULATOR_MESEN% --fullscreen %ROM%"
+   ],
+   [
+    "MesenCE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen2_libretro.so %ROM%"
+   ],
+   [
+    "bsnes",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes_libretro.so %ROM%"
+   ],
+   [
+    "mGBA",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mgba_libretro.so %ROM%"
+   ],
+   [
+    "mGBA (Standalone)",
+    "%EMULATOR_MGBA% -f %ROM%"
+   ],
+   [
+    "VBA-M",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/vbam_libretro.so %ROM%"
+   ],
+   [
+    "VBA-M (Standalone)",
+    "%EMULATOR_VBA-M% -f %ROM%"
+   ],
+   [
+    "SkyEmu",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/skyemu_libretro.so %ROM%"
+   ],
+   [
+    "SkyEmu (Standalone)",
+    "%EMULATOR_SKYEMU% %ROM%"
+   ],
+   [
+    "Mednafen (Standalone)",
+    "%EMULATOR_MEDNAFEN% -force_module gb %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Game Boy Color\" %ROM%"
+   ],
+   [
+    "jgenesis (Standalone)",
+    "%EMULATOR_JGENESIS% --file-path %ROM%"
+   ],
+   [
+    "Missingno (Standalone)",
+    "%EMULATOR_MISSINGNO% %ROM%"
+   ],
+   [
+    "Emulicious (Standalone)",
+    "%EMULATOR_EMULICIOUS% %ROM%"
+   ]
+  ],
+  "gc": [
+   [
+    "Dolphin",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/dolphin_libretro.so %ROM%"
+   ],
+   [
+    "Dolphin (Standalone)",
+    "%INJECT%=%BASENAME%.esprefix %EMULATOR_DOLPHIN% -b -e %ROM%"
+   ],
+   [
+    "PrimeHack (Standalone)",
+    "%INJECT%=%BASENAME%.esprefix %EMULATOR_PRIMEHACK% -b -e %ROM%"
+   ],
+   [
+    "Triforce (Standalone)",
+    "%INJECT%=%BASENAME%.esprefix %EMULATOR_TRIFORCE% -b -e %ROM%"
+   ]
+  ],
+  "genesis": [
+   [
+    "Genesis Plus GX",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_libretro.so %ROM%"
+   ],
+   [
+    "Genesis Plus GX Wide",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_wide_libretro.so %ROM%"
+   ],
+   [
+    "PicoDrive",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/picodrive_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/blastem_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm (Standalone)",
+    "%EMULATOR_BLASTEM% -m gen %ROM%"
+   ],
+   [
+    "ClownMDEmu",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/clownmdemu_libretro.so %ROM%"
+   ],
+   [
+    "Mednafen (Standalone)",
+    "%EMULATOR_MEDNAFEN% -force_module md %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Mega Drive\" %ROM%"
+   ],
+   [
+    "jgenesis (Standalone)",
+    "%EMULATOR_JGENESIS% --file-path %ROM%"
+   ]
+  ],
+  "mame": [
+   [
+    "MAME - Current",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2010",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2010_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2003-Plus",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2003_plus_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2003",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2003_libretro.so %ROM%"
+   ],
+   [
+    "MAME 2000",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame2000_libretro.so %ROM%"
+   ],
+   [
+    "HBMAME",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/hbmame_libretro.so %ROM%"
+   ],
+   [
+    "MAME (Standalone)",
+    "%STARTDIR%=~/.mame %EMULATOR_MAME% -rompath %GAMEDIR%\\;%ROMPATH%/mame %BASENAME%"
+   ],
+   [
+    "GroovyMAME (Standalone)",
+    "%STARTDIR%=~/.mame %EMULATOR_GROOVYMAME% -rompath %GAMEDIR%\\;%ROMPATH%/mame %BASENAME%"
+   ],
+   [
+    "FinalBurn Neo",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbneo_libretro.so %ROM%"
+   ],
+   [
+    "FinalBurn Neo (Standalone)",
+    "%EMULATOR_FINALBURN-NEO% -fullscreen %BASENAME%"
+   ],
+   [
+    "FB Alpha 2012",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbalpha2012_libretro.so %ROM%"
+   ],
+   [
+    "Geolith",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/geolith_libretro.so %ROM%"
+   ],
+   [
+    "Flycast",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/flycast_libretro.so %ROM%"
+   ],
+   [
+    "Flycast (Standalone)",
+    "%EMULATOR_FLYCAST% %ROM%"
+   ],
+   [
+    "Flycast Dojo (Standalone)",
+    "%EMULATOR_FLYCAST-DOJO% %ROM%"
+   ],
+   [
+    "Kronos",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/kronos_libretro.so %ROM%"
+   ],
+   [
+    "DICE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/dice_libretro.so %ROM%"
+   ],
+   [
+    "sm2-emu (Standalone)",
+    "%EMULATOR_SM2-EMU% %ROM%"
+   ],
+   [
+    "Supermodel",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/supermodel_libretro.so %ROM%"
+   ],
+   [
+    "Supermodel (Standalone)",
+    "%STARTDIR%=%GAMEDIR% %EMULATOR_SUPERMODEL% -log-output=%GAMEDIR%/Config/Supermodel.log %INJECT%=%BASENAME%.commands %ROM%"
+   ],
+   [
+    "Lindbergh Loader (Standalone)",
+    "%STARTDIR%=%GAMEENTRYDIR% %EMULATOR_LINDBERGH-LOADER% %INJECT%=%BASENAME%/%BASENAME%.commands"
+   ],
+   [
+    "Linux Loader (Standalone)",
+    "%STARTDIR%=%GAMEENTRYDIR% %EMULATOR_LINUX-LOADER% %INJECT%=%BASENAME%/%BASENAME%.commands"
+   ],
+   [
+    "PCSX2x6 (Standalone)",
+    "%EMULATOR_PCSX2X6% -batch %ROM%"
+   ],
+   [
+    "Play! Arcade (Standalone)",
+    "%EMULATOR_PLAY!% --fullscreen --arcade %GAMEDIR%/%BASENAME%"
+   ],
+   [
+    "MFME (Wine)",
+    "%PRECOMMAND_WINE% %EMULATOR_MFME-WINDOWS% \"%ROMRAWWIN%\""
+   ],
+   [
+    "MFME (Proton)",
+    "%PRECOMMAND_PROTON% %EMULATOR_MFME-WINDOWS% \"%ROMRAWWIN%\""
+   ],
+   [
+    "Shortcut or script",
+    "%ENABLESHORTCUTS% %EMULATOR_OS-SHELL% %ROM%"
+   ]
+  ],
+  "mark3": [
+   [
+    "Genesis Plus GX",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_libretro.so %ROM%"
+   ],
+   [
+    "Genesis Plus GX Wide",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_wide_libretro.so %ROM%"
+   ],
+   [
+    "SMS Plus GX",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/smsplus_libretro.so %ROM%"
+   ],
+   [
+    "Gearsystem",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/gearsystem_libretro.so %ROM%"
+   ],
+   [
+    "PicoDrive",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/picodrive_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/blastem_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm (Standalone)",
+    "%EMULATOR_BLASTEM% -m sms %ROM%"
+   ],
+   [
+    "Mednafen (Standalone)",
+    "%EMULATOR_MEDNAFEN% -force_module sms %ROM%"
+   ],
+   [
+    "Mesen (Standalone)",
+    "%EMULATOR_MESEN% --fullscreen %ROM%"
+   ],
+   [
+    "MesenCE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen2_libretro.so %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Master System\" %ROM%"
+   ],
+   [
+    "jgenesis (Standalone)",
+    "%EMULATOR_JGENESIS% --file-path %ROM%"
+   ],
+   [
+    "Emulicious (Standalone)",
+    "%EMULATOR_EMULICIOUS% %ROM%"
+   ]
+  ],
+  "mastersystem": [
+   [
+    "Genesis Plus GX",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_libretro.so %ROM%"
+   ],
+   [
+    "Genesis Plus GX Wide",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_wide_libretro.so %ROM%"
+   ],
+   [
+    "SMS Plus GX",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/smsplus_libretro.so %ROM%"
+   ],
+   [
+    "Gearsystem",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/gearsystem_libretro.so %ROM%"
+   ],
+   [
+    "PicoDrive",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/picodrive_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/blastem_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm (Standalone)",
+    "%EMULATOR_BLASTEM% -m sms %ROM%"
+   ],
+   [
+    "Mednafen (Standalone)",
+    "%EMULATOR_MEDNAFEN% -force_module sms %ROM%"
+   ],
+   [
+    "Mesen (Standalone)",
+    "%EMULATOR_MESEN% --fullscreen %ROM%"
+   ],
+   [
+    "MesenCE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen2_libretro.so %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Master System\" %ROM%"
+   ],
+   [
+    "jgenesis (Standalone)",
+    "%EMULATOR_JGENESIS% --file-path %ROM%"
+   ],
+   [
+    "Emulicious (Standalone)",
+    "%EMULATOR_EMULICIOUS% %ROM%"
+   ]
+  ],
+  "megacd": [
+   [
+    "Genesis Plus GX",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_libretro.so %ROM%"
+   ],
+   [
+    "Genesis Plus GX Wide",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_wide_libretro.so %ROM%"
+   ],
+   [
+    "PicoDrive",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/picodrive_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/blastem_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm (Standalone)",
+    "%EMULATOR_BLASTEM% %ROM%"
+   ],
+   [
+    "ClownMDEmu",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/clownmdemu_libretro.so %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Mega CD\" %ROM%"
+   ],
+   [
+    "jgenesis (Standalone)",
+    "%EMULATOR_JGENESIS% --file-path %ROM%"
+   ]
+  ],
+  "megacdjp": [
+   [
+    "Genesis Plus GX",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_libretro.so %ROM%"
+   ],
+   [
+    "Genesis Plus GX Wide",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_wide_libretro.so %ROM%"
+   ],
+   [
+    "PicoDrive",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/picodrive_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/blastem_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm (Standalone)",
+    "%EMULATOR_BLASTEM% %ROM%"
+   ],
+   [
+    "ClownMDEmu",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/clownmdemu_libretro.so %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Mega CD\" %ROM%"
+   ],
+   [
+    "jgenesis (Standalone)",
+    "%EMULATOR_JGENESIS% --file-path %ROM%"
+   ]
+  ],
+  "megadrive": [
+   [
+    "Genesis Plus GX",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_libretro.so %ROM%"
+   ],
+   [
+    "Genesis Plus GX Wide",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_wide_libretro.so %ROM%"
+   ],
+   [
+    "PicoDrive",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/picodrive_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/blastem_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm (Standalone)",
+    "%EMULATOR_BLASTEM% -m gen %ROM%"
+   ],
+   [
+    "ClownMDEmu",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/clownmdemu_libretro.so %ROM%"
+   ],
+   [
+    "Mednafen (Standalone)",
+    "%EMULATOR_MEDNAFEN% -force_module md %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Mega Drive\" %ROM%"
+   ],
+   [
+    "jgenesis (Standalone)",
+    "%EMULATOR_JGENESIS% --file-path %ROM%"
+   ]
+  ],
+  "megadrivejp": [
+   [
+    "Genesis Plus GX",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_libretro.so %ROM%"
+   ],
+   [
+    "Genesis Plus GX Wide",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_wide_libretro.so %ROM%"
+   ],
+   [
+    "PicoDrive",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/picodrive_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/blastem_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm (Standalone)",
+    "%EMULATOR_BLASTEM% -m gen %ROM%"
+   ],
+   [
+    "ClownMDEmu",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/clownmdemu_libretro.so %ROM%"
+   ],
+   [
+    "Mednafen (Standalone)",
+    "%EMULATOR_MEDNAFEN% -force_module md %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Mega Drive\" %ROM%"
+   ],
+   [
+    "jgenesis (Standalone)",
+    "%EMULATOR_JGENESIS% --file-path %ROM%"
+   ]
+  ],
+  "n64": [
+   [
+    "Mupen64Plus-Next",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mupen64plus_next_libretro.so %ROM%"
+   ],
+   [
+    "Mupen64Plus (Standalone)",
+    "%EMULATOR_MUPEN64PLUS% --nogui %ROM%"
+   ],
+   [
+    "ParaLLEl N64",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/parallel_n64_libretro.so %ROM%"
+   ],
+   [
+    "Parallel Launcher (Standalone)",
+    "%EMULATOR_PARALLEL-LAUNCHER% %ROM%"
+   ],
+   [
+    "simple64 (Standalone)",
+    "%EMULATOR_SIMPLE64% --nogui %ROM%"
+   ],
+   [
+    "Rosalie's Mupen GUI (Standalone)",
+    "%EMULATOR_ROSALIES-MUPEN-GUI% --nogui -q %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Nintendo 64\" %ROM%"
+   ],
+   [
+    "Gopher64 (Standalone)",
+    "%EMULATOR_GOPHER64% -f %ROM%"
+   ],
+   [
+    "Native port",
+    "%STARTDIR%=%GAMEDIR% %EMULATOR_OS-SHELL% -c \"%ROM%\""
+   ],
+   [
+    "Shortcut or script",
+    "%ENABLESHORTCUTS% %EMULATOR_OS-SHELL% %ROM%"
+   ]
+  ],
+  "n64dd": [
+   [
+    "ParaLLEl N64",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/parallel_n64_libretro.so %ROM%"
+   ],
+   [
+    "Mupen64Plus-Next",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mupen64plus_next_libretro.so %ROM%"
+   ],
+   [
+    "Rosalie's Mupen GUI (Standalone)",
+    "%EMULATOR_ROSALIES-MUPEN-GUI% --nogui -q %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Nintendo 64DD\" %ROM%"
+   ]
+  ],
+  "naomi": [
+   [
+    "Flycast",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/flycast_libretro.so %ROM%"
+   ],
+   [
+    "Flycast (Standalone)",
+    "%EMULATOR_FLYCAST% %ROM%"
+   ],
+   [
+    "Flycast Dojo (Standalone)",
+    "%EMULATOR_FLYCAST-DOJO% %ROM%"
+   ]
+  ],
+  "naomi2": [
+   [
+    "Flycast",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/flycast_libretro.so %ROM%"
+   ],
+   [
+    "Flycast (Standalone)",
+    "%EMULATOR_FLYCAST% %ROM%"
+   ],
+   [
+    "Flycast Dojo (Standalone)",
+    "%EMULATOR_FLYCAST-DOJO% %ROM%"
+   ]
+  ],
+  "naomigd": [
+   [
+    "Flycast",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/flycast_libretro.so %ROM%"
+   ],
+   [
+    "Flycast (Standalone)",
+    "%EMULATOR_FLYCAST% %ROM%"
+   ],
+   [
+    "Flycast Dojo (Standalone)",
+    "%EMULATOR_FLYCAST-DOJO% %ROM%"
+   ]
+  ],
+  "nds": [
+   [
+    "melonDS DS",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/melondsds_libretro.so %ROM%"
+   ],
+   [
+    "melonDS",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/melonds_libretro.so %ROM%"
+   ],
+   [
+    "melonDS (Standalone)",
+    "%EMULATOR_MELONDS% -f %ROM%"
+   ],
+   [
+    "DeSmuME",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/desmume_libretro.so %ROM%"
+   ],
+   [
+    "DeSmuME 2015",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/desmume2015_libretro.so %ROM%"
+   ],
+   [
+    "DeSmuME (Standalone)",
+    "%EMULATOR_DESMUME% %ROM%"
+   ],
+   [
+    "NooDS",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/noods_libretro.so %ROM%"
+   ],
+   [
+    "NooDS (Standalone)",
+    "%EMULATOR_NOODS% %ROM%"
+   ],
+   [
+    "SkyEmu",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/skyemu_libretro.so %ROM%"
+   ],
+   [
+    "SkyEmu (Standalone)",
+    "%EMULATOR_SKYEMU% %ROM%"
+   ]
+  ],
+  "neogeo": [
+   [
+    "FinalBurn Neo",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fbneo_libretro.so %ROM%"
+   ],
+   [
+    "FinalBurn Neo (Standalone)",
+    "%EMULATOR_FINALBURN-NEO% -fullscreen %BASENAME%"
+   ],
+   [
+    "Geolith",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/geolith_libretro.so %ROM%"
+   ],
+   [
+    "MAME - Current",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mame_libretro.so %ROM%"
+   ],
+   [
+    "MAME (Standalone)",
+    "%STARTDIR%=~/.mame %EMULATOR_MAME% -rompath %GAMEDIR%\\;%ROMPATH%/neogeo %BASENAME%"
+   ]
+  ],
+  "neogeocd": [
+   [
+    "NeoCD",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/neocd_libretro.so %ROM%"
+   ],
+   [
+    "FinalBurn Neo",
+    "%EMULATOR_RETROARCH% --subsystem neocd -L %CORE_RETROARCH%/fbneo_libretro.so %ROM%"
+   ],
+   [
+    "FinalBurn Neo (Standalone)",
+    "%EMULATOR_FINALBURN-NEO% neocdz -fullscreen -cd %ROM%"
+   ],
+   [
+    "Geolith",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/geolith_libretro.so %ROM%"
+   ],
+   [
+    "MAME (Standalone)",
+    "%STARTDIR%=~/.mame %EMULATOR_MAME% -rompath %GAMEDIR%\\;%ROMPATH%/neogeocd neocdz -cdrm %ROM%"
+   ]
+  ],
+  "neogeocdjp": [
+   [
+    "NeoCD",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/neocd_libretro.so %ROM%"
+   ],
+   [
+    "FinalBurn Neo",
+    "%EMULATOR_RETROARCH% --subsystem neocd -L %CORE_RETROARCH%/fbneo_libretro.so %ROM%"
+   ],
+   [
+    "FinalBurn Neo (Standalone)",
+    "%EMULATOR_FINALBURN-NEO% neocdz -fullscreen -cd %ROM%"
+   ],
+   [
+    "Geolith",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/geolith_libretro.so %ROM%"
+   ],
+   [
+    "MAME (Standalone)",
+    "%STARTDIR%=~/.mame %EMULATOR_MAME% -rompath %GAMEDIR%\\;%ROMPATH%/neogeocdjp neocdz -cdrm %ROM%"
+   ]
+  ],
+  "nes": [
+   [
+    "Mesen",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen_libretro.so %ROM%"
+   ],
+   [
+    "Mesen (Standalone)",
+    "%EMULATOR_MESEN% --fullscreen %ROM%"
+   ],
+   [
+    "MesenCE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen2_libretro.so %ROM%"
+   ],
+   [
+    "Nestopia UE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/nestopia_libretro.so %ROM%"
+   ],
+   [
+    "Nestopia UE (Standalone)",
+    "%EMULATOR_NESTOPIA-UE% --fullscreen %ROM%"
+   ],
+   [
+    "FCEUmm",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/fceumm_libretro.so %ROM%"
+   ],
+   [
+    "QuickNES",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/quicknes_libretro.so %ROM%"
+   ],
+   [
+    "RustyNES",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/rustynes_libretro.so %ROM%"
+   ],
+   [
+    "puNES (Standalone)",
+    "%EMULATOR_PUNES% -u yes %ROM%"
+   ],
+   [
+    "Mednafen (Standalone)",
+    "%EMULATOR_MEDNAFEN% -force_module nes %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Famicom\" %ROM%"
+   ],
+   [
+    "ares FDS (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Famicom Disk System\" %ROM%"
+   ],
+   [
+    "jgenesis (Standalone)",
+    "%EMULATOR_JGENESIS% --file-path %ROM%"
+   ],
+   [
+    "Plastic (Standalone)",
+    "%EMULATOR_PLASTIC% %ROM%"
+   ],
+   [
+    "3dSen (Standalone)",
+    "%EMULATOR_3DSEN% -id=%INJECT%=%BASENAME%.3dsen"
+   ],
+   [
+    "3dSen (Wine)",
+    "%STARTDIR%=%EMUDIR% %PRECOMMAND_WINE% %EMULATOR_3DSEN-WINDOWS% -id=%INJECT%=%BASENAME%.3dsen"
+   ],
+   [
+    "3dSen (Proton)",
+    "%STARTDIR%=%EMUDIR% %PRECOMMAND_PROTON% %EMULATOR_3DSEN-WINDOWS% -id=%INJECT%=%BASENAME%.3dsen"
+   ]
+  ],
+  "ps2": [
+   [
+    "PCEE2",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/pcee2_libretro.so %ROM%"
+   ],
+   [
+    "LRPS2",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/pcsx2_libretro.so %ROM%"
+   ],
+   [
+    "PCSX2",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/pcsx2_libretro.so %ROM%"
+   ],
+   [
+    "PCSX2 (Standalone)",
+    "%EMULATOR_PCSX2% -batch %ROM%"
+   ],
+   [
+    "PCSX2 Legacy (Standalone)",
+    "%EMULATOR_PCSX2-LEGACY% --nogui %ROM%"
+   ],
+   [
+    "Play! (Standalone)",
+    "%EMULATOR_PLAY!% --fullscreen --disc %ROM%"
+   ],
+   [
+    "Shortcut or script",
+    "%ENABLESHORTCUTS% %EMULATOR_OS-SHELL% %ROM%"
+   ]
+  ],
+  "psp": [
+   [
+    "PPSSPP",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/ppsspp_libretro.so %ROM%"
+   ],
+   [
+    "PPSSPP (Standalone)",
+    "%EMULATOR_PPSSPP% %ROM%"
+   ]
+  ],
+  "psx": [
+   [
+    "Beetle PSX",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mednafen_psx_libretro.so %ROM%"
+   ],
+   [
+    "Beetle PSX HW",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mednafen_psx_hw_libretro.so %ROM%"
+   ],
+   [
+    "PCSX ReARMed",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/pcsx_rearmed_libretro.so %ROM%"
+   ],
+   [
+    "SwanStation",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/swanstation_libretro.so %ROM%"
+   ],
+   [
+    "DuckStation (Standalone)",
+    "%EMULATOR_DUCKSTATION% -batch %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"PlayStation\" %ROM%"
+   ],
+   [
+    "Mednafen (Standalone)",
+    "%EMULATOR_MEDNAFEN% -force_module psx %ROM%"
+   ]
+  ],
+  "satellaview": [
+   [
+    "Snes9x - Current",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/snes9x_libretro.so %ROM%"
+   ],
+   [
+    "Snes9x 2010",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/snes9x2010_libretro.so %ROM%"
+   ],
+   [
+    "Snes9x 2005 Plus",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/snes9x2005_plus_libretro.so %ROM%"
+   ],
+   [
+    "Snes9x (Standalone)",
+    "%EMULATOR_SNES9X% %ROM%"
+   ],
+   [
+    "bsnes",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes_libretro.so %ROM%"
+   ],
+   [
+    "bsnes-hd",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes_hd_beta_libretro.so %ROM%"
+   ],
+   [
+    "bsnes-jg",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes-jg_libretro.so %ROM%"
+   ],
+   [
+    "bsnes-mercury Accuracy",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes_mercury_accuracy_libretro.so %ROM%"
+   ],
+   [
+    "bsnes (Standalone)",
+    "%EMULATOR_BSNES% --fullscreen %ROM%"
+   ],
+   [
+    "Mesen-S",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen-s_libretro.so %ROM%"
+   ],
+   [
+    "Mesen (Standalone)",
+    "%EMULATOR_MESEN% --fullscreen %ROM%"
+   ],
+   [
+    "MesenCE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen2_libretro.so %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Super Famicom\" %ROM%"
+   ]
+  ],
+  "saturn": [
+   [
+    "Beetle Saturn",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mednafen_saturn_libretro.so %ROM%"
+   ],
+   [
+    "Kronos",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/kronos_libretro.so %ROM%"
+   ],
+   [
+    "Kronos (Standalone)",
+    "%EMULATOR_KRONOS% %ROM%"
+   ],
+   [
+    "YabaSanshiro",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/yabasanshiro_libretro.so %ROM%"
+   ],
+   [
+    "Yabause",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/yabause_libretro.so %ROM%"
+   ],
+   [
+    "Ymir (Standalone)",
+    "%STARTDIR%=~/.ymir %EMULATOR_YMIR% %ROM%"
+   ],
+   [
+    "Mednafen (Standalone)",
+    "%EMULATOR_MEDNAFEN% -force_module ss %ROM%"
+   ]
+  ],
+  "saturnjp": [
+   [
+    "Beetle Saturn",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mednafen_saturn_libretro.so %ROM%"
+   ],
+   [
+    "Kronos",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/kronos_libretro.so %ROM%"
+   ],
+   [
+    "Kronos (Standalone)",
+    "%EMULATOR_KRONOS% %ROM%"
+   ],
+   [
+    "YabaSanshiro",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/yabasanshiro_libretro.so %ROM%"
+   ],
+   [
+    "Yabause",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/yabause_libretro.so %ROM%"
+   ],
+   [
+    "Ymir (Standalone)",
+    "%STARTDIR%=~/.ymir %EMULATOR_YMIR% %ROM%"
+   ],
+   [
+    "Mednafen (Standalone)",
+    "%EMULATOR_MEDNAFEN% -force_module ss %ROM%"
+   ]
+  ],
+  "sega32x": [
+   [
+    "PicoDrive",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/picodrive_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/blastem_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm (Standalone)",
+    "%EMULATOR_BLASTEM% -m 32x %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Mega 32X\" %ROM%"
+   ]
+  ],
+  "sega32xjp": [
+   [
+    "PicoDrive",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/picodrive_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/blastem_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm (Standalone)",
+    "%EMULATOR_BLASTEM% -m 32x %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Mega 32X\" %ROM%"
+   ]
+  ],
+  "sega32xna": [
+   [
+    "PicoDrive",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/picodrive_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/blastem_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm (Standalone)",
+    "%EMULATOR_BLASTEM% -m 32x %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Mega 32X\" %ROM%"
+   ]
+  ],
+  "segacd": [
+   [
+    "Genesis Plus GX",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_libretro.so %ROM%"
+   ],
+   [
+    "Genesis Plus GX Wide",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_wide_libretro.so %ROM%"
+   ],
+   [
+    "PicoDrive",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/picodrive_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/blastem_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm (Standalone)",
+    "%EMULATOR_BLASTEM% %ROM%"
+   ],
+   [
+    "ClownMDEmu",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/clownmdemu_libretro.so %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Mega CD\" %ROM%"
+   ],
+   [
+    "jgenesis (Standalone)",
+    "%EMULATOR_JGENESIS% --file-path %ROM%"
+   ]
+  ],
+  "sfc": [
+   [
+    "Snes9x - Current",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/snes9x_libretro.so %ROM%"
+   ],
+   [
+    "Snes9x 2010",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/snes9x2010_libretro.so %ROM%"
+   ],
+   [
+    "Snes9x 2005 Plus",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/snes9x2005_plus_libretro.so %ROM%"
+   ],
+   [
+    "Snes9x (Standalone)",
+    "%EMULATOR_SNES9X% %ROM%"
+   ],
+   [
+    "bsnes",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes_libretro.so %ROM%"
+   ],
+   [
+    "bsnes-hd",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes_hd_beta_libretro.so %ROM%"
+   ],
+   [
+    "bsnes-jg",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes-jg_libretro.so %ROM%"
+   ],
+   [
+    "bsnes-mercury Accuracy",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes_mercury_accuracy_libretro.so %ROM%"
+   ],
+   [
+    "bsnes (Standalone)",
+    "%EMULATOR_BSNES% --fullscreen %ROM%"
+   ],
+   [
+    "Beetle Supafaust",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mednafen_supafaust_libretro.so %ROM%"
+   ],
+   [
+    "Mesen-S",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen-s_libretro.so %ROM%"
+   ],
+   [
+    "Mesen (Standalone)",
+    "%EMULATOR_MESEN% --fullscreen %ROM%"
+   ],
+   [
+    "MesenCE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen2_libretro.so %ROM%"
+   ],
+   [
+    "Mednafen (Standalone)",
+    "%EMULATOR_MEDNAFEN% -force_module snes %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Super Famicom\" %ROM%"
+   ],
+   [
+    "jgenesis (Standalone)",
+    "%EMULATOR_JGENESIS% --file-path %ROM%"
+   ],
+   [
+    "SUPER ZSNES (Standalone)",
+    "%EMULATOR_SUPERZSNES% %ROM%"
+   ]
+  ],
+  "sg-1000": [
+   [
+    "Genesis Plus GX",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_libretro.so %ROM%"
+   ],
+   [
+    "Genesis Plus GX Wide",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/genesis_plus_gx_wide_libretro.so %ROM%"
+   ],
+   [
+    "Gearsystem",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/gearsystem_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/blastem_libretro.so %ROM%"
+   ],
+   [
+    "BlastEm (Standalone)",
+    "%EMULATOR_BLASTEM% -m sg %ROM%"
+   ],
+   [
+    "blueMSX",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bluemsx_libretro.so %ROM%"
+   ],
+   [
+    "Mesen (Standalone)",
+    "%EMULATOR_MESEN% --fullscreen %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"SG-1000\" %ROM%"
+   ]
+  ],
+  "sgb": [
+   [
+    "Mesen-S",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen-s_libretro.so %ROM%"
+   ],
+   [
+    "Mesen (Standalone)",
+    "%EMULATOR_MESEN% --fullscreen --gameBoy.useSgb2=true %ROM%"
+   ],
+   [
+    "MesenCE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen2_libretro.so %ROM%"
+   ],
+   [
+    "SameBoy",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/sameboy_libretro.so %ROM%"
+   ],
+   [
+    "mGBA",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mgba_libretro.so %ROM%"
+   ],
+   [
+    "mGBA (Standalone)",
+    "%EMULATOR_MGBA% -f %ROM%"
+   ]
+  ],
+  "snes": [
+   [
+    "Snes9x - Current",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/snes9x_libretro.so %ROM%"
+   ],
+   [
+    "Snes9x 2010",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/snes9x2010_libretro.so %ROM%"
+   ],
+   [
+    "Snes9x 2005 Plus",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/snes9x2005_plus_libretro.so %ROM%"
+   ],
+   [
+    "Snes9x (Standalone)",
+    "%EMULATOR_SNES9X% %ROM%"
+   ],
+   [
+    "bsnes",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes_libretro.so %ROM%"
+   ],
+   [
+    "bsnes-hd",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes_hd_beta_libretro.so %ROM%"
+   ],
+   [
+    "bsnes-jg",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes-jg_libretro.so %ROM%"
+   ],
+   [
+    "bsnes-mercury Accuracy",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes_mercury_accuracy_libretro.so %ROM%"
+   ],
+   [
+    "bsnes (Standalone)",
+    "%EMULATOR_BSNES% --fullscreen %ROM%"
+   ],
+   [
+    "Beetle Supafaust",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mednafen_supafaust_libretro.so %ROM%"
+   ],
+   [
+    "Mesen-S",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen-s_libretro.so %ROM%"
+   ],
+   [
+    "Mesen (Standalone)",
+    "%EMULATOR_MESEN% --fullscreen %ROM%"
+   ],
+   [
+    "MesenCE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen2_libretro.so %ROM%"
+   ],
+   [
+    "Mednafen (Standalone)",
+    "%EMULATOR_MEDNAFEN% -force_module snes %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Super Famicom\" %ROM%"
+   ],
+   [
+    "jgenesis (Standalone)",
+    "%EMULATOR_JGENESIS% --file-path %ROM%"
+   ],
+   [
+    "SUPER ZSNES (Standalone)",
+    "%EMULATOR_SUPERZSNES% %ROM%"
+   ]
+  ],
+  "snesna": [
+   [
+    "Snes9x - Current",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/snes9x_libretro.so %ROM%"
+   ],
+   [
+    "Snes9x 2010",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/snes9x2010_libretro.so %ROM%"
+   ],
+   [
+    "Snes9x 2005 Plus",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/snes9x2005_plus_libretro.so %ROM%"
+   ],
+   [
+    "Snes9x (Standalone)",
+    "%EMULATOR_SNES9X% %ROM%"
+   ],
+   [
+    "bsnes",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes_libretro.so %ROM%"
+   ],
+   [
+    "bsnes-hd",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes_hd_beta_libretro.so %ROM%"
+   ],
+   [
+    "bsnes-jg",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes-jg_libretro.so %ROM%"
+   ],
+   [
+    "bsnes-mercury Accuracy",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes_mercury_accuracy_libretro.so %ROM%"
+   ],
+   [
+    "bsnes (Standalone)",
+    "%EMULATOR_BSNES% --fullscreen %ROM%"
+   ],
+   [
+    "Beetle Supafaust",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mednafen_supafaust_libretro.so %ROM%"
+   ],
+   [
+    "Mesen-S",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen-s_libretro.so %ROM%"
+   ],
+   [
+    "Mesen (Standalone)",
+    "%EMULATOR_MESEN% --fullscreen %ROM%"
+   ],
+   [
+    "MesenCE",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/mesen2_libretro.so %ROM%"
+   ],
+   [
+    "Mednafen (Standalone)",
+    "%EMULATOR_MEDNAFEN% -force_module snes %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Super Famicom\" %ROM%"
+   ],
+   [
+    "jgenesis (Standalone)",
+    "%EMULATOR_JGENESIS% --file-path %ROM%"
+   ],
+   [
+    "SUPER ZSNES (Standalone)",
+    "%EMULATOR_SUPERZSNES% %ROM%"
+   ]
+  ],
+  "sufami": [
+   [
+    "Snes9x - Current",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/snes9x_libretro.so %ROM%"
+   ],
+   [
+    "Snes9x 2010",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/snes9x2010_libretro.so %ROM%"
+   ],
+   [
+    "Snes9x 2005 Plus",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/snes9x2005_plus_libretro.so %ROM%"
+   ],
+   [
+    "Snes9x (Standalone)",
+    "%EMULATOR_SNES9X% %ROM%"
+   ],
+   [
+    "bsnes",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes_libretro.so %ROM%"
+   ],
+   [
+    "bsnes-hd",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes_hd_beta_libretro.so %ROM%"
+   ],
+   [
+    "bsnes-jg",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes-jg_libretro.so %ROM%"
+   ],
+   [
+    "bsnes-mercury Accuracy",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/bsnes_mercury_accuracy_libretro.so %ROM%"
+   ],
+   [
+    "bsnes (Standalone)",
+    "%EMULATOR_BSNES% --fullscreen %ROM%"
+   ],
+   [
+    "ares (Standalone)",
+    "%EMULATOR_ARES% --fullscreen --system \"Super Famicom\" %ROM%"
+   ]
+  ],
+  "wii": [
+   [
+    "Dolphin",
+    "%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/dolphin_libretro.so %ROM%"
+   ],
+   [
+    "Dolphin (Standalone)",
+    "%INJECT%=%BASENAME%.esprefix %EMULATOR_DOLPHIN% -b -e %ROM%"
+   ],
+   [
+    "PrimeHack (Standalone)",
+    "%INJECT%=%BASENAME%.esprefix %EMULATOR_PRIMEHACK% -b -e %ROM%"
+   ]
+  ]
+ }
+}

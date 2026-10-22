@@ -59,10 +59,11 @@ class Finding:
 
 
 def run(steam_root: Path = STEAM_ROOT, retroarch_root: Path = RETROARCH_ROOT,
-        emudeck_settings: Path = EMUDECK_SETTINGS) -> list[Finding]:
+        emudeck_settings: Path = EMUDECK_SETTINGS, home: Path = HOME) -> list[Finding]:
     settings = read_emudeck_settings(emudeck_settings)
     return (check_steam_input(steam_root) + check_emudeck_automap(emudeck_settings, settings)
-            + check_retroarch(retroarch_root, (settings or {}).get("controllerLayout")))
+            + check_retroarch(retroarch_root, (settings or {}).get("controllerLayout"))
+            + check_launch_hooks(home, steam_root))
 
 
 # -- Steam Input per-game override ---------------------------------------------
@@ -206,6 +207,80 @@ def check_emudeck_automap(path: Path, settings: Optional[dict]) -> list[Finding]
             out.append(Finding("info", "emudeck-automap",
                                f"emudeck: AutoMap is on for {emulator} ({var}={value}); map-helper doesn't manage "
                                f"{emulator} yet, so nothing of ours is undone"))
+    return out
+
+
+# -- mh-run in the launch paths ---------------------------------------------------
+
+def check_launch_hooks(home: Path = HOME, steam_root: Path = STEAM_ROOT) -> list[Finding]:
+    """Is mh-run where `map-helper setup` puts it (docs/07): the shim, ES-DE's game-start script with custom event
+    scripts on, SRM's parsers, and the Steam shortcuts SRM made from them. Before setup has run, it's all info."""
+    import os
+    from . import setup
+    places = setup.Places(home=home)
+    done = bool(setup.load_record(places.state_dir))
+    missing = "error" if done else "info"
+    out = []
+    shim = setup._read(places.shim)
+    if shim is None:
+        out.append(Finding(missing, "launch-hooks", f"mh-run: no shim at {places.shim}, so launches don't apply "
+                                                    "mappings; run `map-helper setup --write`"))
+    else:
+        entry = re.search(r"^MH='((?:[^']|'\\'')*)'$", shim, re.M)
+        entry = Path(entry.group(1).replace("'\\''", "'")) if entry else None
+        if not os.access(places.shim, os.X_OK):
+            out.append(Finding("error", "launch-hooks", f"mh-run: {places.shim} isn't executable; launches through "
+                                                        "it fail"))
+        elif entry is None or not entry.is_file():
+            out.append(Finding("warning", "launch-hooks", f"mh-run: the shim runs {entry or 'nothing'}, which isn't "
+                                                          "there; launches go ahead without applying mappings"))
+    if places.esde_root.is_dir():
+        settings = setup._read(places.esde_settings) or ""
+        m = setup._SETTING.search(settings)
+        if not places.esde_script.is_file():
+            out.append(Finding(missing, "launch-hooks", f"es-de: no game-start script at {places.esde_script}, so "
+                                                        "games ES-DE starts don't get mappings applied"))
+        elif not (m and m.group(1) == "true"):
+            out.append(Finding("error", "launch-hooks", "es-de: custom event scripts are off, so ES-DE never runs "
+                                                        "map-helper's game-start script. ES-DE: Main menu > Other "
+                                                        "settings > Enable custom event scripts"))
+    out += _srm_hooks(places, steam_root, done)
+    return out
+
+
+def _srm_hooks(places, steam_root: Path, done: bool) -> list[Finding]:
+    from . import setup
+    text = setup._read(places.srm_config)
+    if text is None:
+        return []
+    try:
+        parsers, _ = setup.parse_spans(text)
+    except ValueError as e:
+        return [Finding("warning", "launch-hooks", f"srm: couldn't read {places.srm_config} ({e})")]
+    bare = [p.get("configTitle") or str(p.get("parserId")) for p in parsers if isinstance(p, dict)
+            and setup._emulator_of(p) and "mh-run" not in str(p.get("executableArgs") or "")]
+    out = []
+    if bare:
+        out.append(Finding("warning" if done else "info", "launch-hooks",
+                           f"srm: {len(bare)} parser(s) for emulators map-helper manages don't run mh-run "
+                           f"({', '.join(bare[:3])}{', ...' if len(bare) > 3 else ''}); `map-helper setup --write` "
+                           "adds it"))
+    if not done:
+        return out
+    userdata = Path(steam_root) / "userdata"
+    for user in sorted(p for p in userdata.iterdir() if p.is_dir()) if userdata.is_dir() else []:
+        shortcuts, _ = _shortcuts(user / "config" / "shortcuts.vdf")
+        stale = []
+        for sc in shortcuts:
+            exe, opts = str(vdf.lookup(sc, "Exe") or ""), str(vdf.lookup(sc, "LaunchOptions") or "")
+            parser = {"executable": {"path": exe.strip('"').split('" ')[0]}, "executableArgs": exe + " " + opts}
+            if setup._emulator_of(parser) and "mh-run" not in exe + opts:
+                stale.append(str(vdf.lookup(sc, "AppName") or "?"))
+        if stale:
+            out.append(Finding("warning", "launch-hooks",
+                               f"steam: {len(stale)} emulator shortcut(s) don't run mh-run yet "
+                               f"({', '.join(stale[:3])}{', ...' if len(stale) > 3 else ''}); run Steam ROM "
+                               "Manager's \"Save to Steam\" to pick up the parser change"))
     return out
 
 
