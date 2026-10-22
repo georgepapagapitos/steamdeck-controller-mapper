@@ -5,7 +5,7 @@
 | Var | Default | Contents |
 |-----|---------|----------|
 | `$DATA` | `~/.local/share/map-helper/` | `rules/*.json`, `devices.json`, `packs/`, `settings.json` |
-| `$STATE` | `~/.local/state/map-helper/` | `journal/`, `backups/`, `logs/`, `locks/`, `hashes.json`, `last-launch.json` |
+| `$STATE` | `~/.local/state/map-helper/` | `touched.json`, `journal/`, `backups/`, `logs/`, `locks/`, `hashes.json`, `last-launch.json` |
 | `$INSTALL` | `~/.local/lib/map-helper/current` (symlink to a versioned dir) + shims in `~/.local/bin`; the Decky plugin dir only holds the UI and installs/updates this ([14](14-packaging-permissions.md)) | code, `data/` (controller DB, layouts, shipped defaults) |
 
 Everything in `$DATA` is user-owned and portable. `$STATE` is machine-specific
@@ -20,7 +20,9 @@ and safe to delete, though deleting it loses backups.
 ## Writing emulator configs safely
 
 1. **Pristine snapshot.** The first time we touch a file, copy it to
-   `$STATE/backups/pristine/<emulator>/<relpath>` along with its hash. We never overwrite this unless the user re-baselines or an EmuDeck reset is detected.
+   `$STATE/backups/pristine/<emulator>/<relpath>`, and record the file in `$STATE/touched.json` (below). A file that
+   doesn't exist yet has nothing to snapshot, so it's recorded as `created`. We never overwrite the snapshot unless
+   the user re-baselines or an EmuDeck reset is detected.
 2. **Lock.** `flock $STATE/locks/<emulator>.lock`.
 3. **Is the emulator running?** If so, abort (the emulator would overwrite us
    on exit anyway). Check `/proc/*/exe` / cmdline for known binaries, including Flatpak `bwrap` children. **[VERIFY]**
@@ -39,6 +41,48 @@ user by hand). Then:
 - Small diff (some managed keys changed) → **drift**: queue the UX in [08 Flow 5](08-ui-ux.md). Apply the policy (`prefer-mine` by default).
 - Large diff (most of the file, including non-managed keys) → probably an **EmuDeck reset or emulator upgrade**: re-baseline the pristine snapshot (keeping the old one as `pristine.prev`), then apply.
 
+### The touched-file manifest
+
+`$STATE/touched.json` lists every file map-helper has written, per emulator (implemented):
+
+```json
+{"retroarch": {"config_root": "/home/deck/.var/app/org.libretro.RetroArch/config/retroarch",
+               "files": {"config/remaps/Snes9x/Snes9x.rmp": {"created": true, "hash": "<sha256>"}}}}
+```
+
+- `created`: the file didn't exist before map-helper wrote it (EmuDeck ships only `Snes9x.rmp.disabled`), so its
+  pristine state is "absent".
+- `hash`: the sha256 of what map-helper last left there (`null` when that is "absent"). A file whose hash no longer
+  matches was changed by someone else since.
+- If a file we created turns up with other content at the next apply (EmuDeck's abxy toggle renames
+  `.rmp.disabled` over our `.rmp`), it's theirs now: its content becomes the pristine snapshot and `created` is
+  cleared, so restore puts it back instead of deleting it.
+- One config root per emulator per state dir; apply refuses a second one.
+
+Snapshots taken before the manifest existed sit at `backups/pristine/<relpath>` (no emulator directory) and are
+still used.
+
+### Backup and restore (implemented)
+
+`map-helper backup [--name N]` copies every file in the manifest, as it is now, to `$STATE/backups/<N>/<emulator>/
+<relpath>`, with `backup.json` recording which ones existed. The default name is the local time
+(`20261022-153000`); `pristine` is reserved. `backup --list` lists them.
+
+`map-helper restore [--emulator E] [--from N] [--dry-run] [--force]` walks the manifest (only that emulator's part
+with `--emulator`) and, per file, works out the wanted state: the backup's copy if `--from N` has the file (or
+"absent" if it was absent then), otherwise pristine (the snapshot, or "absent" for a created file; a file the backup
+doesn't list was untouched when it was taken). Then:
+
+- already the wanted content: nothing to do;
+- current hash ≠ the manifest's hash: **skipped** with a message, since someone else owns the change, unless
+  `--force`;
+- wanted "absent": deleted; otherwise rewritten atomically from the copy, byte for byte.
+
+It only ever deletes paths in the manifest, and refuses any that resolve outside the emulator's config root. The
+manifest keeps every entry, with the hash updated to what restore left, so a later apply or restore still knows the
+file. `--dry-run` prints the same list and changes nothing. Exit 1 if anything was skipped. Directories the writer
+created for a file are left in place.
+
 ### Generated files we own outright
 
 Profiles we create (e.g. `Profiles/GCPad/map-helper-<hash>.ini`,
@@ -49,7 +93,7 @@ overwritten. Uninstall deletes them.
 ### Uninstall
 
 `--restore pristine`: put back the pristine snapshots (warning about any file
-changed by EmuDeck since).
+changed by EmuDeck since). This is `map-helper restore` above.
 `--restore current` (default): remove only our managed keys and files, and
 restore those keys to their pristine values. This keeps any unrelated changes
 made since. Then remove the hooks and optionally `$DATA`.

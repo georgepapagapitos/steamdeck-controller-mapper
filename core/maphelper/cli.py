@@ -64,9 +64,21 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--state-dir", type=Path, default=Path.home() / ".local" / "state" / "map-helper",
                    help="where pristine backups go")
 
+    p = sub.add_parser("backup", help="save the current state of every file map-helper has written")
+    p.add_argument("--name", help="backup name (default: the time, e.g. 20261022-153000)")
+    p.add_argument("--list", action="store_true", help="list the backups instead")
+    p.add_argument("--state-dir", type=Path, default=Path.home() / ".local" / "state" / "map-helper")
+
+    p = sub.add_parser("restore", help="put the files map-helper wrote back to pristine, or to a backup")
+    p.add_argument("--emulator", choices=["dolphin", "retroarch"], help="only this emulator's files (default: all)")
+    p.add_argument("--from", dest="source", metavar="BACKUP", help="a backup name (default: pristine)")
+    p.add_argument("--dry-run", action="store_true", help="list what would happen; change nothing")
+    p.add_argument("--force", action="store_true", help="also restore files someone else changed since")
+    p.add_argument("--state-dir", type=Path, default=Path.home() / ".local" / "state" / "map-helper")
+
     args = parser.parse_args(argv)
     return {"validate": cmd_validate, "devices": cmd_devices, "explain": cmd_explain,
-            "apply": cmd_apply}[args.command](args)
+            "apply": cmd_apply, "backup": cmd_backup, "restore": cmd_restore}[args.command](args)
 
 
 def cmd_validate(args) -> int:
@@ -207,7 +219,7 @@ def cmd_apply(args) -> int:
         rendered = adapter.render(players, args.system, current=current)
         managed = adapter.managed_keys
     result = apply_patches(args.config_root, rendered.patches, managed,
-                           state_dir=args.state_dir, dry_run=not args.write)
+                           state_dir=args.state_dir, dry_run=not args.write, emulator=args.emulator)
     for warning in [w for p in players.values() for w in p.warnings] + rendered.warnings + checks:
         print(f"warning: {warning}", file=sys.stderr)
     for patch in result.rejected:
@@ -216,3 +228,39 @@ def cmd_apply(args) -> int:
     if args.write and result.changed_files:
         print(f"wrote: {', '.join(result.changed_files)}", file=sys.stderr)
     return 0
+
+
+def cmd_backup(args) -> int:
+    from . import restore
+    if args.list:
+        names = restore.list_backups(args.state_dir)
+        print("\n".join(names) if names else "No backups.")
+        return 0
+    try:
+        name, count = restore.backup(args.state_dir, args.name)
+    except ValueError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
+    print(f"backup {name}: {count} file(s)" if count else
+          f"backup {name}: map-helper hasn't written any file yet, so it's empty")
+    return 0
+
+
+def cmd_restore(args) -> int:
+    from . import restore
+    try:
+        actions = restore.plan(args.state_dir, args.emulator, args.source, args.force)
+    except ValueError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
+    if not actions:
+        print("Nothing to restore: map-helper hasn't written any file" + (f" for {args.emulator}." if args.emulator
+                                                                           else "."))
+        return 0
+    if not args.dry_run:
+        restore.run(args.state_dir, actions)
+    verb = {"write": "would restore" if args.dry_run else "restored",
+            "delete": "would delete" if args.dry_run else "deleted", "skip": "skipped", "ok": "unchanged"}
+    for a in actions:
+        print(f"{verb[a.kind]:<14} {a.emulator}: {a.rel} ({a.reason})")
+    return 1 if any(a.kind == "skip" for a in actions) else 0

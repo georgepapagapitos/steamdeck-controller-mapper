@@ -19,6 +19,11 @@ python3 -m maphelper devices --proc-file /proc/bus/input/devices   # on Linux / 
 cp -r ../tests/fixtures/dolphin/emudeck-default /tmp/dolphin-demo
 python3 -m maphelper apply --emulator dolphin --system gc --game GALE01 \
     --config-root /tmp/dolphin-demo --player sony.ds4.v2@mac:aa:bb:cc:dd:ee:ff --player ms.xbox-one
+
+# undo: every file map-helper wrote goes back to pristine, files it created are deleted (--state-dir as for apply)
+python3 -m maphelper backup --name before-melee      # or no --name for a timestamp; --list shows them
+python3 -m maphelper restore --dry-run               # what would change
+python3 -m maphelper restore --emulator dolphin      # or all emulators; --from before-melee for a backup
 ```
 
 Everything above runs the same on macOS, Linux and Windows. On Windows, use Git Bash (the shell scripts in
