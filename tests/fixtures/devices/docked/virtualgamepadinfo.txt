@@ -1,0 +1,12 @@
+[slot 0]
+name=#SettingsController_SteamController
+VID=0x28de
+PID=0x1205
+handle=0x000000ff35da00ad
+type=steam
+[slot 1]
+name=Nintendo Switch Pro Controller
+VID=0x057e
+PID=0x2009
+handle=0x00007cbb8ad54982
+type=switchpro

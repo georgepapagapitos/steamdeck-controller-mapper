@@ -1,0 +1,3 @@
+/sys/class/drm/card0-DP-1/status connected
+/sys/class/drm/card0-Writeback-1/status unknown
+/sys/class/drm/card0-eDP-1/status connected
