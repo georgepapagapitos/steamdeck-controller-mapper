@@ -1,0 +1,11 @@
+054c:0ce6  DualSense Wireless Controller            model=sony.dualsense style=playstation mode=passthrough steam_slot=1
+2dc8:6012  8BitDo Ultimate 2 Wireless               model=8bitdo.ultimate2 style=xbox mode=passthrough steam_slot=2
+057e:2009  Nintendo Co., Ltd. Pro Controller        model=nintendo.switch-pro style=nintendo mode=passthrough steam_slot=3 [needs claim]
+steam slot 0: #SettingsController_SteamController (28de:1205, model=valve.steamdeck) -> event10 js0
+    player 1: retroarch port 0, dolphin SDL/0/#SettingsController_SteamController
+steam slot 1: DualSense Wireless Controller (054c:0ce6, model=sony.dualsense) -> event23 js3
+    player 2: retroarch port 1, dolphin SDL/0/DualSense Wireless Controller
+steam slot 2: 8Bitdo Ultimate 2 Wireless Controller (2dc8:6012, model=8bitdo.ultimate2) -> event25 js5
+    player 3: retroarch port 2, dolphin SDL/0/8Bitdo Ultimate 2 Wireless Controller
+steam slot 3: Nintendo Switch Pro Controller (057e:2009, model=nintendo.switch-pro) -> event28 js7
+    player 4: retroarch port 3, dolphin SDL/0/Nintendo Switch Pro Controller

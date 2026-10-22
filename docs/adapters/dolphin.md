@@ -115,6 +115,32 @@ half-axis input.
   DualShock 4 is SDL's name for it (e.g. `PS4 Controller`) **[VERIFY]** names on
   device for each controller in spike S8.
 
+### Which pad is which player (implemented)
+
+`apply` without `--player` writes `[GCPad<K>] Device` for each assigned player
+K ≤ 4, and player 1's string into `[Hotkeys] Device` (hotkeys sit on P1's pad).
+Player K is the K-th live Steam slot ([04 §5.2](../04-controller-identification.md)).
+The string is worked out the way Dolphin builds it:
+
+- **Order:** Dolphin adds SDL devices in `SDL_GetJoysticks()` order when it
+  populates (`SDL.cpp` `HandleEventAndContinue`). Dolphin bundles **SDL3**
+  (`Externals/SDL` @ `fa2c02bb`), whose Linux backend adds Steam virtual pads
+  first, sorted by the slot `<N>` in `Microsoft X-Box 360 pad <N>`
+  (`LINUX_ScanSteamVirtualGamepads`), then other devices by js index.
+- **Name:** for a virtual pad with a Steam slot, SDL3 returns the slot's `name=`
+  (`SDL_GetJoystickName`; `SDL_GetGamepadName` defers to it when the pad has a
+  Steam handle). So it's whatever `virtualgamepadinfo.txt` says at launch:
+  `Steam Deck Controller` for the Deck in Game Mode, but
+  `#SettingsController_SteamController` in Desktop Mode.
+- **Index:** how many SDL devices earlier in that order have the same name.
+
+Example (`tests/golden/dolphin/game-mode-reorder.diff`): DualSense in slot 0,
+Deck in slot 1 gives `GCPad1` `SDL/0/DualSense Wireless Controller` and `GCPad2`
+`SDL/0/Steam Deck Controller` (EmuDeck's `SDL/1/Steam Deck Controller` would
+name a second Deck that isn't there). **[VERIFY]** on a Deck (S1): the order with
+3+ pads, the names in both sessions, and that the Flatpak can read the slot file.
+Wii (`[Wiimote<K>] Device`) works the same way once Wii rendering exists.
+
 ## Input naming table (SDL backend)
 
 | Canonical | Dolphin token (2407+) | Legacy token (still accepted) | Notes |
@@ -234,7 +260,7 @@ Every extension's keys are saved at once, whichever one is selected.
 - `GCPadNew.ini` `[GCPad<n>]`: `Device`, `Buttons/*`, `D-Pad/*`, `Main Stick/Up|Down|Left|Right|Modifier`, `C-Stick/Up|Down|Left|Right|Modifier`, `Triggers/L|R|L-Analog|R-Analog`, `Rumble/Motor`. Option keys only when an options rule sets them: `Main Stick/Dead Zone`, `C-Stick/Dead Zone`, `Triggers/Dead Zone`, `Triggers/Threshold`.
 - `WiimoteNew.ini` `[Wiimote<n>]`: `Device`, `Source`, `Extension`, `Buttons/*`, `D-Pad/*`, `IR/*`, `Shake/*`, `Tilt/*`, `IMUAccelerometer/*`, `IMUGyroscope/*`, `Nunchuk/Buttons/*`, `Nunchuk/Stick/*`, `Nunchuk/Shake/*`, `Classic/*`, `Rumble/Motor`.
 - `Dolphin.ini` `[Core] SIDevice0..3` only with `options.controller_type`.
-- `Hotkeys.ini` `[Hotkeys]` `Device` and hotkey keys, only with hotkey rules.
+- `Hotkeys.ini` `[Hotkeys]` `Device` (player 1's pad, when `apply` assigns players) and hotkey keys (only with hotkey rules).
 - Never: `Calibration`, `Center`, `Range` keys (user calibration), unless an options rule sets them.
 
 ## Hotkeys
@@ -321,7 +347,8 @@ import the profile as a game rule or remove the pointer.
   (east). This doesn't match `data/layouts/gc.json`'s draft `a = face_south`. Spike S7.
 - `id` in `SDL/<id>/<name>` counts only same-named devices. With Steam Input
   every virtual pad can carry a different physical name, so `SDL/0/…` is often
-  correct for every player. The device name must be resolved at launch.
+  correct for every player. The device name is resolved at launch (see "Which
+  pad is which player").
 - Expressions can be arbitrarily complex. `read()` parses single-input and
   `|`-joined expressions and keeps anything else opaque ("custom expression, preserved").
 - Real Wiimote passthrough (`Source = 2`) and the GC adapter (`SIDevice = 12`)
@@ -333,7 +360,8 @@ Dolphin, master `2c805fee8f232d090c454381bb1b8422242345e1`
 (`https://github.com/dolphin-emu/dolphin/blob/2c805fee8f232d090c454381bb1b8422242345e1/<path>`):
 
 - SDL names: `Source/Core/InputCommon/ControllerInterface/SDL/SDLGamepad.h` L388–439 (`s_sdl_button_names`, `s_sdl_axis_names`, motion axes); `SDLGamepad.cpp` L22–143 (inputs, rumble, touchpad, sensors), L281–337 (`Axis::GetName` Y flip, `Button::IsMatchingName` legacy matching)
-- Device string: `Source/Core/InputCommon/ControllerInterface/CoreDevice.cpp` L190–218; id assignment `ControllerInterface.cpp` L249–270
+- Device string: `Source/Core/InputCommon/ControllerInterface/CoreDevice.cpp` L190–218; id assignment `ControllerInterface.cpp` L249–270; populate order `SDL/SDL.cpp` L265–306
+- SDL3 at Dolphin's `Externals/SDL` (`fa2c02bb6e21974a89ea9824bc53c9932abe5f9c`): `src/joystick/linux/SDL_sysjoystick.c` L867–965 (virtual pads first, by slot), `src/joystick/SDL_joystick.c` L980–1010 and L1960–1982 (slot name), `src/joystick/SDL_gamepad.c` L3978–3986
 - Expressions: `Source/Core/InputCommon/ControllerInterface/MappingCommon.cpp` L34–142; `Source/Core/InputCommon/ControlReference/ExpressionParser.cpp` L193–255, L865–877
 - Key layout: `Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp` L22–105; `ControllerEmu.cpp` L113–137; `ControlGroup/Attachments.cpp` L53–95; `ControlGroup/MixedTriggers.cpp` L18–30; `StickGate.cpp` L21–26, L132
 - GC pad: `Source/Core/Core/HW/GCPadEmu.h` L57–86; `GCPadEmu.cpp` L39–98; `GCPad.cpp` L14 (`GCPadNew`, profile dir `GCPad`, key `Pad`)

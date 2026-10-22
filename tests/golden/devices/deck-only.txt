@@ -1,0 +1,3 @@
+No external controllers connected. (The Deck's own controls appear only as a Steam slot below.)
+steam slot 0: #SettingsController_SteamController (28de:1205, model=valve.steamdeck) -> event10 js0
+    player 1: retroarch port 0, dolphin SDL/0/#SettingsController_SteamController

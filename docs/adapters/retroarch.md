@@ -321,7 +321,7 @@ Full tables are in the descriptors. These are the ones that matter most:
   `input_playerN_analog_dpad_mode`, `input_libretro_device_pN`,
   `input_remap_port_pN`, for the users we resolve. We leave the `input_turbo_*`
   keys RetroArch writes untouched.
-- In `retroarch.cfg`: **hotkeys only**, by exact name: `input_<base>_btn`
+- In `retroarch.cfg`: hotkeys, by exact name: `input_<base>_btn`
   and `input_<base>_axis` for `enable_hotkey` and each base in
   [hotkeys.json](../../data/adapters/retroarch/hotkeys.json) `targets`
   (`menu_toggle`, `exit_emulator`, `save_state`, `load_state`,
@@ -331,8 +331,42 @@ Full tables are in the descriptors. These are the ones that matter most:
   The keyboard (`input_<base>`) and mouse (`input_<base>_mbtn`) binds are not
   managed. Meta binds have no user number (`input_config_get_prefix`: prefix
   `input`), so they are rendered from player 1's resolution.
+- In `retroarch.cfg`, also `input_playerN_joypad_index` for the players
+  `apply` assigns (see "Which pad is which player"). Nothing else there.
 - We never touch autoconfig files EmuDeck ships. We may *add* a generated
   autoconfig for native-mode devices with no profile.
+
+## Which pad is which player (implemented)
+
+`input_playerN_joypad_index` is the 0-based joypad port user N reads (default
+N−1, `config_set_defaults`; two users on one port is allowed). With
+`input_joypad_driver = "sdl2"` (EmuDeck's setting), port i is SDL device index i:
+`sdl2_joypad_init` opens SDL indices 0..n−1 into ports 0..n−1, and a hot-plugged
+pad takes the index SDL gives it.
+
+On the owner's Deck (Flatpak 1.22.2, Game Mode, docs/13 S1) RetroArch numbered
+users by **js node**: after a reorder put the DualSense in Steam slot 0, user 1
+was the Deck's virtual pad (`pad 1`, js0), and the pads kept their
+`Microsoft X-Box 360 pad <N>` names. That is SDL < 2.30's order (SDL ≥ 2.30 sorts
+Steam virtual pads by slot and renames them), so the adapter declares
+`sdl_order = "nodes"` (`retropad.json` `joypad_ports`) **[VERIFY]** which SDL2
+the Flatpak bundles.
+
+`apply` without `--player` takes the players in Steam's order (player K = K-th
+live slot), finds each one's virtual pad, ranks it among the joysticks SDL sees
+(physical pads behind Steam are hidden from SDL), and writes
+`input_playerK_joypad_index = "<rank>"` for every assigned player, so the ports
+stay a permutation. `tests/golden/retroarch/game-mode-reorder.diff` is the
+S1 case: player 1 → port 1 (the DualSense), player 2 → port 0 (the Deck), with
+the DualSense's remap on player 1.
+
+`apply` warns when these ports won't hold: `input_joypad_driver` isn't `sdl2`;
+`input_assign_ports_on_button_press` is on; a player has a reserved device
+(`input_playerN_device_reservation_type` ≠ 0, applied on every connect); or a
+core, folder or game override in `config/<core>/*.cfg` sets a joypad index
+(overrides save it when it differs, `config_save_overrides`, and win over
+`retroarch.cfg`). EmuDeck sets `config_save_on_exit = "false"`, so RetroArch
+doesn't write the ports back at quit.
 
 ## Per-game
 
@@ -521,6 +555,7 @@ RetroArch, master `eb7335f939c39be703662c2a0e07c106f99b64ac` (version 1.22.2), c
 - `frontend/drivers/platform_unix.c`: base path `$XDG_CONFIG_HOME/retroarch` (L3149–3170), remap and autoconfig defaults (L3203–3215, L3315–3319), `unix_find_packaged_dir` (L2617). `menu/cbs/menu_cbs_ok.c`: `generic_action_ok_remap_file_operation` (L4104). `settings/settings_def_input_haptics.h`: `input_remap_binds_enable`, `input_remap_sort_by_controller_enable` (L77–86).
 - libretro docs, overrides and remaps: <https://github.com/libretro/docs/blob/a7043e4a8b984c3a0a1dc5d04b8fd0a0bc66b50f/docs/guides/overrides.md> (<https://docs.libretro.com/guides/overrides/>)
 - retroarch-joypad-autoconfig master `7f94f847057c0829d4e18df27e50930728507f83`: `sdl2/Steam Virtual Gamepad.cfg`, `udev/Steam Input x-box.cfg`. <https://github.com/libretro/retroarch-joypad-autoconfig/tree/7f94f847057c0829d4e18df27e50930728507f83>
+- Joypad ports: `input/drivers_joypad/sdl2_joypad.c` `sdl2_pad_connect` (L112–131), `sdl2_joypad_init` (L334–339), hot-plug (L486–497); `configuration.c` default (L6078), load and sanitize (L7102–7114), overrides (L10124–10133); `input/input_driver.c` `input_config_sanitize_joypad_indices` (L10350–10390). SDL2 order: `src/joystick/linux/SDL_sysjoystick.c` `sort_entries` (L854–885), `LINUX_ScanSteamVirtualGamepads` (L900–962) at <https://github.com/libsdl-org/SDL/blob/0aef2c3612294b8ed4fb9626b8426f4c9c835c6d/src/joystick/linux/SDL_sysjoystick.c> (release-2.30.x); `SDL_ShouldIgnoreJoystick` (`src/joystick/SDL_joystick.c` L2989–3011).
 - Core sources: see `sources` in each `data/adapters/retroarch/cores/*.json` (pinned commits).
 
 ## EmuDeck specifics (from fixtures)

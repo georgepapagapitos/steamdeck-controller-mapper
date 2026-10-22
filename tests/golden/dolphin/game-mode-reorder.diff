@@ -1,0 +1,27 @@
+--- a/GCPadNew.ini
++++ b/GCPadNew.ini
+@@ -1,5 +1,5 @@
+ [GCPad1]
+-Device = SDL/0/Steam Deck Controller
++Device = SDL/0/DualSense Wireless Controller
+ Buttons/A = `Button S`
+ Buttons/B = `Button W`
+ Buttons/X = `Button E`
+@@ -28,7 +28,7 @@
+ D-Pad/Right = `Pad E`
+ Rumble/Motor = Strong
+ [GCPad2]
+-Device = SDL/1/Steam Deck Controller
++Device = SDL/0/Steam Deck Controller
+ Buttons/A = `Button S`
+ Buttons/B = `Button N`
+ Buttons/X = `Button E`
+--- a/Hotkeys.ini
++++ b/Hotkeys.ini
+@@ -1,5 +1,5 @@
+ [Hotkeys]
+-Device = SDL/0/Steam Deck Controller
++Device = SDL/0/DualSense Wireless Controller
+ General/Open = @(Ctrl+O)
+ General/Toggle Pause = @(Back+`Button S`)
+ General/Stop = @(Back+`Button W`)

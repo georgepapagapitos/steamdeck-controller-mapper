@@ -30,6 +30,25 @@
   },
   "_physical_notes": "Holds only when the active autoconfig profile is positional. Both shipped Steam virtual pad profiles are (sdl2/Steam Virtual Gamepad.cfg: input_b_btn=0 = SDL south; udev/Steam Input x-box.cfg: input_b_btn=0 = BTN_SOUTH). guide, misc1, paddles, touchpad, trackpads and gyro have no RetroPad id and cannot be the source of a remap.",
 
+  "joypad_ports": {
+    "key": "input_player{N}_joypad_index",
+    "file": "retroarch.cfg",
+    "semantics": "0-based joypad port that RetroArch user N reads. Default N-1 (config_set_defaults). Two users on one port is allowed; an index past the devices is reassigned to the first free one at load (input_config_sanitize_joypad_indices).",
+    "port_is_sdl_index": "With input_joypad_driver = sdl2, port i is SDL device index i: sdl2_joypad_init opens 0..SDL_NumJoysticks()-1 into ports 0..n-1, and a hot-plugged pad takes the index SDL gives it (SDL_JOYDEVICEADDED).",
+    "sdl_order": "nodes",
+    "_sdl_order_note": "Seen on the owner's Deck (2026-10-22, Flatpak 1.22.2, sdl2 driver, docs/13 S1): users follow js node order and the pads keep their 'Microsoft X-Box 360 pad N' names, which is SDL < 2.30 behaviour. SDL >= 2.30 would sort Steam virtual pads by slot and name them after the physical pad. [VERIFY] the SDL2 the Flatpak bundles.",
+    "overridden_by": "core, content-dir and game override .cfg files (config/<core>/*.cfg) save input_playerN_joypad_index when it differs (config_save_overrides); input_device_reservation_type != 0 moves users on connect; input_assign_ports_on_button_press assigns ports dynamically.",
+    "_sources": [
+      "https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/input/drivers_joypad/sdl2_joypad.c#L112-L131",
+      "https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/input/drivers_joypad/sdl2_joypad.c#L334-L339",
+      "https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/input/drivers_joypad/sdl2_joypad.c#L486-L497",
+      "https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/configuration.c#L6078",
+      "https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/configuration.c#L7102-L7114",
+      "https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/configuration.c#L10124-L10133",
+      "https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/input/input_driver.c#L10350-L10390",
+      "https://github.com/libsdl-org/SDL/blob/0aef2c3612294b8ed4fb9626b8426f4c9c835c6d/src/joystick/linux/SDL_sysjoystick.c#L854-L885"
+    ]
+  },
   "remap_file": {
     "extension": ".rmp",
     "format": "RetroArch config_file (key = \"value\" lines). Values are quoted integers when RetroArch writes them; config_get_int also accepts unquoted.",
