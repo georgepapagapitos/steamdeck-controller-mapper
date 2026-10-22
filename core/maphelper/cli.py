@@ -94,8 +94,11 @@ def cmd_devices(args) -> int:
                           "type": s.type, "name": s.name,
                           "physical_model": db.model_for(s.vid_pid),
                           "virtual_node": s.virtual.handlers if s.virtual else None})
-    # Steam sets the ignore list only in a game's environment. Outside one, a pad with a Steam slot is behind Steam.
-    behind_steam = parse_ignore_devices(args.ignore_devices) or {s["physical_vid_pid"] for s in slots}
+    # A pad with a live Steam slot is behind Steam. Steam's ignore list can't say that: it names every pad type Steam
+    # supports, connected or not (793 entries on a Deck, tests/fixtures/devices/game-steam-input-on), so it's only a
+    # fallback when there's no slot file.
+    live = {s["physical_vid_pid"] for s in slots if s["virtual_node"]}
+    behind_steam = live if slots else parse_ignore_devices(args.ignore_devices)
     slot_of = {s["physical_id"]: s["slot"] for s in slots if s["physical_id"]}
     # A wired X-input pad's handle holds no MAC; fall back to VID:PID when only one live slot and one pad have it.
     pads = [d for d in devices if is_gamepad(d) and not db.is_virtual(d.vid_pid)]

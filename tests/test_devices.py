@@ -172,6 +172,19 @@ class CapturedDeckTest(unittest.TestCase):
         self.assertEqual({d for _, _, d, _ in ids["all-three"]}, {d for _, _, d, _ in ids["all-three-reordered"]})
         self.assertTrue(all(live for *_, live in ids["all-three-reordered"]))
 
+    def test_ignore_list_names_every_supported_pad_not_the_connected_ones(self):
+        # Only a DualSense was connected, yet Steam's list covers hundreds of pads, and it's the same with Steam Input
+        # disabled for the game, so it can't tell which pads are behind Steam.
+        envs = {}
+        for name in ("on", "off"):
+            text = (REPO / f"tests/fixtures/devices/game-steam-input-{name}/env.txt").read_text(encoding="utf-8")
+            env = dict(line.partition("=")[::2] for line in text.splitlines() if not line.startswith("#"))
+            envs[name] = env
+        ignored = parse_ignore_devices(envs["on"]["SDL_GAMECONTROLLER_IGNORE_DEVICES"])
+        self.assertGreater(len(ignored), 500)
+        self.assertTrue({"054c:0ce6", "057e:2009", "2dc8:6012"} <= ignored)
+        self.assertEqual(envs["on"], envs["off"])
+
     def test_steam_slots_map_to_physical_pads(self):
         slots = {s.slot: (s.vid_pid, s.type) for s in steam_slots(self.devices, self.info)}
         self.assertEqual(slots, {0: ("28de:1205", "steam"), 1: ("054c:0ce6", "ps5")})
