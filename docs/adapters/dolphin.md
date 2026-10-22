@@ -251,8 +251,8 @@ Every extension's keys are saved at once, whichever one is selected.
 | `hotkey.exit` | `General/Exit` (`General/Stop` stops emulation only) |
 | `hotkey.toggle_fullscreen` | `General/Toggle Fullscreen` |
 | `hotkey.screenshot` | `General/Take Screenshot` |
-| `hotkey.fast_forward` | `Emulation Speed/Disable Emulation Speed Limit` |
-| `hotkey.menu`, `hotkey.rewind` | none in Dolphin |
+| `hotkey.fast_forward_hold` | `Emulation Speed/Disable Emulation Speed Limit` (acts only while held: `HotkeyScheduler::Run` calls `Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true))`, `DolphinQt/HotkeyScheduler.cpp` L492) |
+| `hotkey.fast_forward`, `hotkey.menu`, `hotkey.rewind` | none in Dolphin (no fast-forward toggle; `Increase`/`Decrease Emulation Speed` step the speed) |
 
 EmuDeck's hotkey combos: spike S7.
 

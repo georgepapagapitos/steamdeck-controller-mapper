@@ -322,7 +322,8 @@
       "hotkey.load_state": "LoadSelectedSaveState",
       "hotkey.menu": "OpenPauseMenu",
       "hotkey.exit": "PowerOff",
-      "hotkey.fast_forward": "FastForward",
+      "hotkey.fast_forward": "ToggleFastForward",
+      "hotkey.fast_forward_hold": "FastForward",
       "hotkey.rewind": "Rewind",
       "hotkey.screenshot": "Screenshot",
       "hotkey.next_slot": "SelectNextSaveStateSlot",
@@ -330,7 +331,7 @@
       "hotkey.toggle_fullscreen": "ToggleFullscreen",
       "hotkey.pause": "TogglePause"
     },
-    "_note": "FastForward is hold; ToggleFastForward is the toggle. Rewind needs [Main] RewindEnable = true. EmuDeck binds several hotkeys twice (keyboard + pad) by repeating the key."
+    "_note": "hotkey.fast_forward is the toggle (ToggleFastForward, EmuDeck's Select+R2); hotkey.fast_forward_hold is FastForward (hold). Rewind needs [Main] RewindEnable = true. EmuDeck binds several hotkeys twice (keyboard + pad) by repeating the key."
   },
   "options": {
     "rumble": {

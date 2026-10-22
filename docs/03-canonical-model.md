@@ -90,8 +90,11 @@ Example: `gc.standard.a ← face_south`.
 
 Hotkeys are a separate binding namespace: `hotkey.save_state`,
 `hotkey.load_state`, `hotkey.menu`, `hotkey.exit`, `hotkey.fast_forward`,
-`hotkey.rewind`, `hotkey.screenshot`, `hotkey.next_slot`, `hotkey.prev_slot`,
-`hotkey.toggle_fullscreen`, `hotkey.pause`. EmuDeck ships a consistent hotkey
+`hotkey.fast_forward_hold`, `hotkey.rewind`, `hotkey.screenshot`, `hotkey.next_slot`, `hotkey.prev_slot`,
+`hotkey.toggle_fullscreen`, `hotkey.pause`.
+`hotkey.fast_forward` is always the **toggle** (EmuDeck's Select+R2);
+`hotkey.fast_forward_hold` is fast-forward while held, for emulators that have
+it (owner's decision, 2026-10-22). EmuDeck ships a consistent hotkey
 scheme (**[VERIFY]** current combos per emulator). Our shipped defaults should
 copy it exactly, so installing map-helper changes nothing the user can feel.
 

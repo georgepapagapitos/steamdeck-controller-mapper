@@ -71,6 +71,7 @@
 
   "steam_virtual_pad_indices": {
     "_source": "retroarch-joypad-autoconfig sdl2/Steam Virtual Gamepad.cfg and udev/Steam Input x-box.cfg (both VID 10462 = 0x28DE, PID 4607 = 0x11FF)",
+    "_see_also": "hotkeys.json: hotkey key names and the sdl2 driver's button/axis indices, which the hotkey writer uses",
     "sdl2": {
       "face_south": "0", "face_east": "1", "face_west": "2", "face_north": "3",
       "select": "4", "guide": "5", "start": "6", "l3": "7", "r3": "8", "l1": "9", "r1": "10",
@@ -84,23 +85,5 @@
       "dpad_up": "h0up", "dpad_down": "h0down", "dpad_left": "h0left", "dpad_right": "h0right",
       "l2": "+2 (axis)", "r2": "+5 (axis)"
     }
-  },
-
-  "hotkeys": {
-    "_key_rule": "Hotkeys (meta binds) exist only for user 1 and use prefix 'input_' (input_config_get_prefix). Joypad button: input_<base>_btn; axis: input_<base>_axis; keyboard: input_<base>.",
-    "enable": "input_enable_hotkey_btn",
-    "hotkey.menu": "input_menu_toggle_btn",
-    "hotkey.exit": "input_exit_emulator_btn",
-    "hotkey.save_state": "input_save_state_btn",
-    "hotkey.load_state": "input_load_state_btn",
-    "hotkey.next_slot": "input_state_slot_increase_btn",
-    "hotkey.prev_slot": "input_state_slot_decrease_btn",
-    "hotkey.fast_forward": "input_hold_fast_forward_btn",
-    "hotkey.fast_forward_toggle": "input_toggle_fast_forward_btn",
-    "hotkey.rewind": "input_rewind_btn",
-    "hotkey.screenshot": "input_screenshot_btn",
-    "hotkey.pause": "input_pause_toggle_btn",
-    "hotkey.toggle_fullscreen": "input_toggle_fullscreen_btn",
-    "_other_bases": "close_content, reset, toggle_slowmotion, hold_slowmotion, frame_advance, audio_mute, volume_up, volume_down, disk_eject_toggle, disk_next, disk_prev, shader_toggle, shader_next, shader_prev, cheat_toggle, recording_toggle, streaming_toggle, turbo_fire_toggle, game_focus_toggle, runahead_toggle, fps_toggle, ai_service, osk_toggle, ... (input_config_bind_map in configuration.c)"
   }
 }

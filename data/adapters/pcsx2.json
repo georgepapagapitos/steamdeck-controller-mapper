@@ -270,6 +270,7 @@
       "hotkey.menu": "OpenPauseMenu",
       "hotkey.exit": "ShutdownVM",
       "hotkey.fast_forward": "ToggleTurbo",
+      "hotkey.fast_forward_hold": "HoldTurbo",
       "hotkey.rewind": null,
       "hotkey.screenshot": "Screenshot",
       "hotkey.next_slot": "NextSaveStateSlot",
@@ -277,7 +278,7 @@
       "hotkey.toggle_fullscreen": "ToggleFullscreen",
       "hotkey.pause": "TogglePause"
     },
-    "_note": "HoldTurbo is the hold variant of fast forward. Chords: 'SDL-0/Back & SDL-0/Start'. Profiles only supply hotkeys when the profile has [Pad] UseProfileHotkeyBindings = true."
+    "_note": "hotkey.fast_forward is the toggle (ToggleTurbo); hotkey.fast_forward_hold is HoldTurbo. Chords: 'SDL-0/Back & SDL-0/Start'. Profiles only supply hotkeys when the profile has [Pad] UseProfileHotkeyBindings = true."
   },
   "options": {
     "rumble": {

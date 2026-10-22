@@ -5,7 +5,8 @@ Data the RetroArch adapter reads. The prose explanation is in
 
 | File | What it holds |
 |------|---------------|
-| `retropad.json` | RetroPad ids, analog half-axis ids, canonical physical input → RetroPad (positional), `.rmp` key naming and value rules, `retroarch.cfg` bind value syntax, Steam virtual pad button indices, hotkey key names |
+| `retropad.json` | RetroPad ids, analog half-axis ids, canonical physical input → RetroPad (positional), `.rmp` key naming and value rules, `retroarch.cfg` bind value syntax, Steam virtual pad button indices per autoconfig profile |
+| `hotkeys.json` | Hotkey target → `retroarch.cfg` base, the enable bind, every meta bind base (for conflict warnings), and per joypad driver (`sdl2` only) the button/axis index of each canonical input |
 | `cores/<id>.json` | One descriptor per core: remap directory name, `.so` names, systems, device type ids, and canonical target → RetroPad |
 
 Every fact was read from source at a pinned commit. The URLs in each

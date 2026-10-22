@@ -101,6 +101,12 @@ positional (south button), so the layout setting doesn't affect them.
 | Software renderer | — | — | Start+D-Left | Start+D-Left |
 | Other | Select+X FPS, Select+Y next disc, Select+D-Up run-ahead | Select+X stop; Select+left stick ←/→ prev/next controller profile, ↑ connect Wii Remote 1 / prev game profile, ↓ next game profile | — | Select+X change disc, Select+Y toggle PGXP |
 
+Canonically `hotkey.fast_forward` is the toggle (RetroArch, PCSX2 and
+DuckStation's Select+R2) and `hotkey.fast_forward_hold` the hold. Dolphin has
+no toggle: its Start+R2 "Disable Emulation Speed Limit" acts while held, so it
+is `hotkey.fast_forward_hold`, and its Select+R2 is "Increase Emulation Speed",
+which has no canonical target.
+
 ¹ RetroArch: `input_enable_hotkey_btn = "4"` (Select), then `_btn` indices in
 SDL GameController order (0 A, 1 B, 2 X, 3 Y, 4 Back, 6 Start, 7 L3, 8 R3,
 9 L1, 10 R1, 11–14 D-pad U/D/L/R). Rewind and fast-forward are axes `+4` (L2)

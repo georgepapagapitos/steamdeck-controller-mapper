@@ -1,0 +1,5 @@
+--- a/config/remaps/Snes9x/Snes9x.rmp
++++ b/config/remaps/Snes9x/Snes9x.rmp
+@@ -0,0 +1,2 @@
++input_player1_btn_b = "8"
++input_player1_btn_a = "0"

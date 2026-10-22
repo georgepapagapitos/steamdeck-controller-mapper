@@ -140,8 +140,14 @@ class UntouchedKeysTest(unittest.TestCase):
         self.assertEqual(self.apply(tempfile.mkdtemp()).strip(), "No changes.")
 
     def test_a_user_rule_still_applies(self):
-        diff = self.apply(REPO / "examples")
-        self.assertIn("+Emulation Speed/Disable Emulation Speed Limit = @(Back+`Trigger R`)", diff)
+        import json, tempfile
+        rules = Path(tempfile.mkdtemp())
+        (rules / "screenshot.json").write_text(json.dumps({
+            "schema_version": 1, "id": "user.test.screenshot",
+            "applies_to": {"controller": {"level": "any"}, "content": {"level": "global"}},
+            "bindings": {"hotkey.screenshot": {"chord": ["select", "face_east"]}}}), encoding="utf-8")
+        diff = self.apply(rules)
+        self.assertIn("+General/Take Screenshot = @(Back+`Button E`)", diff)
         self.assertNotIn("Buttons/Z", diff)
 
 

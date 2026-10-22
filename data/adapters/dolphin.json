@@ -849,7 +849,8 @@
       "hotkey.load_state": "Load State/Load from Selected Slot",
       "hotkey.menu": null,
       "hotkey.exit": "General/Exit",
-      "hotkey.fast_forward": "Emulation Speed/Disable Emulation Speed Limit",
+      "hotkey.fast_forward": null,
+      "hotkey.fast_forward_hold": "Emulation Speed/Disable Emulation Speed Limit",
       "hotkey.rewind": null,
       "hotkey.screenshot": "General/Take Screenshot",
       "hotkey.next_slot": "Other State Hotkeys/Increase Selected State Slot",
@@ -857,7 +858,7 @@
       "hotkey.toggle_fullscreen": "General/Toggle Fullscreen",
       "hotkey.pause": "General/Toggle Pause"
     },
-    "_note": "Key = '<group>/<label>' from HotkeyManager s_groups_info + s_hotkey_labels. 'General/Stop' stops emulation without quitting. Chords use ' & ' (pressed together) or '@(a+b)' (ordered)."
+    "_note": "Key = '<group>/<label>' from HotkeyManager s_groups_info + s_hotkey_labels. 'General/Stop' stops emulation without quitting. 'Disable Emulation Speed Limit' only acts while held (HotkeyScheduler::Run: Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true)), DolphinQt/HotkeyScheduler.cpp L492 at 2c805fe), so it is hotkey.fast_forward_hold; Dolphin has no fast-forward toggle (Increase/Decrease Emulation Speed step the speed). Chords use ' & ' (pressed together) or '@(a+b)' (ordered)."
   },
   "options": {
     "rumble": {
