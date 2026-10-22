@@ -9,10 +9,10 @@ import sys
 from pathlib import Path
 
 from . import resolve as resolver
-from .devices import (DECK_CONTROLS, STEAM_VIRTUAL_PAD, ControllerDB, is_gamepad, parse_ignore_devices, parse_proc_input_devices,
+from .devices import (STEAM_VIRTUAL_PAD, ControllerDB, is_gamepad, parse_ignore_devices, parse_proc_input_devices,
                       parse_virtual_gamepad_info, physical_ids, sdl_joysticks, stable_id, steam_slots, with_usb_serials,
                       POLICY_EXTERNAL_FIRST, POLICY_STEAM_ORDER, docked, parse_drm_status,
-                      parse_power_supply, player_order, read_drm_status, read_power_supply)
+                      player_order, read_drm_status)
 from .model import Target
 from .store import load_json, load_layouts, load_sources
 from .validate import validate_rule
@@ -100,8 +100,6 @@ def add_probe_arguments(p) -> None:
                    help="player order; auto: external-first when docked, else steam-order (docs/04 5.1)")
     p.add_argument("--drm-status", type=Path, help="saved DRM connector states (a capture's drm-status.txt) "
                                                    "instead of <sys-root>/class/drm")
-    p.add_argument("--power-supply", type=Path, help="saved power supplies (a capture's power-supply.txt) "
-                                                     "instead of <sys-root>/class/power_supply")
 
 
 class Probe:
@@ -128,11 +126,7 @@ class Probe:
             return args.policy, "chosen with --policy"
         drm = (parse_drm_status(args.drm_status.read_text(encoding="utf-8")) if args.drm_status
                else read_drm_status(args.sys_root))
-        power = (parse_power_supply(args.power_supply.read_text(encoding="utf-8")) if args.power_supply
-                 else read_power_supply(args.sys_root))
-        external = sum(1 for j in sdl_joysticks(self.devices, self.slots, self.behind_steam, "nodes")
-                       if not (j.slot and j.slot.vid_pid == DECK_CONTROLS))
-        is_docked, why = docked(drm, power, external)
+        is_docked, why = docked(drm)
         if is_docked is None:
             return POLICY_STEAM_ORDER, f"can't tell docked from handheld ({why}), so Steam's order"
         return (POLICY_EXTERNAL_FIRST, f"docked: {why}") if is_docked else (POLICY_STEAM_ORDER, f"handheld: {why}")

@@ -206,19 +206,20 @@ default for `devices` and `apply`): `docked → external-first`, handheld keeps
 `steam-order` (owner's decision, 2026-10-22). Both commands print the policy and
 why (`policy: external-first (docked: DP-1 connected)`). When docked can't be
 decided (no external DRM connector to read), they fall back to `steam-order`
-and say so. `--policy` overrides it. Signals, in order of reliability:
+and say so. `--policy` overrides it.
 
-1. **External display**: any `/sys/class/drm/card*-*/status` other than the internal panel (`card*-eDP-*`) reading `connected`. The kernel's `status` attribute is always one of `connected` / `disconnected` / `unknown` (`drm_sysfs.c` `status_show` → `drm_get_connector_status_name`). Don't hard-code `card0` vs `card1`, since the index differs between SteamOS releases and models. Glob, and skip `eDP`. On the Deck an external screen arrives as a `DP-*` connector through USB-C DP alt-mode (dock or adapter) **[VERIFY]** (S9): the connector name on LCD vs OLED.
-2. **External power**: `/sys/class/power_supply/*` with `type` = `Mains` or `USB` and `online` = `1` (kernel ABI `sysfs-class-power`). The Deck's supply name (`ACAD`?) is **[VERIFY]** (S9), so glob by `type` rather than name. Power alone isn't "docked" (charging in handheld), so only use it as a tiebreaker.
-3. **External controller count > 0** is the strongest *intent* signal and is already known from the probe.
+**Docked means an external display is connected** (owner's decision, 2026-10-22):
 
-Rule: `docked = external_display_connected || (external_power && external_pads > 0)`.
-Re-evaluate at launch only. No daemon is needed. Implemented in `devices.docked`:
-connectors other than `eDP-*` and `Writeback-*` (virtual, always `unknown`) are
-external, and supplies count only by `type` (the Switch Pro's battery is
-`type=Battery`). The `docked` capture reads docked (`DP-1` connected); every
-handheld capture reads handheld (`DP-1` disconnected, `ACAD` offline). The power
-tiebreaker (a dock with the TV off) has no capture yet **[VERIFY]**.
+- **External display**: any `/sys/class/drm/card*-*/status` other than the internal panel (`card*-eDP-*`) reading `connected`. The kernel's `status` attribute is always one of `connected` / `disconnected` / `unknown` (`drm_sysfs.c` `status_show` → `drm_get_connector_status_name`). Don't hard-code `card0` vs `card1`, since the index differs between SteamOS releases and models. Glob, and skip `eDP`. On the Deck an external screen arrives as a `DP-*` connector through USB-C DP alt-mode (dock or adapter) **[VERIFY]** (S9): the connector name on LCD vs OLED.
+
+Rule: `docked = external_display_connected`. Power and controller count don't
+count: a dock with the TV off, or charging in handheld, is handheld, so
+`steam-order`. Re-evaluate at launch only; no daemon is needed. Implemented in
+`devices.docked`: connectors other than `eDP-*` and `Writeback-*` (virtual,
+always `unknown`) are external. No external connector to read at all is
+undecided, so `steam-order` with that reason shown. The `docked` capture reads
+docked (`DP-1` connected); every handheld capture reads handheld (`DP-1`
+disconnected).
 
 ### 5.2 Mapping slots to what the emulator sees
 

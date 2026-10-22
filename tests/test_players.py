@@ -13,7 +13,7 @@ from maphelper import cli
 from maphelper.adapters.dolphin import DolphinAdapter
 from maphelper.adapters.retroarch import RetroArchAdapter
 from maphelper.devices import (POLICY_EXTERNAL_FIRST, POLICY_STEAM_ORDER, SDL_ORDER_NODES, SDL_ORDER_SLOTS, docked,
-                               parse_drm_status, parse_power_supply, parse_proc_input_devices,
+                               parse_drm_status, parse_proc_input_devices,
                                parse_virtual_gamepad_info, player_order, sdl_joysticks, steam_order, steam_slots)
 
 DEVICES = REPO / "tests" / "fixtures" / "devices"
@@ -165,25 +165,23 @@ class AdapterTest(unittest.TestCase):
 
 
 class DockedTest(unittest.TestCase):
-    def state(self, scenario, external_pads=1):
-        root = DEVICES / scenario
-        return docked(parse_drm_status((root / "drm-status.txt").read_text(encoding="utf-8")),
-                      parse_power_supply((root / "power-supply.txt").read_text(encoding="utf-8")), external_pads)
+    def state(self, scenario):
+        return docked(parse_drm_status((DEVICES / scenario / "drm-status.txt").read_text(encoding="utf-8")))
 
     def test_captures(self):
         self.assertEqual(self.state("docked"), (True, "DP-1 connected"))
         for scenario in ("deck-only", "all-three", "all-three-reordered", "dualsense-bt", "switchpro-usb"):
             self.assertFalse(self.state(scenario)[0], scenario)
 
-    def test_power_is_only_a_tiebreaker(self):
+    def test_no_display_is_handheld(self):
+        # A dock with the TV off, or charging in handheld: power doesn't count, only a connected display does.
         drm = {"eDP-1": "connected", "DP-1": "disconnected", "Writeback-1": "unknown"}
-        self.assertEqual(docked(drm, {"ACAD": ("Mains", "1")}, 1)[0], True)    # dock without a TV on, pad in hand
-        self.assertEqual(docked(drm, {"ACAD": ("Mains", "1")}, 0)[0], False)   # charging handheld
-        self.assertEqual(docked(drm, {"BAT1": ("Battery", "1")}, 1)[0], False)  # a pad's battery isn't power
+        self.assertEqual(docked(drm), (False, "no external display connected"))
+        self.assertEqual(docked({**drm, "Writeback-1": "connected"})[0], False)
 
     def test_undecided_without_connectors(self):
-        self.assertIsNone(docked({}, {"ACAD": ("Mains", "1")}, 1)[0])
-        self.assertIsNone(docked({"eDP-1": "connected"}, {}, 0)[0])
+        self.assertIsNone(docked({})[0])
+        self.assertIsNone(docked({"eDP-1": "connected"})[0])
 
     def test_external_first_moves_the_deck_last(self):
         # Steam's session put the Deck back in slot 0 (BOARD: switching sessions resets the order).
@@ -217,7 +215,7 @@ class CliTest(unittest.TestCase):
             out, _ = self.run_cli("devices", "--proc-file", str(root / "proc-bus-input-devices"),
                                   "--virtual-info", str(root / "virtualgamepadinfo.txt"), "--ignore-devices", "",
                                   "--drm-status", str(root / "drm-status.txt"),
-                                  "--power-supply", str(root / "power-supply.txt"), "--sys-root", str(root))
+                                  "--sys-root", str(root))
             with self.subTest(root.name):
                 self.check_golden(GOLDEN / "devices" / f"{root.name}.txt", out)
 
@@ -271,7 +269,7 @@ class CliTest(unittest.TestCase):
                                 "--proc-file", str(root / "proc-bus-input-devices"),
                                 "--virtual-info", str(root / "virtualgamepadinfo.txt"),
                                 "--drm-status", str(root / "drm-status.txt"),
-                                "--power-supply", str(root / "power-supply.txt"), "--sys-root", str(tmp))
+                                "--sys-root", str(tmp))
         self.assertIn("policy: external-first (docked: DP-1 connected)", err)
         self.assertIn("player 1: Nintendo Switch Pro Controller (steam slot 1)", err)
         self.assertIn('+input_player1_joypad_index = "1"', out)
@@ -279,7 +277,7 @@ class CliTest(unittest.TestCase):
 
     def test_undecided_falls_back_to_steam_order(self):
         tmp, probe = self.game_mode_probe()
-        probe = probe[:-2]                     # auto policy, but an empty sys root: no connectors, no power
+        probe = probe[:-2]                     # auto policy, but an empty sys root: no connectors
         out, _ = self.run_cli("devices", *probe)
         self.assertIn("policy: steam-order (can't tell docked from handheld (no external display connector found)",
                       out)

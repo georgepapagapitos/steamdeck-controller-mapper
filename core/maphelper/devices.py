@@ -333,17 +333,6 @@ def parse_drm_status(text: str) -> dict[str, str]:
     return out
 
 
-def parse_power_supply(text: str) -> dict[str, tuple]:
-    """Lines "<path>/ACAD type=Mains online=1" (tools/deck-capture.sh) -> {"ACAD": ("Mains", "1")}."""
-    out = {}
-    for line in text.splitlines():
-        path, *fields = line.split()
-        values = dict(f.partition("=")[::2] for f in fields)
-        if path:
-            out[Path(path).name] = (values.get("type", ""), values.get("online", ""))
-    return out
-
-
 def read_drm_status(sys_root: Path) -> dict[str, str]:
     """The live connectors under <sys_root>/class/drm, in parse_drm_status's shape."""
     lines = []
@@ -355,34 +344,18 @@ def read_drm_status(sys_root: Path) -> dict[str, str]:
     return parse_drm_status("\n".join(lines))
 
 
-def read_power_supply(sys_root: Path) -> dict[str, tuple]:
-    """The live supplies under <sys_root>/class/power_supply, in parse_power_supply's shape."""
-    out = {}
-    for supply in sorted(Path(sys_root).glob("class/power_supply/*")):
-        def attr(name):
-            try:
-                return (supply / name).read_text(encoding="utf-8").strip()
-            except OSError:
-                return ""
-        out[supply.name] = (attr("type"), attr("online"))
-    return out
-
-
-def docked(drm: dict[str, str], power: dict[str, tuple], external_pads: int) -> tuple:
-    """(True/False, or None when it can't be told; why). docs/04 §5.1, connector names from S9 (docked capture):
-    docked = an external display connected, or external power with an external pad (power only as a tiebreaker).
-    eDP is the internal panel and Writeback a virtual connector (always "unknown"); every other one is external."""
+def docked(drm: dict[str, str]) -> tuple:
+    """(True/False, or None when it can't be told; why). Docked means an external display is connected (owner's
+    decision, docs/04 §5.1): a TV that's off or charging in handheld is handheld. Connector names from S9 (the docked
+    capture): eDP is the internal panel and Writeback a virtual connector (always "unknown"); every other is external."""
     external = {name: status for name, status in drm.items()
                 if not name.startswith("eDP") and not name.startswith("Writeback")}
     lit = sorted(name for name, status in external.items() if status == "connected")
     if lit:
         return True, f"{', '.join(lit)} connected"
-    mains = sorted(name for name, (kind, online) in power.items() if kind in ("Mains", "USB") and online == "1")
     if not external:
-        return None, "no external display connector found" + (", only external power" if mains else "")
-    if mains and external_pads:
-        return True, f"no external display, but on external power ({', '.join(mains)}) with an external pad"
-    return False, "no external display" + (", on external power but no external pad" if mains else "")
+        return None, "no external display connector found"
+    return False, "no external display connected"
 
 
 class ControllerDB:
