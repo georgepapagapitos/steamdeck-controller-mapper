@@ -32,14 +32,3 @@
  Buttons/Start = Start
  Main Stick/Up = `Axis 1-`
  Main Stick/Down = `Axis 1+`
---- a/Hotkeys.ini
-+++ b/Hotkeys.ini
-@@ -5,7 +5,7 @@
- General/Stop = @(Back+`Button W`)
- General/Toggle Fullscreen = @(Alt+Return)|@(Start+`Thumb L`)
- General/Take Screenshot = F9
--Emulation Speed/Disable Emulation Speed Limit = @(Start+`Trigger R`)
-+Emulation Speed/Disable Emulation Speed Limit = @(Back+`Trigger R`)
- Stepping/Step Into = F11
- Stepping/Step Over = @(Shift+F10)
- Stepping/Step Out = @(Shift+F11)

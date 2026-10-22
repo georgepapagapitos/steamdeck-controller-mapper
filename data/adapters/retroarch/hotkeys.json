@@ -18,14 +18,20 @@
     "hotkey.load_state": "load_state",
     "hotkey.next_slot": "state_slot_increase",
     "hotkey.prev_slot": "state_slot_decrease",
-    "hotkey.fast_forward": "hold_fast_forward",
-    "hotkey.fast_forward_toggle": "toggle_fast_forward",
+    "hotkey.fast_forward": "toggle_fast_forward",
+    "hotkey.fast_forward_hold": "hold_fast_forward",
     "hotkey.rewind": "rewind",
     "hotkey.screenshot": "screenshot",
     "hotkey.pause": "pause_toggle",
     "hotkey.toggle_fullscreen": "toggle_fullscreen"
   },
-  "_targets_notes": "Bases are the names in input_config_bind_map (configuration.c L347-467). hotkey.fast_forward is the hold variant; EmuDeck's Select+R2 is the toggle (input_toggle_fast_forward_axis = \"+5\" in tests/fixtures/retroarch/emudeck-default/retroarch.cfg).",
+  "_targets_notes": "Bases are the names in input_config_bind_map (configuration.c L347-467). hotkey.fast_forward is the toggle in every emulator (owner's decision, 2026-10-22), as EmuDeck binds Select+R2 (input_toggle_fast_forward_axis = \"+5\" in tests/fixtures/retroarch/emudeck-default/retroarch.cfg); hotkey.fast_forward_hold is the hold variant.",
+
+  "quit_combo": {
+    "key": "input_quit_gamepad_combo",
+    "combos": ["none", "Down+Y+L1+R1", "L3+R3", "L1+R1+Start+Select", "Start+Select", "L3+R1", "L1+R1", "hold Start", "hold Select", "Down+Select", "L2+R2"],
+    "_notes": "Not managed, only read: a gamepad combo that quits regardless of the exit hotkey. Index = enum input_combo_type (input/input_defines.h L221-235; 0 = INPUT_COMBO_NONE), checked in input_driver.c L2221. EmuDeck sets \"4\" (Start+Select)."
+  },
 
   "meta_bases": ["enable_hotkey", "menu_toggle", "exit_emulator", "close_content", "reset", "toggle_fast_forward", "hold_fast_forward", "toggle_slowmotion", "hold_slowmotion", "rewind", "pause_toggle", "frame_advance", "audio_mute", "volume_up", "volume_down", "load_state", "save_state", "state_slot_increase", "state_slot_decrease", "play_replay", "record_replay", "halt_replay", "save_replay_checkpoint", "prev_replay_checkpoint", "next_replay_checkpoint", "replay_slot_increase", "replay_slot_decrease", "disk_eject_toggle", "disk_next", "disk_prev", "shader_toggle", "shader_hold", "shader_next", "shader_prev", "cheat_toggle", "cheat_index_plus", "cheat_index_minus", "screenshot", "recording_toggle", "streaming_toggle", "turbo_fire_toggle", "grab_mouse_toggle", "game_focus_toggle", "toggle_fullscreen", "desktop_menu_toggle", "toggle_vrr_runloop", "runahead_toggle", "preempt_toggle", "video_filter_toggle", "headset_recenter", "laser_pointer_toggle", "headset_view_toggle", "fps_toggle", "toggle_statistics", "ai_service", "netplay_ping_toggle", "netplay_host_toggle", "netplay_game_watch", "netplay_player_chat", "netplay_fade_chat_toggle", "overlay_next", "osk_toggle"],
   "_meta_bases_notes": "Every DECLARE_META_BIND base in input_config_bind_map (configuration.c L388-466), in order. Only read, to warn when an unmanaged hotkey shares a button with one we write.",

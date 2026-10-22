@@ -181,7 +181,8 @@ Section `[Hotkeys]`, same binding syntax.
 | `hotkey.menu` | `OpenPauseMenu` |
 | `hotkey.exit` | `ShutdownVM` |
 | `hotkey.pause` | `TogglePause` |
-| `hotkey.fast_forward` | `ToggleTurbo` (hold: `HoldTurbo`) |
+| `hotkey.fast_forward` | `ToggleTurbo` |
+| `hotkey.fast_forward_hold` | `HoldTurbo` |
 | `hotkey.toggle_fullscreen` | `ToggleFullscreen` |
 | `hotkey.screenshot` | `Screenshot` |
 | `hotkey.rewind` | none |

@@ -325,8 +325,8 @@ Full tables are in the descriptors. These are the ones that matter most:
   and `input_<base>_axis` for `enable_hotkey` and each base in
   [hotkeys.json](../../data/adapters/retroarch/hotkeys.json) `targets`
   (`menu_toggle`, `exit_emulator`, `save_state`, `load_state`,
-  `state_slot_increase`, `state_slot_decrease`, `hold_fast_forward`,
-  `toggle_fast_forward`, `rewind`, `screenshot`, `pause_toggle`,
+  `state_slot_increase`, `state_slot_decrease`, `toggle_fast_forward`,
+  `hold_fast_forward`, `rewind`, `screenshot`, `pause_toggle`,
   `toggle_fullscreen`). Nothing is written there unless a rule sets a hotkey.
   The keyboard (`input_<base>`) and mouse (`input_<base>_mbtn`) binds are not
   managed. Meta binds have no user number (`input_config_get_prefix`: prefix
@@ -392,13 +392,17 @@ resolution has `hotkey.*` bindings that rules set:
 4. A hotkey we don't render that is still bound to an input we just used
    (action or enable) would fire with it. Managed ones are set to `"nul"`
    with a warning (EmuDeck's Select+R2 fast-forward toggle when a rule puts
-   hold-fast-forward on R2). Unmanaged ones are only warned about.
+   `hotkey.fast_forward_hold` on R2). Unmanaged ones are only warned about.
 5. Moving the enable button warns, since every RetroArch hotkey moves with it.
 
 `input_menu_toggle_gamepad_combo = "2"` (L3+R3) and
 `input_quit_gamepad_combo = "4"` (Start+Select) in EmuDeck's config are
-separate combo settings, not binds, and are left alone. The quit combo keeps
-quitting on Start+Select even if a rule moves `hotkey.exit`.
+separate combo settings, not binds (`enum input_combo_type`,
+`input/input_defines.h` L221–235; the quit combo is checked in
+`input_driver.c` L2221 regardless of the exit hotkey). map-helper leaves both
+unmanaged. When a rule moves or unbinds `hotkey.exit` and the live quit combo
+isn't `0` (none), the render warns that the combo (Start+Select under EmuDeck)
+still quits. A rule that keeps exit on Select+Start gets no warning.
 
 ### SDL2 indices
 
@@ -428,8 +432,9 @@ Virtual Gamepad autoconfig. SDL's `MISC1`, `PADDLE1`–`4` and `TOUCHPAD`
 GameController API (otherwise raw joystick indices apply), and whether Guide
 reaches RetroArch at all (Steam keeps it).
 
-`hotkey.fast_forward` is `hold_fast_forward`; `hotkey.fast_forward_toggle` is
-`toggle_fast_forward`, which is what EmuDeck binds to Select+R2.
+`hotkey.fast_forward` is `toggle_fast_forward`, which EmuDeck binds to
+Select+R2 (the canonical fast-forward is always the toggle);
+`hotkey.fast_forward_hold` is `hold_fast_forward`.
 
 ## Known pitfalls
 

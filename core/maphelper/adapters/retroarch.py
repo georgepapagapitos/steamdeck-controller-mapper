@@ -180,6 +180,7 @@ class RetroArchAdapter:
             written[(suffix, value)] = base
         for base in unbound:
             out.patches += [Patch(cfg, None, f"input_{base}{s}", '"nul"') for s in SUFFIXES]
+        self._warn_quit_combo(binds, unbound, live, out)
         # A hotkey still on an input one of ours now uses would fire with it. Managed ones let go, others are flagged.
         managed = set(hk["targets"].values())
         for base in hk["meta_bases"]:
@@ -196,6 +197,23 @@ class RetroArchAdapter:
                 else:
                     out.warnings.append(f"retroarch: input_{base}{s} is on the same input as input_{other}; "
                                         f"both fire")
+
+    def _warn_quit_combo(self, binds: dict, unbound: list, live: Callable, out: Rendered) -> None:
+        """input_quit_gamepad_combo quits on its own, whatever hotkey.exit says. We leave it alone, but say so."""
+        combo, base = self.hotkeys["quit_combo"], self.hotkeys["targets"]["hotkey.exit"]
+        if base not in binds and base not in unbound:
+            return
+        try:
+            index = int(live(combo["key"]) or 0)
+        except ValueError:
+            return
+        if not 0 < index < len(combo["combos"]):
+            return
+        name = combo["combos"][index]
+        if base in binds and set(name.split("+")) == {binds[self.hotkeys["enable"]].title(), binds[base].title()}:
+            return                                   # the rule puts exit where the combo already is
+        out.warnings.append(f"retroarch: {combo['key']} = \"{index}\": {name} still quits RetroArch, "
+                            f"wherever hotkey.exit is")
 
     @staticmethod
     def _key(user: int, name: str) -> str:

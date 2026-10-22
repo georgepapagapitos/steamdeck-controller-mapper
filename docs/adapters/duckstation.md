@@ -172,7 +172,8 @@ Section `[Hotkeys]`, same binding syntax (`core/hotkeys.cpp`).
 | `hotkey.menu` | `OpenPauseMenu` (`TogglePauseMenu` too) |
 | `hotkey.exit` | `PowerOff` |
 | `hotkey.pause` | `TogglePause` |
-| `hotkey.fast_forward` | `FastForward` (hold) / `ToggleFastForward` |
+| `hotkey.fast_forward` | `ToggleFastForward` |
+| `hotkey.fast_forward_hold` | `FastForward` (hold) |
 | `hotkey.rewind` | `Rewind` (needs `[Main] RewindEnable = true`) |
 | `hotkey.toggle_fullscreen` | `ToggleFullscreen` |
 | `hotkey.screenshot` | `Screenshot` |

@@ -124,7 +124,7 @@ class RetroArchHotkeyTest(OwnersDeck):
         result = self.apply({1: hotkeys(exit="select+start", pause="select+face_south", save_state="select+r1",
                                         load_state="select+l1", prev_slot="select+dpad_left",
                                         next_slot="select+dpad_right", rewind="select+l2", menu="select+r3",
-                                        fast_forward_toggle="select+r2", screenshot="select+face_east")})
+                                        fast_forward="select+r2", screenshot="select+face_east")})
         self.assertEqual((result.changed_files, result.rejected), ([], []))
 
     def test_moved_hotkey_writes_button_and_clears_axis(self):
@@ -162,6 +162,24 @@ class RetroArchHotkeyTest(OwnersDeck):
                                                          screenshot="select+paddle1")})
         self.assertEqual(patches, {})
         self.assertEqual(len(warnings), 3)
+
+    def test_fast_forward_is_the_toggle(self):
+        patches, _ = self.cfg_patches({1: hotkeys(fast_forward="select+r2")})
+        self.assertEqual(patches["input_toggle_fast_forward_axis"], '"+5"')
+        patches, _ = self.cfg_patches({1: hotkeys(fast_forward_hold="select+r2")})
+        self.assertEqual(patches["input_hold_fast_forward_axis"], '"+5"')
+        self.assertEqual(patches["input_toggle_fast_forward_axis"], '"nul"')  # would fire with it otherwise
+
+    def test_moving_exit_warns_about_the_quit_combo(self):
+        _, warnings = self.cfg_patches({1: hotkeys(exit="select+face_north")})
+        self.assertTrue(any("Start+Select still quits" in w for w in warnings))
+        _, warnings = self.cfg_patches({1: hotkeys(exit="start+select")})      # where EmuDeck's combo is
+        self.assertFalse(any("quit_gamepad_combo" in w for w in warnings))
+        cfg = self.root / CFG
+        cfg.write_text(cfg.read_text(encoding="utf-8").replace('input_quit_gamepad_combo = "4"',
+                                                               'input_quit_gamepad_combo = "0"'), encoding="utf-8")
+        _, warnings = self.cfg_patches({1: hotkeys(exit="select+face_north")})
+        self.assertFalse(any("quit_gamepad_combo" in w for w in warnings))
 
     def test_none_unbinds(self):
         patches, _ = self.cfg_patches({1: hotkeys(rewind="none")})
