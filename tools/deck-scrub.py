@@ -24,22 +24,37 @@ MAC = re.compile(r"\b(?:[0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}\b")
 # the MAC appears nowhere else). Wired X-input handles start 0x1<VID><PID> and hold no MAC.
 HANDLE = re.compile(r"^handle=0x00[0-9A-Fa-f]{2}([0-9A-Fa-f]{12})$", re.M)
 UNIQ = re.compile(r"^U: Uniq=(.*)$", re.M)
-SETTING = re.compile(r"^([ \t]*([\w.]+)[ \t]*=[ \t]*)(.*)$", re.M)
-CREDENTIAL_WORDS = {"password", "passwd", "token", "secret", "username", "nickname", "cookie", "credential",
-                    "credentials", "auth"}
+SETTING = re.compile(r"^([ \t]*([^=\r\n;#\[][^=\r\n]*?)[ \t]*=[ \t]*)(.*)$", re.M)  # any key shape: a-b, a b, a/b
+# Fail closed: a key is a credential when any of these appears anywhere in it, ignoring case and separators, unless
+# it's a known look-alike. Over-blanking costs a fixture value; under-blanking ships a secret.
+CREDENTIAL_TERMS = ("password", "passwd", "token", "secret", "username", "nickname", "cookie", "credential", "auth",
+                    "apikey", "streamkey")
+NOT_CREDENTIALS = {"netplayshowpassworded"}  # a true/false menu setting
 URL_USERINFO = re.compile(r"(?<=://)[^/@\s\"']+@")
 
 
-def is_analytics_id(m: re.Match) -> bool:
-    return m[2] == "ID" and re.fullmatch(r"[0-9a-f]{32}", m[3].strip()) is not None
+def _flat(key: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", key.lower())
 
 
 def is_credential(key: str) -> bool:
-    """A whole word of the key names a credential: twitch_stream_key, webdav_password and ApiToken yes;
-    mgba_audio_low_pass_filter, vibrate_on_keypress and netplay_show_passworded no."""
-    words = [w.lower() for w in re.findall(r"[A-Z]?[a-z0-9]+|[A-Z]+(?![a-z])", key)]
-    joined = "".join(words)
-    return bool(CREDENTIAL_WORDS & set(words)) or joined.endswith(("streamkey", "apikey"))
+    flat = _flat(key)
+    return flat not in NOT_CREDENTIALS and any(term in flat for term in CREDENTIAL_TERMS)
+
+
+def is_analytics_id(key: str, value: str) -> bool:
+    """Dolphin.ini's per-install [Analytics] ID."""
+    return key.strip().lower() == "id" and re.fullmatch(r"[0-9a-fA-F]{32}", value.strip()) is not None
+
+
+def leftover_credential(text: str) -> bool:
+    """The gate, written apart from the blanking regex so a miss there is caught here: plain "key = value" lines."""
+    for line in text.splitlines():
+        key, sep, value = line.partition("=")
+        value = value.strip()
+        if sep and value not in ("", '""', "''") and (is_credential(key) or is_analytics_id(key, value)):
+            return True
+    return bool(URL_USERINFO.search(text))
 
 
 def main(root: pathlib.Path, salt_file: pathlib.Path, rekey: bool) -> int:
@@ -104,14 +119,13 @@ def main(root: pathlib.Path, salt_file: pathlib.Path, rekey: bool) -> int:
         if pattern:
             s = pattern.sub(lambda m: swap[m[0].lower()], s)
         # Blank credentials, keeping the key (the quotes go too), and Dolphin.ini's per-install [Analytics] ID.
-        s = SETTING.sub(lambda m: m[1] if is_credential(m[2]) or is_analytics_id(m) else m[0], s)
+        s = SETTING.sub(lambda m: m[1] if is_credential(m[2]) or is_analytics_id(m[2], m[3]) else m[0], s)
         files[f] = URL_USERINFO.sub("", s)
 
     survivors = [f for f, s in files.items() for original in swap if original in s.lower()]
     survivors += [f for f, s in files.items() for u in serials
                   if re.search(r"^U: Uniq=" + re.escape(u) + "$", s, re.M) or "\t" + u + "\t" in s]
-    survivors += [f for f, s in files.items() if URL_USERINFO.search(s)
-                  or any((is_credential(m[2]) and m[3].strip()) or is_analytics_id(m) for m in SETTING.finditer(s))]
+    survivors += [f for f, s in files.items() if leftover_credential(s)]
     if survivors:
         print(f"scrub: an original value or a credential survived in {survivors[0].name}", file=sys.stderr)
         return 1

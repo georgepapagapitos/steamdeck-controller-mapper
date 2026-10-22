@@ -30,7 +30,8 @@ TSV = f"event20\tDualSense\t{MAC}\t\t054c:0ce6\nevent9\tOdd\t1\t\t1234:5678\n"
 CFG = ('cheevos_password = "hunter2"\ninput_player1_btn_a = "0"\nnetplay_password =\nnetplay_port = "55435"\n'
        'twitch_stream_key = "live_abc"\nApiToken = xyz\nwebdav_url = "https://me:pw@dav.example/"\n'
        'mgba_audio_low_pass_filter = "enabled"\nvibrate_on_keypress = "false"\nnetplay_show_passworded = "true"\n'
-       '[Analytics]\nID = ffffeeeeddddccccbbbbaaaa99998888\n[Other]\nID = 3\n')
+       'userpassword = p1\nProxy-Password = p2\nSession Cookie = p3\n'
+       '[Analytics]\nID = ffffeeeeddddccccbbbbaaaa99998888\n[A2]\nID = FFFFEEEEDDDDCCCCBBBBAAAA99998888\n[Other]\nID = 3\n')
 
 
 class ScrubTest(unittest.TestCase):
@@ -62,7 +63,7 @@ class ScrubTest(unittest.TestCase):
     def test_no_original_survives(self):
         out = "".join(self.scrub().values()).lower()
         for original in (MAC, MAC.replace(":", ""), STALE.replace(":", ""), SERIAL.lower(), "hunter2", "live_abc",
-                         "xyz", "me:pw", "ffffeeeeddddccccbbbbaaaa99998888"):
+                         "xyz", "me:pw", "ffffeeeeddddccccbbbbaaaa99998888", "p1", "p2", "p3"):
             self.assertNotIn(original, out)
 
     def test_shape_is_kept(self):
@@ -105,6 +106,11 @@ class ScrubTest(unittest.TestCase):
         for line in ('mgba_audio_low_pass_filter = "enabled"', 'vibrate_on_keypress = "false"',
                      'netplay_show_passworded = "true"', "ID = 3", 'webdav_url = "https://dav.example/"'):
             self.assertIn(line + "\n", cfg)
+
+    def test_gate_catches_what_blanking_misses(self):
+        self.assertTrue(deck_scrub.leftover_credential("x = 1\nmy-api-key = abc\n"))
+        self.assertTrue(deck_scrub.leftover_credential('url = "ftp://u:p@host/"\n'))
+        self.assertFalse(deck_scrub.leftover_credential('twitch_stream_key = \nnetplay_show_passworded = "true"\n'))
 
     def test_undecodable_file_never_leaves(self):
         tmp = Path(tempfile.mkdtemp())
