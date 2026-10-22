@@ -1,0 +1,2 @@
+/sys/class/power_supply/ACAD type=Mains online=0
+/sys/class/power_supply/BAT1 type=Battery online=

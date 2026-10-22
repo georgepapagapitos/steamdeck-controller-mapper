@@ -1,0 +1,6 @@
+[slot 0]
+name=#SettingsController_SteamController
+VID=0x28de
+PID=0x1205
+handle=0x000000ff35da00ad
+type=steam
