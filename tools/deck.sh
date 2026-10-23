@@ -6,6 +6,11 @@
 #   tools/deck.sh install            install this tree in ~/.local/lib/map-helper on the Deck (self-install)
 #   tools/deck.sh capture SCENARIO   dump devices and emulator configs into tests/fixtures/*/SCENARIO/
 #   tools/deck.sh watch start|stop|show   record presses, slot rewrites and launches on the Deck (deck-watch.py)
+#   tools/deck.sh ui ARGS...         run tools/cdp.py on the Deck: targets, eval JS, reload, nav PATH
+#   tools/deck.sh shot OUT.png [T]   screenshot Steam's UI (page title containing T, default Big Picture) to OUT.png
+#   tools/deck.sh plugin             build decky/, copy its frontend and backend into the installed plugin, reload it
+#   tools/deck.sh leak-check [RANGE] before a push: compare what RANGE (default @{u}..HEAD) publishes with the
+#                                    Deck's real device ids, on the Deck; prints counts and file names only
 #   tools/deck.sh ssh                open a shell on the Deck
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -83,12 +88,36 @@ EOF
   esac
 }
 
+CDP=.cache/map-helper-cdp.py
+
+ui() {
+  # Steam's CEF debugger only listens on the Deck's localhost, so the client runs there (stdlib Python).
+  ssh "$HOST" "mkdir -p .cache && cat > $CDP" < tools/cdp.py
+  ssh "$HOST" "/usr/bin/python3 -I $CDP $(printf '%q ' "$@")"
+}
+
+plugin() {
+  # Developer-mode iteration on an installed plugin (decky/README.md): no zip, no reinstall.
+  (cd decky && corepack pnpm run build >/dev/null)
+  scp -q decky/dist/index.js "$HOST:homebrew/plugins/map-helper/dist/index.js"
+  scp -q decky/main.py "$HOST:homebrew/plugins/map-helper/main.py"
+  ui reload
+}
+
 case "${1:-}" in
   push) push ;;
+  ui) shift; ui "$@" ;;
+  shot) ui shot - --target "${3:-Big Picture}" > "${2:?usage: tools/deck.sh shot OUT.png [TARGET]}" ;;
+  plugin) plugin ;;
+  leak-check)
+    # Every commit's message and full patch, binary files as text too (a fixture can be binary). Not through rtk.
+    ssh "$HOST" "mkdir -p .cache && cat > .cache/map-helper-leak-scan.py" < tools/leak-scan.py
+    git log -p --text --no-ext-diff --no-color --format='commit %H%n%an <%ae>%n%B' "${2:-@{u\}..HEAD}" |
+      ssh "$HOST" "/usr/bin/python3 -I .cache/map-helper-leak-scan.py" ;;
   install) install ;;
   run) shift; push; ssh "$HOST" "cd $DIR/core && /usr/bin/python3 -m maphelper $(printf '%q ' "$@")" ;;
   capture) shift; capture "$@" ;;
   watch) shift; watch "$@" ;;
   ssh) exec ssh "$HOST" ;;
-  *) sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  *) sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
