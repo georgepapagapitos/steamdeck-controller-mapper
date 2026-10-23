@@ -35,7 +35,7 @@ class Described:
     kind emulator or emudeck, patched when this run's patches set the value (then a rule may have)."""
     port: Optional[int] = None
     drives: list = field(default_factory=list)     # (physical input, target, source)
-    notes: dict = field(default_factory=dict)      # physical input -> (text, source)
+    notes: dict = field(default_factory=dict)      # physical input -> (text, source, short text for a list row)
     options: list = field(default_factory=list)    # (option key, canonical value, source, player whose rules set it)
 
 
@@ -140,6 +140,7 @@ def _inputs(controller, glyphs: dict, described: Described, source: "_Sources", 
         note = next((described.notes[p] for p in parts if p in described.notes), None)
         if note:
             row["note"], row["note_source"] = note[0], source.note(name, note[1])
+            row["note_short"] = note[2]
         if name not in STICK_PARTS and len(seen) > 1 and frozenset(seen) not in shared:
             warnings.append(f"player {player}: {name} drives several inputs: {', '.join(sorted(seen))}")
         out.append(row)
@@ -217,8 +218,12 @@ def _same_input(rule_input: Optional[str], physical: str) -> bool:
 
 def scope_words(rule, ctx) -> str:
     """"all Nintendo 64 games, any pad"."""
-    content, pad = rule.content, rule.controller
-    system = (ctx.layout or {}).get("name") or content.system or ""
+    return describe_scope(rule.controller, rule.content, (ctx.layout or {}).get("name"), ctx.db)
+
+
+def describe_scope(pad, content, system_name: Optional[str], db) -> str:
+    """A rule's scope in words, from its ControllerScope and ContentScope. A device is "one pad", never its id."""
+    system = system_name or content.system or ""
     games = {"global": "all games",
              "system": f"all {system} games",
              "emulator": f"{system} games in {content.emulator}" if content.system else f"all {content.emulator} games",
@@ -228,9 +233,9 @@ def scope_words(rule, ctx) -> str:
     elif pad.level == "device":
         who = "one pad"
     elif pad.level == "family":
-        who = ctx.db.families.get(pad.value, {}).get("name", pad.value) + " pads"
+        who = db.families.get(pad.value, {}).get("name", pad.value) + " pads"
     elif pad.level == "brand":
-        who = ctx.db.doc.get("brands", {}).get(pad.value, {}).get("name", pad.value) + " pads"
+        who = db.doc.get("brands", {}).get(pad.value, {}).get("name", pad.value) + " pads"
     else:
         who = f"{pad.value} pads"
     return f"{games}, {who}"

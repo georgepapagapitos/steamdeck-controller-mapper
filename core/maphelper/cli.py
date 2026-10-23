@@ -74,6 +74,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--state-dir", type=Path, default=Path.home() / ".local" / "state" / "map-helper")
     p.add_argument("--json", action="store_true")
 
+    add_rules_parser(sub)
+
     p = sub.add_parser("backup", help="save the current state of every file map-helper has written")
     p.add_argument("--name", help="backup name (default: the time, e.g. 20261022-153000)")
     p.add_argument("--list", action="store_true", help="list the backups instead")
@@ -122,7 +124,7 @@ def main(argv: list[str] | None = None) -> int:
         return mh_run(argv[1:])
     args = parser.parse_args(argv)
     return {"validate": cmd_validate, "devices": cmd_devices, "explain": cmd_explain,
-            "apply": cmd_apply, "show": cmd_show, "backup": cmd_backup, "restore": cmd_restore,
+            "apply": cmd_apply, "show": cmd_show, "rules": cmd_rules, "backup": cmd_backup, "restore": cmd_restore,
             "doctor": cmd_doctor, "setup": cmd_setup, "uninstall": cmd_setup,
             "self-install": cmd_self_install}[args.command](args)
 
@@ -436,3 +438,179 @@ def cmd_self_install(args) -> int:
           f"{places.lib / 'versions' / version}\n{places.lib / 'current'} -> versions/{version}")
     print(f"Next, to put mh-run in the launch paths (dry run; add --write): /usr/bin/python3 -I {places.entry} setup")
     return 0
+
+
+def add_rules_parser(sub) -> None:
+    from . import rules
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--rules-dir", type=Path, default=rules.RULES_DIR, help="where your rules are (mh-run loads them)")
+    common.add_argument("--off-dir", type=Path, default=rules.OFF_DIR, help="where rules that are turned off are")
+    common.add_argument("--json", action="store_true")
+    edits = argparse.ArgumentParser(add_help=False, parents=[common])
+    edits.add_argument("--dry-run", action="store_true", help="say what would change; write nothing")
+    edits.add_argument("--state-dir", type=Path, default=Path.home() / ".local" / "state" / "map-helper",
+                       help="where the last launch is recorded (the before/after preview runs against it)")
+    edits.add_argument("--config-root", type=Path, help="the emulator's config directory (default: EmuDeck's)")
+    add_probe_arguments(edits)
+
+    p = sub.add_parser("rules", help="list, change, turn on or off your rules (docs/08 Flow 2 and 4)")
+    actions = p.add_subparsers(dest="action", required=True)
+    actions.add_parser("list", parents=[common], help="every rule, on and off")
+    q = actions.add_parser("targets", parents=[common], help="the console inputs a system's rules can set")
+    q.add_argument("--system", required=True)
+    q = actions.add_parser("set", parents=[edits], help="put a console input on a physical input")
+    q.add_argument("--target", required=True, help="e.g. n64.standard.c_down")
+    q.add_argument("--input", required=True, help="e.g. face_north")
+    q.add_argument("--rule", help="this rule (default: the rule for the scope below)")
+    q.add_argument("--games", choices=["system", "game"], default="system", help="all the system's games, or one")
+    q.add_argument("--game", help="the game id, with --games game")
+    q.add_argument("--pads", default="any", metavar="any|family:ID|device:PLAYER",
+                   help="which pads: any, a family, or the one pad that is that player now")
+    q = actions.add_parser("unset", parents=[edits], help="take a console input out of a rule (back to default)")
+    q.add_argument("--rule", required=True)
+    q.add_argument("--target", required=True)
+    q = actions.add_parser("edit", parents=[edits], help="carry out a list of ops (JSON; what the plugin sends)")
+    q.add_argument("--ops", required=True)
+    for name, text in (("enable", "turn rules on"), ("disable", "turn rules off"), ("delete", "delete rules")):
+        q = actions.add_parser(name, parents=[common], help=text)
+        q.add_argument("ids", nargs="+")
+    q = actions.add_parser("reset", parents=[common], help="turn off every rule for a system, or for one game")
+    q.add_argument("--system", required=True)
+    q.add_argument("--game")
+    q.add_argument("--dry-run", action="store_true")
+
+
+def cmd_rules(args) -> int:
+    from . import rules
+    try:
+        out = _rules(args, rules.Book(args.rules_dir, args.off_dir))
+    except (rules.RuleError, OSError) as e:
+        if args.json:
+            print(json.dumps({"error": str(e)}))
+        else:
+            print(f"error: {e}", file=sys.stderr)
+        return 2
+    if args.json:
+        print(json.dumps(out, indent=2, ensure_ascii=False))
+    else:
+        print(_rules_text(args.action, out), end="")
+    return 0
+
+
+def _rules(args, book) -> dict:
+    from . import rules
+    if args.action == "list":
+        return rules.listing(book, ControllerDB(load_json(DATA / "controllers.json")))
+    if args.action == "targets":
+        return {"targets": rules.targets(args.system)}
+    if args.action in ("enable", "disable", "delete"):
+        warnings = []
+        for rule_id in args.ids:
+            warnings += getattr(rules, args.action)(book, rule_id) or []
+        return {"rules": args.ids, "warnings": warnings}
+    if args.action == "reset":
+        hits = rules.reset(book, args.system, args.game, write=not args.dry_run)
+        return {"rules": hits, "labels": [book.get(i).doc.get("label") or i for i in hits], "dry_run": args.dry_run}
+    if args.action == "set":
+        op = {"op": "set", "target": args.target, "source": {"input": args.input}}
+        if args.rule:
+            op["rule"] = args.rule
+        else:
+            games = {"level": args.games, "system": args.target.split(".", 1)[0]}
+            if args.games == "game":
+                games["game_id"] = args.game
+            level, _, value = args.pads.partition(":")
+            pads = {"level": level, "player": int(value)} if level == "device" and value.isdigit() else \
+                {"level": level, **({"value": value} if value else {})}
+            op["scope"] = {"controller": pads, "content": games}
+        ops = [op]
+    elif args.action == "unset":
+        ops = [{"op": "unset", "rule": args.rule, "target": args.target}]
+    else:
+        try:
+            ops = json.loads(args.ops)
+        except ValueError as e:
+            raise rules.RuleError(f"--ops isn't JSON: {e}") from None
+    return _edit(args, book, ops)
+
+
+def _edit(args, book, ops: list) -> dict:
+    """Carry out ops (on a scratch copy with --dry-run), with what they change for the pads connected now: the last
+    launch shown before and after. A failed preview doesn't stop the edit; it comes back as preview_error."""
+    import shutil
+    from . import rules, show
+    ctx, before, error = None, None, None
+    try:
+        ctx = _last_context(args, book.rules_dir)
+        before = show.document(ctx)
+    except rules.RuleError as e:
+        error = str(e)
+
+    def devices(player: int, model) -> str:
+        if ctx is None:
+            raise rules.RuleError(f"can't tell which pad is player {player} now ({error})")
+        controller = ctx.controllers.get(player)
+        if controller is None or not controller.device_ids:
+            raise rules.RuleError(f"player {player}'s pad isn't connected now")
+        if model and controller.model != model:
+            raise rules.RuleError(f"player {player} is a different controller now; start the game again with it")
+        return controller.device_ids[0]
+
+    work, tmp = rules.scratch_copy(book) if args.dry_run else (book, None)
+    try:
+        result = rules.edit(work, ops, devices)
+        changes = None
+        if ctx is not None:
+            try:
+                changes = rules.changes(before, show.document(_last_context(args, work.rules_dir)))
+            except rules.RuleError as e:
+                error = str(e)
+    finally:
+        if tmp is not None:
+            shutil.rmtree(tmp, ignore_errors=True)
+    return {**result, "changes": changes, "preview_error": error, "dry_run": args.dry_run}
+
+
+def _last_context(args, rules_dir: Path):
+    """The pipeline's Context for the last launch mh-run handled, with the pads connected now and these rules."""
+    from . import pipeline, show
+    from .rules import RuleError
+    doc = show.read_last(args.state_dir)
+    if doc is None:
+        raise RuleError("no game has been launched through map-helper yet")
+    launch = doc.get("launch") or {}
+    emulator = pipeline.EMULATORS.get(launch.get("emulator"))
+    if emulator is None or not launch.get("system"):
+        raise RuleError(f"the last launch was in {launch.get('emulator')!r}, which map-helper can't preview")
+    req = pipeline.Request(launch["emulator"], launch["system"], args.config_root or emulator.config_root,
+                           [rules_dir], core=launch.get("core"), game=launch.get("game"), probe_args=args,
+                           state_dir=args.state_dir)
+    contexts = []
+    try:
+        pipeline.run(req, log=lambda line: None, inspect=contexts.append)
+    except (pipeline.ApplyError, OSError) as e:
+        raise RuleError(str(e)) from None
+    return contexts[0]
+
+
+def _rules_text(action: str, out: dict) -> str:
+    if action == "list":
+        lines = [f"{'on ' if r['on'] else 'off'} {r['id']}: {r['label'] or '-'} ({r['scope']}; "
+                 f"{len(r['bindings'])} button(s))" + "".join(f"\n    warning: {c}" for c in r["clashes"])
+                 for r in out["rules"]]
+        lines += [f"skipped {p['file']}: {p['problem']}" for p in out["problems"]]
+        return "\n".join(lines or ["No rules yet."]) + "\n"
+    if action == "targets":
+        return "".join(f"{t['target']:<28} {t['label']}\n" for t in out["targets"])
+    if action == "reset":
+        verb = "would turn off" if out["dry_run"] else "turned off"
+        return "".join(f"{verb} {i}\n" for i in out["rules"]) or "Nothing to reset.\n"
+    if action in ("enable", "disable", "delete"):
+        return "".join(f"warning: {w}\n" for w in out["warnings"]) or f"{action}d: {' '.join(out['rules'])}\n"
+    lines = [("would change " if out["dry_run"] else "changed ") + ", ".join(out["rules"])]
+    for c in out["changes"] or []:
+        lines.append(f"  player {c['player']} {c['glyph']}: {', '.join(c['before']) or '-'} -> "
+                     f"{', '.join(c['after']) or '-'}")
+    if out["preview_error"]:
+        lines.append(f"  (no preview: {out['preview_error']})")
+    return "\n".join(lines) + "\n"

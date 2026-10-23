@@ -349,7 +349,7 @@ class RetroArchAdapter:
                     out.drives.append((physical, target, src))
             if hold and core_input == hold:
                 out.notes[physical] = (f"{desc['core']}'s C-button modifier: hold it and the face buttons give "
-                                       f"C buttons", default)
+                                       f"C buttons", default, "Hold for C buttons")
         if user == 1:
             self._describe_enable(after, out)
         self._describe_options(user, after, desc, config_root, game, folder, out)
@@ -373,10 +373,10 @@ class RetroArchAdapter:
                 src = ("emudeck", "EmuDeck's RetroArch hotkey button", False)
             else:
                 src = ("emulator", cfg, False)
-            text = "RetroArch's hotkey button (hold it with another button)"
+            text, short = "RetroArch's hotkey button (hold it with another button)", "Hotkey button"
             if physical in out.notes:
-                text = f"{text}; {out.notes[physical][0]}"
-            out.notes[physical] = (text, src)
+                text, short = f"{text}; {out.notes[physical][0]}", f"{short}; {out.notes[physical][2].lower()}"
+            out.notes[physical] = (text, src, short)
 
     def _describe_options(self, user: int, after: Callable, desc: dict, config_root: Optional[Path],
                           game: Optional[str], folder: Optional[str], out) -> None:

@@ -221,7 +221,7 @@ running game got. `map-helper show --last --json` prints that file.
                         "source": { "kind": "rule", "rule_id": "user.any.n64.layout-live-faces",
                                     "rule_label": "N64 layout 1: ...", "scope": "all N64 games, any pad" } } ] },
         { "input": "select", "glyph": "Create", "name": "Create", "drives": [],
-          "note": "RetroArch's hotkey button (hold it with another button)",
+          "note": "RetroArch's hotkey button (hold it with another button)", "note_short": "Hotkey button",
           "note_source": { "kind": "emudeck", "detail": "EmuDeck's RetroArch hotkey button" } },
         { "input": "paddle1", "glyph": "P1", "name": "Left paddle", "drives": [], "steam_only": true }
       ],
@@ -238,7 +238,8 @@ running game got. `map-helper show --last --json` prints that file.
 - `source.kind`: `rule` (a user or pack rule; `rule_id`, `rule_label`, `scope` in words), `emulator` (the emulator's
   own default, or its config file as found; `detail` says which), `emudeck` (EmuDeck set it: hotkeys, AutoMap).
 - An input can drive several targets (a clash, also in `warnings`) or none (`drives: []`, optionally a `note`).
-  A `note` comes with its `note_source` (same shape as `source`). `steam_only: true` marks back buttons and paddles,
+  A `note` comes with its `note_source` (same shape as `source`) and `note_short`, a few words for a list row
+  ("Hold for C buttons" on Mupen64Plus-Next's R2). `steam_only: true` marks back buttons and paddles,
   and the other inputs Steam's virtual Xbox 360 pad lacks (`misc1`: the DualSense mic or Switch capture button;
   `touchpad_click`), which emulators never see behind Steam Input.
 - `inputs` lists only what the pad has: `ls` and `rs` are the sticks as one input each; paddles, `misc1` and
@@ -297,7 +298,7 @@ Every UI action maps to a CLI command (see [glossary](glossary.md) for terms):
 ```
 map-helper devices [--json]
 map-helper devices claim <device-id> <model>
-map-helper rules list|show|add|edit|rm|enable|disable
+map-helper rules list|targets|set|unset|edit|enable|disable|delete|reset   # edit --ops: what the plugin sends
 map-helper explain --emulator dolphin --system gc [--game GALE01] [--player 1]
 map-helper apply   --emulator dolphin [--system gc] [--game ...] [--dry-run]
 map-helper show    --emulator retroarch --system n64 [--core ...] [--game ...] [--json]   # or --last

@@ -207,7 +207,8 @@
           "note_source": {
             "kind": "emulator",
             "detail": "Mupen64Plus-Next default"
-          }
+          },
+          "note_short": "Hold for C buttons"
         },
         {
           "input": "l3",
@@ -292,7 +293,8 @@
           "note_source": {
             "kind": "emudeck",
             "detail": "EmuDeck's RetroArch hotkey button"
-          }
+          },
+          "note_short": "Hotkey button"
         },
         {
           "input": "start",
@@ -538,7 +540,8 @@
           "note_source": {
             "kind": "emulator",
             "detail": "Mupen64Plus-Next default"
-          }
+          },
+          "note_short": "Hold for C buttons"
         },
         {
           "input": "l3",
@@ -885,7 +888,8 @@
           "note_source": {
             "kind": "emulator",
             "detail": "Mupen64Plus-Next default"
-          }
+          },
+          "note_short": "Hold for C buttons"
         },
         {
           "input": "l3",
@@ -1218,7 +1222,8 @@
           "note_source": {
             "kind": "emulator",
             "detail": "Mupen64Plus-Next default"
-          }
+          },
+          "note_short": "Hold for C buttons"
         },
         {
           "input": "l3",
