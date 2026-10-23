@@ -3,7 +3,7 @@ import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { FaBars, FaChevronLeft } from "react-icons/fa";
 import { useLastLaunch } from "../backend";
 import type { LastLaunch } from "../data";
-import { launchLine, programName, shortGameTitle, systemPrefix, warningText } from "../format";
+import { launchLine, launchTime, programName, shortGameTitle, systemPrefix, warningText } from "../format";
 import { takeRequestedPlayer } from "../navigation";
 import { getSystemLogo, notePending, pendingFor } from "../rules";
 import { undoLast, useUndo } from "../undo";
@@ -77,8 +77,31 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
     setSelected(groupControls(players[index].inputs)[0]?.key ?? null);
   };
 
+  // Development aid: every focus move on this page and every button that reached it, in
+  // window.mhFocusLog (Steam's debugger, SharedJSContext). Element class and text only; nothing about devices.
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const doc = root.current?.ownerDocument;
+    if (!doc) return;
+    const log = ((window as unknown as Record<string, unknown>).mhFocusLog ??= []) as unknown[];
+    const note = (what: string) => log.length < 400 && log.push(`${Date.now() % 100000} ${what}`);
+    const describe = (el: Element) => `${el.className.toString().split(" ").filter((c) => c.startsWith("mh-") || c === "DialogButton")
+      .join(".")}|${(el.textContent ?? "").trim().slice(0, 24)}`;
+    note(`open ${doc.querySelector(".gpfocus") ? describe(doc.querySelector(".gpfocus")!) : "(no focus)"}`);
+    const observer = new MutationObserver((records) => {
+      for (const r of records) {
+        const el = r.target as Element;
+        if (el.classList?.contains("gpfocus") && !(r.oldValue ?? "").includes("gpfocus")) note(`focus ${describe(el)}`);
+      }
+    });
+    observer.observe(doc.body, { subtree: true, attributes: true, attributeFilter: ["class"], attributeOldValue: true });
+    return () => observer.disconnect();
+  }, []);
+
   // L1/R1 switch players, like tabs elsewhere in Steam.
   const onButtonDown = (evt: GamepadEvent) => {
+    const log = (window as unknown as Record<string, unknown[]>).mhFocusLog;
+    if (log && log.length < 400) log.push(`${Date.now() % 100000} button ${evt.detail.button}`);
     const button = evt.detail.button;
     if (button === GamepadButton.BUMPER_LEFT && current > 0) pick(current - 1);
     if (button === GamepadButton.BUMPER_RIGHT && current < players.length - 1) pick(current + 1);
@@ -87,8 +110,10 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
   const launch = data.launch;
   const prefix = systemPrefix(launch);
   const logo = useSystemLogo(launch.system);
-  const subtitle = [logo ? "" : launch.system_name || launch.system.toUpperCase(),
-    programName(launch.core || launch.emulator), t.map.asApplied]
+  // The map is the last launch's, game running or not: say so ("Last played today, 14:03"), or it reads as if
+  // that game were running.
+  const subtitle = [t.map.lastPlayed(launchTime(launch.ts)), logo ? "" : launch.system_name || launch.system.toUpperCase(),
+    programName(launch.core || launch.emulator)]
     .filter(Boolean)
     .join(" · ");
   const isDeck = player?.pad.shape === "deck";
@@ -111,6 +136,7 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
 
   return (
     <Focusable
+      ref={root}
       className="mh-route"
       onButtonDown={onButtonDown}
       onCancelButton={goBack}

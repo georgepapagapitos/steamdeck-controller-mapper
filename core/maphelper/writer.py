@@ -31,7 +31,8 @@ class Patch:
     file: str        # relative to the emulator's config root
     section: Optional[str]   # None: top of the file, for formats without sections
     key: str
-    value: str
+    value: Optional[str]     # None: remove the key (a revert to a baseline that lacks it)
+    revert: bool = False     # back to the baseline (baseline.py): no longer map-helper's once written
 
 
 @dataclass
@@ -76,13 +77,15 @@ def apply_patches(config_root: Path, patches: list, managed: dict, state_dir: Pa
                   dry_run: bool = False, emulator: str | None = None,
                   gate: Optional[Callable[[], bool]] = None,
                   rewritten: Optional[Callable[[Path, str, dict], bool]] = None,
-                  seeds: Optional[dict] = None) -> ApplyResult:
+                  seeds: Optional[dict] = None, deletes: tuple = ()) -> ApplyResult:
     """With state_dir and emulator, every write is recorded in the manifest (MANIFEST) so `restore` can undo it.
     gate: called once every changed file is staged; False discards the staged files and writes nothing
     (result.aborted). rewritten: the emulator's test for a created file it only saved over itself (see still_ours).
     seeds: {rel: seed_rel}, both under config_root. A file in it that doesn't exist yet starts as a copy of seed_rel
     (empty when that's missing too): the copy is its "before", so only managed keys may differ from the seed. It's
-    still a created file, and restore deletes it."""
+    still a created file, and restore deletes it.
+    deletes: created files no rule writes into any more (baseline.finish); removed after the gate, and dropped from
+    the manifest. Only files the manifest records as created are deleted."""
     result = ApplyResult()
     track = state_dir is not None and emulator is not None and not dry_run
     manifest = load_manifest(Path(state_dir)) if track else None
@@ -106,7 +109,10 @@ def apply_patches(config_root: Path, patches: list, managed: dict, state_dir: Pa
         before = source.read_text(encoding="utf-8", errors="surrogateescape") if source.is_file() else ""
         doc = IniDocument.parse(before)
         for p in file_patches:
-            doc.set(p.section, p.key, p.value)
+            if p.value is None:
+                doc.remove(p.section, p.key)
+            else:
+                doc.set(p.section, p.key, p.value)
         after = doc.serialize()
         if after == before:
             continue                                   # no-op: don't touch the file or its mtime
@@ -125,20 +131,33 @@ def apply_patches(config_root: Path, patches: list, managed: dict, state_dir: Pa
         if track and (entry["created"] if entry else not path.exists()):   # only created files need it (still_ours)
             written = sorted([s, k, v] for (s, k), v in IniDocument.parse(after).index().items()
                              if is_managed(Patch(rel, s, k, v), managed))
-        outputs.append((rel, path, after, written))
+        outputs.append((rel, path, after, written, file_patches))
+    removals = []
+    for rel in deletes:
+        path = Path(config_root) / rel
+        if rel in by_file or not path.is_file() or not path.resolve().is_relative_to(Path(config_root).resolve()):
+            continue
+        if track and not tracked["files"].get(rel, {}).get("created"):
+            continue                                   # never delete a file map-helper didn't create
+        before = path.read_text(encoding="utf-8", errors="surrogateescape")
+        diffs.append("".join(difflib.unified_diff(before.splitlines(keepends=True), [], fromfile=f"a/{rel}",
+                                                  tofile="/dev/null")))
+        result.changed_files.append(rel)
+        removals.append((rel, path))
     result.diff = "".join(diffs)
-    if not dry_run and outputs:
+    if not dry_run and (outputs or removals):
         ours = lambda rel, entry: still_ours(rewritten, Path(config_root), rel, entry)
         _commit(outputs, Path(state_dir) if state_dir is not None else None, emulator,
-                (manifest, tracked) if track else None, gate, result, ours)
+                (manifest, tracked) if track else None, gate, result, ours, removals)
     return result
 
 
 def _commit(outputs: list, state_dir: Optional[Path], emulator: Optional[str], track: Optional[tuple],
-            gate: Optional[Callable[[], bool]], result: ApplyResult, ours: Callable[[str, dict], bool]) -> None:
+            gate: Optional[Callable[[], bool]], result: ApplyResult, ours: Callable[[str, dict], bool],
+            removals: list = ()) -> None:
     staged = []
     try:
-        for rel, path, after, _ in outputs:
+        for rel, path, after, _, _ in outputs:
             staged.append((rel, path, _stage(path, after)))
         if gate is not None and not gate():
             result.aborted = True
@@ -153,12 +172,26 @@ def _commit(outputs: list, state_dir: Optional[Path], emulator: Optional[str], t
         for rel, path, tmp in staged:
             os.replace(tmp, path)
         staged = []
+        for rel, path in removals:
+            path.unlink()
         if track:
-            for rel, path, _, written in outputs:
+            for rel, path, _, written, file_patches in outputs:
                 entry = track[1]["files"][rel]
                 entry["hash"] = file_hash(path)
                 if entry["created"] and written is not None:
                     entry["managed"] = written   # for still_ours: what the emulator's own save should keep
+                elif not entry["created"]:
+                    # What map-helper set in a file that was there before it: the baseline reverts these when no
+                    # rule sets them any more (baseline.py). A revert gives the key back.
+                    ours = {(s or "", k): v for s, k, v in entry.get("ours", [])}
+                    for p in file_patches:
+                        if p.revert:
+                            ours.pop((p.section or "", p.key), None)
+                        else:
+                            ours[(p.section or "", p.key)] = p.value
+                    entry["ours"] = sorted([s, k, v] for (s, k), v in ours.items())
+            for rel, _ in removals:
+                track[1]["files"].pop(rel, None)
             save_manifest(state_dir, track[0])
     finally:
         for _, _, tmp in staged:
@@ -167,7 +200,8 @@ def _commit(outputs: list, state_dir: Optional[Path], emulator: Optional[str], t
 
 
 MANIFEST = "touched.json"   # in the state dir: {emulator: {"config_root": abs, "files": {rel: {"created", "hash"}}}}
-                            # created files also keep "managed": [[section, key, value], ...] as last written
+                            # created files also keep "managed": [[section, key, value], ...] as last written;
+                            # others "ours": the [[section, key, value], ...] map-helper set and hasn't reverted
 
 
 def still_ours(rewritten: Optional[Callable[[Path, str, dict], bool]], config_root: Path, rel: str,

@@ -58,6 +58,28 @@ class RetroArchAdapter:
         """The core-level remap: loaded when no game or content-dir remap exists (config_load_remap)."""
         return f"{REMAP_DIR}/{desc['core']}/{desc['core']}.rmp"
 
+    def remap_target(self, config_root: Optional[Path], desc: dict, game: Optional[str], folder: Optional[str],
+                     game_scoped: bool, exists: Optional[Callable[[str], bool]] = None) -> tuple[str, Optional[str]]:
+        """(the remap file to write, the file to seed it from when it's new, or None).
+
+        RetroArch loads the first that exists of the game's, the content folder's and the core's remap, and resets
+        every remap before applying it (config_load_remap, docs/adapters/retroarch.md "Load precedence"). So a
+        binding from a game rule goes into the game's .rmp, which must then carry everything else too: it starts as
+        a copy of the file RetroArch would load instead. Without game rules, the folder's .rmp if there is one,
+        else the core's. exists: whether a file is there without map-helper (baseline.exists), so a game .rmp
+        map-helper made for rules that are gone doesn't count, and is deleted instead."""
+        exists = exists or (lambda rel: config_root is not None and (Path(config_root) / rel).is_file())
+        fallback = self.remap_file(desc)
+        if folder and exists(f"{REMAP_DIR}/{desc['core']}/{folder}.rmp"):
+            fallback = f"{REMAP_DIR}/{desc['core']}/{folder}.rmp"
+        if game:
+            mine = f"{REMAP_DIR}/{desc['core']}/{game}.rmp"
+            if exists(mine):
+                return mine, None
+            if game_scoped:
+                return mine, fallback if exists(fallback) else None
+        return fallback, None
+
     @staticmethod
     def options_file(desc: dict, name: str) -> str:
         """config/<library_name>/<name>.opt: name is the game id (game options), the ROM's folder name (folder
@@ -68,23 +90,27 @@ class RetroArchAdapter:
         """patches: the rendered ones; an options file manages exactly the option keys written to it."""
         hk = self.hotkeys
         bases = [hk["enable"], *hk["targets"].values()]
-        managed = {self.remap_file(desc): {"keys": ["input_player[1-9]_btn_*", "input_player[1-9]_stk_*"]},
+        remap_keys = {"keys": ["input_player[1-9]_btn_*", "input_player[1-9]_stk_*"]}
+        managed = {self.remap_file(desc): remap_keys,
                    hk["file"]: {"keys": [f"input_{b}{s}" for b in bases for s in SUFFIXES]
                                 + ["input_player[1-9]_joypad_index", "input_player1[0-6]_joypad_index"]}}
         for p in patches:
             if p.file.endswith(".opt"):
                 managed.setdefault(p.file, {"keys": []})["keys"].append(p.key)
+            elif p.file.endswith(".rmp") and p.file.startswith(f"{REMAP_DIR}/{desc['core']}/"):
+                managed[p.file] = remap_keys             # the game's or folder's remap this launch writes
         return managed
 
     def options_target(self, config_root: Optional[Path], desc: dict, game: Optional[str], folder: Optional[str],
-                       game_specific: bool = True, game_scoped: bool = False) -> tuple[str, Optional[str]]:
+                       game_specific: bool = True, game_scoped: bool = False,
+                       exists: Optional[Callable[[str], bool]] = None) -> tuple[str, Optional[str]]:
         """(the options file to write, the file to seed it from when it's new, or None).
 
         RetroArch loads exactly one file, with no layering (runloop_init_core_options_path, runloop.c L1147-1236
         @ v1.22.2): with game_specific_options on, the game's .opt if it exists, else the folder's; otherwise the
         core's. Keys the file lacks take the core's defaults. So a game-scoped option goes into the game's .opt,
         created as a copy of the file RetroArch would load instead, which keeps every other option as it was."""
-        exists = lambda rel: config_root is not None and (Path(config_root) / rel).is_file()
+        exists = exists or (lambda rel: config_root is not None and (Path(config_root) / rel).is_file())
         fallback = self.options_file(desc, desc["core"])
         if game_specific and folder and exists(self.options_file(desc, folder)):
             fallback = self.options_file(desc, folder)
@@ -106,7 +132,19 @@ class RetroArchAdapter:
         ports: user number -> the joypad port (SDL index) of that user's pad, written as input_playerN_joypad_index.
         config_root, game (the game id) and folder (the ROM's folder name) pick the core options file."""
         current = current or (lambda *_: None)
-        out, file = Rendered(), self.remap_file(desc)
+        exists = getattr(current, "exists", None)       # baseline.Baseline: the files as they'd be without us
+        game_scoped = any(choice.content == "game" and target in desc["targets"]
+                          for resolution in players.values() for target, choice in resolution.bindings.items())
+        file, seed = self.remap_target(config_root, desc, game, folder, game_scoped, exists)
+        self.remap_rel = file                           # describe and check read the same file
+        out = Rendered()
+        # What this launch answers for: a rule that's gone is reverted in these, and a remap or options file
+        # map-helper made that no rule needs now is deleted; another game's files are left to that game.
+        names = [desc["core"], *(n for n in (folder, game) if n)]
+        out.scope = {self.hotkeys["file"], *(f"{REMAP_DIR}/{desc['core']}/{n}.rmp" for n in names),
+                     *(self.options_file(desc, n) for n in names)}
+        if seed:
+            out.seeds[file] = seed
         for user, port in sorted((ports or {}).items()):
             out.patches.append(Patch(self.hotkeys["file"], None, self.pad["joypad_ports"]["key"].format(N=user), f'"{port}"'))
         for user, resolution in sorted(players.items()):
@@ -294,7 +332,8 @@ class RetroArchAdapter:
                                 f"{', '.join(scoped)} from game rules not written")
             values = {k: v for k, v in values.items() if k not in scoped}
         rel, seed = self.options_target(config_root, desc, game, folder, game_specific,
-                                        game_scoped=bool(scoped) and game_specific)
+                                        game_scoped=bool(scoped) and game_specific,
+                                        exists=getattr(current, "exists", None))
         if seed:
             out.seeds[rel] = seed
         elif config_root is not None and not (Path(config_root) / rel).is_file() \
@@ -331,7 +370,7 @@ class RetroArchAdapter:
         reads the ids its descriptor's targets name. Player 1 also gets the hotkey enable button noted. A core that
         runs several systems (Flycast: Dreamcast, Naomi, Atomiswave) lists targets for each; only system's count."""
         from ..show import Described
-        out, file = Described(port=user), self.remap_file(desc)
+        out, file = Described(port=user), getattr(self, "remap_rel", None) or self.remap_file(desc)
         names = {v: k for k, v in self.ids.items()}
         default = ("emulator", f"{desc['core']} default", False)
         hold = desc.get("c_button_chord", {}).get("hold")
@@ -389,7 +428,8 @@ class RetroArchAdapter:
             rel = written[0]
         else:
             game_specific = (after(self.hotkeys["file"], None, "game_specific_options") or "").strip('"') != "false"
-            rel, _ = self.options_target(config_root, desc, game, folder, game_specific)
+            rel, _ = self.options_target(config_root, desc, game, folder, game_specific,
+                                         exists=getattr(getattr(after, "current", None), "exists", None))
         for option, spec in desc["options"].items():
             if spec.get("per_player") and user > spec["players"]:
                 continue
@@ -429,7 +469,7 @@ class RetroArchAdapter:
             warnings.append("retroarch: input_remap_sort_by_controller_enable is on; remaps are looked up per "
                             "controller name, so the core-level file we write isn't used")
         folder = Path(config_root) / REMAP_DIR / desc["core"]
-        mine = Path(self.remap_file(desc)).name
+        mine = Path(getattr(self, "remap_rel", None) or self.remap_file(desc)).name
         for shadow in sorted(folder.glob("*.rmp")) if folder.is_dir() else []:
             if shadow.name != mine:
                 warnings.append(f"retroarch: {shadow.relative_to(config_root)} is a game or folder remap; when it "
@@ -441,7 +481,8 @@ class RetroArchAdapter:
         if (current(self.hotkeys["file"], None, "global_core_options") or "").strip('"') == "true":
             return []                                # render says so when an option is set
         game_specific = (current(self.hotkeys["file"], None, "game_specific_options") or "").strip('"') != "false"
-        rel, _ = self.options_target(config_root, desc, game, folder, game_specific)
+        rel, _ = self.options_target(config_root, desc, game, folder, game_specific,
+                                     exists=getattr(current, "exists", None))
         warnings = []
         if desc.get("options") and rel == self.options_file(desc, folder or ""):
             warnings.append(f"retroarch: {rel} is a folder options file; RetroArch loads it instead of "

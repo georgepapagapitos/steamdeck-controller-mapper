@@ -24,6 +24,7 @@ export const t = {
   },
 
   nowPlaying: "Now playing",
+  lastPlayed: (when: string) => `Last played · ${when}`,
   unknownGame: "Unknown game",
   outcome: {
     changed: "Mappings applied at launch",
@@ -63,7 +64,7 @@ export const t = {
 
   map: {
     back: "Back to the game",
-    asApplied: "as applied at launch",
+    lastPlayed: (when: string) => `Last played ${when.replace(/^(Today|Yesterday)/, (d) => d.toLowerCase())}`,
     playerTabs: "Players",
     drawing: (pad: string) => `${pad}: buttons and what they do`,
     inputs: "Buttons",

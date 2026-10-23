@@ -121,3 +121,18 @@ made since. Then remove the hooks and optionally `$DATA`.
 
 Device ids contain BT MACs and serials. They stay local. Export strips them
 unless the user asks to keep them. `doctor` bundles redact MACs.
+
+## Baseline: a rule that's gone stops counting (2026-10-23)
+
+Each launch renders on the config as it would be without map-helper's earlier writes (`core/maphelper/baseline.py`),
+then writes back what no rule sets any more:
+
+- a key map-helper set in a file that existed reads as its pristine value, and is put back to it (removed when the
+  pristine file lacks it), as long as it still holds what map-helper wrote; a key someone changed since is theirs;
+- a file map-helper created (and still owns: the emulator's own save on exit doesn't change that) is deleted when
+  this launch writes nothing into it.
+
+Only the files the launch answers for are touched (RetroArch: this core's, this content folder's and this game's
+remap and options files, and `retroarch.cfg`). The manifest records what map-helper set: `ours` for files that
+existed, `managed` for created ones. Found on the owner's Deck: a Smash-only swap saved from the plugin reached every
+N64 game, and undoing it left the swap in place.

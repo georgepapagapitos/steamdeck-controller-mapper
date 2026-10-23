@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from . import DATA, resolve as resolver
+from .baseline import Baseline
 from .devices import ControllerDB
 from .model import Target
 from .store import load_json, load_layouts, load_sources
@@ -176,16 +177,33 @@ def run(req: Request, log: Callable[[str], None], gate: Optional[Callable[[], bo
         if not order:
             log("warning: no controllers found; nothing to assign")
 
-    current = _reader(Path(req.config_root))
+    # Render on the config as it would be without map-helper's earlier writes (baseline.py), so a rule that's gone
+    # stops counting; then put back what this launch no longer sets, and delete created files nothing needs now.
+    current = Baseline(_reader(Path(req.config_root)), Path(req.config_root), req.state_dir, req.emulator,
+                       emulator.rewritten)
     rendering = emulator.render(adapter, req, players, assigned, joysticks, current)
+    reverts, deletes = current.finish(rendering.rendered.patches, getattr(rendering.rendered, "scope", None))
+    rendering.rendered.patches += reverts
+    rendering.managed = _with_reverts(rendering.managed, reverts)
     if inspect:
         inspect(Context(req, db, report.rules, layouts.get(req.system), controllers, players, assigned, probe, current,
                         rendering))
     result = apply_patches(req.config_root, rendering.rendered.patches, rendering.managed, state_dir=req.state_dir,
                            dry_run=not req.write, emulator=req.emulator, gate=gate, rewritten=emulator.rewritten,
-                           seeds=getattr(rendering.rendered, "seeds", None))
+                           seeds=getattr(rendering.rendered, "seeds", None), deletes=tuple(deletes))
     warnings = [w for p in players.values() for w in p.warnings] + rendering.rendered.warnings + rendering.checks
     return Outcome(result, warnings, len(players), models)
+
+
+def _with_reverts(managed: dict, reverts: list) -> dict:
+    """A revert goes to a key map-helper wrote before, so it was managed then: a file this launch's adapter doesn't
+    name (a game's .opt that no rule needs now) is managed for exactly the keys reverted in it."""
+    out = dict(managed)
+    for p in reverts:
+        if p.file not in managed:
+            out.setdefault(p.file, []).append({"keys": [p.key]} if p.section is None
+                                              else {"sections": p.section, "keys": [p.key]})
+    return out
 
 
 def _reader(config_root: Path) -> Callable[[str, Optional[str], str], Optional[str]]:

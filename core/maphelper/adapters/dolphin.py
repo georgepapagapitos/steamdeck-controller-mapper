@@ -27,6 +27,7 @@ class Rendered:
     patches: list = field(default_factory=list)
     warnings: list = field(default_factory=list)
     seeds: dict = field(default_factory=dict)      # new file -> the file it starts as a copy of (writer seeds)
+    scope: Optional[set] = None                    # the files this launch answers for (baseline.finish); None: all
 
 
 class DolphinAdapter:

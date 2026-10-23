@@ -124,6 +124,13 @@ Full rules: [data/adapters/retroarch/retropad.json](../../data/adapters/retroarc
 file. A game or directory `.rmp` therefore hides our core-level file
 completely, not just the keys it sets.
 
+**What map-helper writes (2026-10-23):** bindings from game rules go into the game's `.rmp`, which then has to
+carry everything else too, so it starts as a copy of the file RetroArch would load instead (unless that is one
+map-helper made: then it starts empty). Without game rules, the folder's `.rmp` if one exists, else the core's.
+Before 2026-10-23 every binding went into the core's file, so a game rule leaked into every game of the core.
+A remap or options file map-helper created that no rule needs any more is deleted at the next launch of that
+core (another game's files are left alone); see docs/09 "Baseline".
+
 With EmuDeck's `roms/<system>/` layout, the content-dir file is effectively a
 per-system remap for that core (`remaps/Snes9x/snes.rmp`) **[VERIFY]** the
 directory names EmuDeck uses.
