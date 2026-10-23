@@ -611,8 +611,10 @@ Sources: RetroArch `v1.22.2` (`69a4f0ea1e8aaf442ae4858f2e7f2b31a1776576`):
 `core_option_manager.c` L1031-1053, L1890-1903;
 `libretro-common/file/config_file.c` L1401-1468; `file_path_special.c`
 L196-207; `config.def.h` `DEFAULT_GAME_SPECIFIC_OPTIONS` and
-`DEFAULT_GLOBAL_CORE_OPTIONS` (L910-914). Not yet seen on a Deck: a game file
-map-helper created being loaded and flushed **[VERIFY]**.
+`DEFAULT_GLOBAL_CORE_OPTIONS` (L910-914). Seen on a Deck (2026-10-23): map-helper
+created `Perfect Dark (USA) (Rev 1).opt` (seeded, memory pak), the game ran with it, RetroArch flushed it on
+quit, and `restore` still deleted it as created; the same for `Mupen64Plus-Next.rmp` after RetroArch's
+`remap_save_on_exit` save.
 
 ## Known pitfalls
 
