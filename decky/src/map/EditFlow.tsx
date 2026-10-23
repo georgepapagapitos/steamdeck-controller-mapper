@@ -45,6 +45,7 @@ export interface EditProps {
   control: Control;
   prefix: string;
   onSaved: (result: EditResult, where: Where, what: string) => void;
+  onClosed?: () => void; // focus goes back to the map's row
 }
 
 const named = (prefix: string, label: string) => (prefix ? `${prefix} ${label}` : label);
@@ -370,7 +371,7 @@ function DecideView({ launch, player, players, prefix, step, onSaved, onAgain, o
 
 // "Change button" / "Assign" for one control of one player (docs/08 Flow 2, principle 1: intent first, scope at
 // save). Capture, then one screen that shows what changes and saves it where you say.
-export function EditFlow({ closeModal, launch, player, players, control, prefix, onSaved }: EditProps) {
+export function EditFlow({ closeModal, launch, player, players, control, prefix, onSaved, onClosed }: EditProps) {
   const jobs = useMemo(() => jobsOf(control), [control]);
   const first = (job: Job): Step =>
     job.targets.length ? { kind: "capture", job, want: wantFor(job) } : { kind: "assign", job };
@@ -378,7 +379,10 @@ export function EditFlow({ closeModal, launch, player, players, control, prefix,
   const [targets, setTargets] = useState<Target[] | null>(null);
   const capturing = step.kind === "capture" && !step.stopped;
   const controls = useMemo(() => groupControls(player.inputs), [player]);
-  const close = () => closeModal?.();
+  const close = () => {
+    closeModal?.();
+    onClosed?.();
+  };
 
   useEffect(() => {
     if (step.kind === "assign" && !targets) getTargets(launch.system).then((a) => setTargets(a.ok ? a.data.targets : []));

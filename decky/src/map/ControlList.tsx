@@ -1,4 +1,4 @@
-import { Focusable, type GamepadEvent, ScrollPanelGroup } from "@decky/ui";
+import { Focusable, type GamepadEvent } from "@decky/ui";
 import type { ReactNode } from "react";
 import type { Pad, PadInput } from "../data";
 import { Glyph } from "../glyphs";
@@ -20,8 +20,8 @@ interface Props {
   canDefault?: (control: Control) => boolean;
 }
 
-// Steam scrolls a ScrollPanelGroup to keep the focused row in view; nudging the row into view as well covers a
-// Steam build where the group isn't found (it's looked up in Steam's own modules).
+// The focused row scrolls itself into view. Not a ScrollPanelGroup: Steam's group takes focus itself (a grey box
+// around the whole list, footer "Select") when a modal closes, instead of the row you were on.
 const reveal = (evt: GamepadEvent) => (evt.target as HTMLElement | null)?.scrollIntoView?.({ block: "nearest" });
 
 function Row({ id, on, label, onSelect, onActivate, onSecondary, okText, secondaryText, children }: {
@@ -65,10 +65,8 @@ function Row({ id, on, label, onSelect, onActivate, onSecondary, okText, seconda
 // paddles, a touchpad click) come last, under their own heading.
 export function ControlList(props: Props) {
   const { pad, controls, steamOnly, isDeck, selected, prefix, onSelect, onChange, onDefault, canDefault } = props;
-  const Scroll = ScrollPanelGroup ?? "div";
   return (
     <div className="mh-list-wrap">
-      <Scroll>
         <Focusable className="mh-list" flow-children="column" role="list" aria-label={t.map.inputs}>
           {controls.map((control) => {
             const targets = controlTargets(control);
@@ -109,7 +107,6 @@ export function ControlList(props: Props) {
             </Row>
           ))}
         </Focusable>
-      </Scroll>
     </div>
   );
 }

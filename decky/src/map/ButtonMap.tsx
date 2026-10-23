@@ -1,5 +1,5 @@
 import { DialogButton, Focusable, GamepadButton, type GamepadEvent, Navigation } from "@decky/ui";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { FaBars, FaChevronLeft } from "react-icons/fa";
 import { useLastLaunch } from "../backend";
 import type { LastLaunch } from "../data";
@@ -96,8 +96,10 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
   const steamOnly = backs.find((b) => steamKey(b) === selected);
   const warnings = data.warnings ?? [];
   const [pending, setPending] = useState(() => pendingFor(launch.ts));
+  const right = useRef<HTMLDivElement>(null);
   const ctx: MapContext | null = player ? {
     launch, player, players, prefix,
+    refocus: () => setTimeout(() => right.current?.querySelector<HTMLElement>(".mh-row.mh-on")?.focus(), 80),
     onSaved: (delta: number) => {
       notePending(launch.ts, delta);
       setPending(pendingFor(launch.ts));
@@ -137,7 +139,7 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
             <Legend />
             <DetailCard pad={player.pad} prefix={prefix} control={control} steamOnly={steamOnly} isDeck={isDeck} />
           </div>
-          <div className="mh-right">
+          <div className="mh-right" ref={right}>
             {pending > 0 && <div className="mh-pending" role="status">{t.edit.pending(pending)}</div>}
             <OptionChips player={player} />
             {warnings.length > 0 && (

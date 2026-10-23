@@ -16,6 +16,7 @@ export interface MapContext {
   players: Player[];
   prefix: string;
   onSaved: (delta: number) => void; // +1 per saved change, -1 per undo: the map's "applies next launch" note
+  refocus: () => void; // after a modal: focus back on the row you were on
 }
 
 const named = (prefix: string, label: string) => (prefix ? `${prefix} ${label}` : label);
@@ -45,7 +46,7 @@ function whereWords(ctx: MapContext, where: Where): string {
 export function openEdit(ctx: MapContext, control: Control) {
   showModal(
     <EditFlow launch={ctx.launch} player={ctx.player} players={ctx.players} control={control} prefix={ctx.prefix}
-      onSaved={(result, where, what) => {
+      onClosed={ctx.refocus} onSaved={(result, where, what) => {
         const words = whereWords(ctx, where);
         saved(ctx, result, `${what} · ${words}`, t.edit.savedBody(words));
       }} />,
@@ -111,9 +112,11 @@ async function reset(ctx: MapContext, game: string | null) {
       strOKButtonText={t.edit.resetOk}
       strCancelButtonText={t.edit.cancel}
       bDestructiveWarning
+      onCancel={ctx.refocus}
       onOK={async () => {
         const answer = await resetRules(system, game, false);
         modal.Close();
+        ctx.refocus();
         if (!answer.ok) {
           toaster.toast({ title: t.edit.failed, body: answer.error, critical: true });
           return;
