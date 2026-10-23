@@ -57,8 +57,11 @@ export function launchLine(launch: Launch): string {
 }
 
 // Short console prefix for target labels: "N64 C▼". Long system ids read badly as a prefix, so they get none.
+// ES-DE's system ids where people say something else ("psx" is the PS1).
+const SPOKEN: Record<string, string> = { psx: "PS1" };
+
 export function systemPrefix(launch: Launch): string {
-  return launch.system.length <= 4 ? launch.system.toUpperCase() : "";
+  return SPOKEN[launch.system] ?? (launch.system.length <= 4 ? launch.system.toUpperCase() : "");
 }
 
 export function outcomeText(launch: Launch): string {

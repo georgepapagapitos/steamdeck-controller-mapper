@@ -272,8 +272,8 @@ too much, and this is the second.
 - **Back to emulator defaults** heads the list whenever one of the user's rules changes a button in this launch
   (or a change is saved for the next): A opens one modal listing the rules, with "Only <game>" and, when it turns
   off more, "All <system> games". Also in ≡.
-- **Capture**, in a modal whose one element swallows every button: the console's pad (our own drawing,
-  `decky/src/map/consoles.tsx`; N64 so far) with the target lit, beside the player's pad with the current
+- **Capture**, in a modal whose one element swallows every button: the console's pad (our own drawings,
+  `decky/src/map/consoles.tsx`: N64, GameCube, and the DualShock for PS1 and PS2) with the target lit, beside the player's pad with the current
   button ringed. Source: `SteamClient.Input.RegisterForControllerInputMessages(controllerIndex, button, pressed)`
   in a positional layout (`ControllerInputGamepadButton`, @decky/ui `Input.ts` @ 10b929d). On the Deck's client
   of 2026-10-23 it reports the 8BitDo's and the DualSense's presses; `RegisterForControllerStateChanges` no longer

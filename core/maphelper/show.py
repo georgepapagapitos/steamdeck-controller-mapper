@@ -124,6 +124,9 @@ def _inputs(controller, glyphs: dict, described: Described, source: "_Sources", 
     table = {**glyphs["styles"]["generic"], **glyphs["styles"].get(style, {}),
              **glyphs["families"].get(controller.family or "", {})}
     shared = _shared(layout)
+    # A core that lists several controller types for a system (SwanStation: psx.digital and psx.dualshock) drives
+    # both from one button; the map shows the one map-helper's rules address, the layout's default controller.
+    pad_type = layout.get("default_controller") if layout and len(layout.get("controllers", {})) > 1 else None
     out = []
     for name in glyphs["order"]:
         if not _has(controller, name):
@@ -137,6 +140,8 @@ def _inputs(controller, glyphs: dict, described: Described, source: "_Sources", 
         parts = STICK_PARTS.get(name, (name,))
         seen = set()
         for physical, target, src in described.drives:
+            if pad_type and target.count(".") == 2 and target.split(".")[1] != pad_type:
+                continue
             if physical in parts and target not in seen:
                 seen.add(target)
                 row["drives"].append({"target": target, "label": _target_label(target, layout),

@@ -16,7 +16,7 @@ On the button map only the list of buttons takes focus, from the moment it opens
 header's buttons and tabs answer to touch.
 
 To change a mapping, press A on a button (**Change button**, or **Assign** for one that does nothing) and press
-the button you want, while the console's pad (N64 so far) shows the input being changed lit beside yours. One
+the button you want, while the console's pad (N64, GameCube, PS1/PS2) shows the input being changed lit beside yours. One
 screen then says what happens ("N64 A moves from A to Y"), swaps the two buttons when the one you pressed already
 had a job (or keeps both), previews what changes for the controllers connected now, and saves with one of three
 buttons: this game, all the system's games, or only this controller. The rule goes in

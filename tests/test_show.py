@@ -260,3 +260,15 @@ class LastLaunchTest(Base):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PlayStationTest(Base):
+    """SwanStation lists every PS1 button for the digital pad and the DualShock: the map shows the DualShock's (the
+    layout's default controller), once, with no "drives several inputs" warning."""
+
+    def test_one_controller_type(self):
+        doc = self.show("--emulator", "retroarch", "--core", "swanstation", "--system", "psx",
+                        "--config-root", str(FIXTURES / "retroarch" / "dualsense-bt"), "--rules", str(self.tmp))
+        self.assertEqual([d["target"] for d in row(doc["players"][0], "face_south")["drives"]], ["psx.dualshock.cross"])
+        self.assertFalse([w for w in doc["warnings"] if "drives several inputs" in w])
+
