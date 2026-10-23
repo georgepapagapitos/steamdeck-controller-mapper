@@ -1,0 +1,10 @@
+{
+  "name": "map-helper",
+  "author": "George Papagapitos",
+  "flags": [],
+  "api_version": 1,
+  "publish": {
+    "tags": ["controller", "emulation", "input"],
+    "description": "Per-controller, per-system and per-game controller mappings for emulators, applied at launch."
+  }
+}
