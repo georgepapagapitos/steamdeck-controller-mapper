@@ -380,7 +380,7 @@ def targets_by_key(layouts: dict) -> dict:
 
 
 def targets(system: str, layouts: Optional[dict] = None) -> list:
-    """The default controller's console inputs, for "Give it a job": [{target, label, kind}]."""
+    """The default controller's console inputs, for "Assign": [{target, label, kind}]."""
     from .show import _target_label
     layouts = layouts if layouts is not None else load_layouts(DATA / "layouts")
     layout = layouts.get(system)
