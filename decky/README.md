@@ -10,14 +10,19 @@ what each one does in the game, and the buttons only Steam sees (back buttons,
 paddles, touchpad click). Everything works with the D-pad and A/B; L1/R1 switch
 players on the button map.
 
-Changing a mapping starts on the button map: select a button and press A (**Change button**, or **Assign**
-for one that does nothing), press the button you want, then say where it applies: this game or all the
-system's games, any controller, every pad of that kind, or only that one pad. The plugin shows what changes for
-the pads connected now, saves a rule in `~/.local/share/map-helper/rules`, and the change applies the next time a
-game starts. **Undo** is offered right after; X on a button a rule changed is **Back to default**; the ≡ button
-(or ⋯ in the header) has the resets for this game and for the whole system, which turn rules off rather than
-delete them. **Your rules** lists every rule with an on/off switch, including the ones parked in
-`~/.local/share/map-helper/rules-off`.
+On the button map only the list of buttons takes focus: the D-pad moves up and down it, the drawing and the card
+follow, L1/R1 switch players, B goes back, ≡ opens the menu (rules list, undo, resets) and Y undoes the last
+change; Steam's footer names them. The header's buttons and tabs answer to touch.
+
+To change a mapping, press A on a button (**Change button**, or **Assign** for one that does nothing) and press
+the button you want, while the console's pad (N64 so far) shows the input being changed lit beside yours. One
+screen then says what happens ("N64 A moves from A to Y"), swaps the two buttons when the one you pressed already
+had a job (or keeps both), previews what changes for the controllers connected now, and saves with one of three
+buttons: this game, all the system's games, or only this controller. The rule goes in
+`~/.local/share/map-helper/rules` and applies the next time a game starts. X on a button one of your rules set is
+**Back to default**. Every change is undone with Y. The resets in ≡ turn rules off rather than delete them.
+**Your rules** (in the Quick Access panel and ≡) lists every rule with an on/off switch, including the ones parked
+in `~/.local/share/map-helper/rules-off`.
 
 The data is `map-helper show --last --json`, which prints
 `~/.local/state/map-helper/last-launch.json`, written by `mh-run` at every

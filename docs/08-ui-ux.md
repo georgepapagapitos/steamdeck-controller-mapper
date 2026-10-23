@@ -252,6 +252,33 @@ running game got. `map-helper show --last --json` prints that file.
   an unknown pad gets `generic` and positional names (South, East, ...).
 - No device ids, MACs or serials ever appear in it: it may be shown, logged or shared.
 
+### Changing a button from the map (built 2026-10-23)
+
+What the plugin does today, a shortened Flow 2 reached from Flow 3b. Tried on the owner's Deck; the first
+version (focusable header and tabs, a detail card with buttons, separate confirm, scope and result screens) was
+too much, and this is the second.
+
+- **One focus column.** Only the button list takes focus. B back, ≡ menu (rules list, undo, reset this game, reset
+  the system), Y undo, L1/R1 players; the header's buttons answer to touch. The focused row is the only
+  highlight; the drawing and the card follow it. A row's A is Change button (Assign when it does nothing), X is
+  Back to default when one of the user's rules sets it.
+- **Capture**, in a modal whose one element swallows every button: the console's pad (our own drawing,
+  `decky/src/map/consoles.tsx`; N64 so far) with the target lit, beside the player's pad with the current
+  button ringed. Source: `SteamClient.Input.RegisterForControllerInputMessages(controllerIndex, button, pressed)`
+  in a positional layout (`ControllerInputGamepadButton`, @decky/ui `Input.ts` @ 10b929d). On the Deck's client
+  of 2026-10-23 it reports the 8BitDo's presses; `RegisterForControllerStateChanges` no longer exists there (kept
+  for older clients), and the UI event is the fallback. A press already held when capture starts is ignored
+  until released. After 10 s it stops and offers Try again / Cancel.
+- **One decide screen:** the change in words (a binding moves the console input: one physical input per console
+  input), an automatic swap when the pressed button had exactly one job (or keep both), a dry-run preview for the
+  pads connected now (`map-helper rules edit --dry-run`), and three save buttons: this game, all the system's
+  games, only this controller (all the system's games). Saving closes it with a toast; Y undoes.
+- **Back to default** takes the binding out of the rule that set it at once (undo with Y). **Resets** list the
+  rules a dry run would turn off and ask first; they turn rules off, never delete.
+- **Rules list** (`/map-helper/rules`): every rule in `rules/` and `rules-off/`, A turns one on or off (a parked
+  file moves to `rules/`, the other rules in it stay off), X deletes after a confirm. Clashes (two rules with one
+  scope setting the same input) are shown.
+
 ## Flow 4: Rule list and editor
 
 - Filter chips: controller scope, content scope, source (mine/pack/shipped), enabled.
