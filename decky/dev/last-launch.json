@@ -26,6 +26,7 @@
         "style": "nintendo",
         "shape": "nintendo",
         "steam_slot": 0,
+        "vid_pid": "057e:2009",
         "emulator_port": 1
       },
       "inputs": [
@@ -371,6 +372,7 @@
         "style": "xbox",
         "shape": "xbox",
         "steam_slot": 1,
+        "vid_pid": "2dc8:6012",
         "emulator_port": 2
       },
       "inputs": [
@@ -731,6 +733,7 @@
         "style": "playstation",
         "shape": "playstation",
         "steam_slot": 2,
+        "vid_pid": "054c:0ce6",
         "emulator_port": 3
       },
       "inputs": [
@@ -1077,6 +1080,7 @@
         "style": "steamdeck",
         "shape": "deck",
         "steam_slot": 3,
+        "vid_pid": "28de:1205",
         "emulator_port": 4
       },
       "inputs": [

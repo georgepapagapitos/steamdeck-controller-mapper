@@ -37,6 +37,7 @@ export interface Pad {
   style?: string | null;
   shape: Shape | string;
   steam_slot?: number | null;
+  vid_pid?: string | null; // the physical pad's, "054c:0ce6"; null when it isn't behind Steam
   emulator_port?: number | null;
 }
 

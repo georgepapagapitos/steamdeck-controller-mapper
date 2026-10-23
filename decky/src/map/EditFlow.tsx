@@ -7,7 +7,7 @@ import { Glyph } from "../glyphs";
 import { type Change, type EditResult, type Op, type Scope, type Target, editRules, getTargets } from "../rules";
 import { t } from "../strings";
 import { Styles } from "../styles";
-import { type Capture, type Want, asSource, capture } from "./capture";
+import { type Capture, type Want, asSource, capture, padIndices, steamPadName } from "./capture";
 import { ConsolePad, hasConsolePad } from "./consoles";
 import { type Control, groupControls } from "./controls";
 import { PadDrawing } from "./PadDrawing";
@@ -169,9 +169,11 @@ function Button({ onClick, children, disabled, primary, focus }: {
 // and hands its UI events to the capture as the fallback source. The console's pad with the input being changed
 // lit, beside the player's pad with the button that does it now ringed; a press lights the pressed button for a
 // moment before the flow moves on.
-function CaptureView({ title, consolePad, pad, onPress, onTimeout, want }: {
+function CaptureView({ title, consolePad, pad, onPress, onTimeout, want, vidPid, padName }: {
   title: string;
   consolePad: ReactNode;
+  vidPid?: string | null; // the player's pad: only its presses count
+  padName: string;
   pad: (pressed: string | null) => ReactNode;
   want: Want;
   onPress: (input: string) => void;
@@ -180,11 +182,15 @@ function CaptureView({ title, consolePad, pad, onPress, onTimeout, want }: {
   const handle = useRef<Capture | null>(null);
   const [left, setLeft] = useState(CAPTURE_MS);
   const [pressed, setPressed] = useState<string | null>(null);
+  const [other, setOther] = useState<string | null>(null);
   useEffect(() => {
     let flash: ReturnType<typeof setTimeout> | null = null;
     handle.current = capture(want, (input) => {
       setPressed(input);
       flash = setTimeout(() => onPress(input), 450);
+    }, {
+      pads: padIndices(vidPid),
+      onOther: (index) => setOther(shortPadName(steamPadName(index) ?? t.edit.anotherPad)),
     });
     const started = Date.now();
     const tick = setInterval(() => {
@@ -228,7 +234,8 @@ function CaptureView({ title, consolePad, pad, onPress, onTimeout, want }: {
         {consolePad && <div className="mh-capture-pane">{consolePad}</div>}
         <div className="mh-capture-pane">{pad(pressed)}</div>
       </div>
-      <div className="mh-modal-note">{t.edit.pressHint}</div>
+      {other ? <div className="mh-modal-warn" role="alert">{t.edit.otherPad(other, padName)}</div>
+        : <div className="mh-modal-note">{t.edit.pressHint(padName)}</div>}
       <div className="mh-capture-bar" aria-hidden="true">
         <div style={{ width: `${(left / CAPTURE_MS) * 100}%` }} />
       </div>
@@ -452,6 +459,8 @@ export function EditFlow({ closeModal, launch, player, players, control, prefix,
     } else {
       body = (
         <CaptureView
+          vidPid={player.pad.vid_pid}
+          padName={shortPadName(player.pad.name)}
           title={title}
           want={step.want}
           consolePad={hasConsolePad(launch.system)

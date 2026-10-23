@@ -103,6 +103,9 @@ def _pad(ctx, controller, joystick, glyphs: dict, port: Optional[int]) -> dict:
     return {"name": name, "model": controller.model, "family": controller.family, "style": controller.style,
             "shape": glyphs["shapes"].get(controller.style, "generic"),
             "steam_slot": joystick.slot.slot if joystick is not None and joystick.slot else None,
+            # The physical pad's VID:PID (a model's, not a device id): the plugin listens to that pad alone when it
+            # captures a press for this player.
+            "vid_pid": joystick.slot.vid_pid if joystick is not None and joystick.slot else None,
             "emulator_port": port}
 
 

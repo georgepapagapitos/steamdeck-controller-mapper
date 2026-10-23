@@ -7,8 +7,13 @@ import { GamepadButton } from "@decky/ui";
 // back buttons; the button numbers are @decky/ui's ControllerInputGamepadButton (decky-frontend-lib
 // src/globals/steam-client/Input.ts @ 10b929d). The Deck's Steam client of 2026-10-23 has it and no longer has
 // RegisterForControllerStateChanges, which older clients had (the raw state below). The enum has no right-stick
-// directions: a right-stick push for a C button comes from the state API or the UI fallback only. [VERIFY] that
-// external pads report through it, and their back buttons.
+// directions; the right stick comes through SteamClient.Input.RegisterForControllerAnalogInputMessages instead, once
+// EnableControllerAnalogInputMessages(true) is on. Its callback is (controllerIndex, kind, down, x, y), not the
+// message array decky-frontend-lib types, and Steam's UI reports the right stick as kind 47, ANALOG_SCROLL (the
+// right stick scrolls in Big Picture): FAILINATOR5000/decky-cheevodeck src/components/memories/rightStick.ts
+// @ main, read 2026-10-23. x and y are a scroll position that keeps moving while the stick is held (about 9 per
+// message at full tilt), not the stick's deflection; pushing up makes y fall (a DualSense on the owner's Deck,
+// 2026-10-23). So a push is the distance moved since the capture armed.
 //
 // Older clients: SteamClient.Input.RegisterForControllerStateChanges, Steam's raw state per controller. ulButtons
 // and ulUpperButtons use the bit layout of the Steam Deck's HID report (SDL release-2.30.0
@@ -49,6 +54,9 @@ const UI: Partial<Record<GamepadButton, string>> = {
 };
 
 const PUSH = 0.6 * 32767; // a stick or trigger counts as pressed past 60% of its travel
+const ANALOG_SCROLL = 47; // the right stick, in the analog messages
+const SCROLL_PUSH = 60; // scroll distance that counts as a deliberate push (about 100 ms at full tilt)
+const SCROLL_REST_MS = 200; // no message for this long: the stick is back in the centre
 
 // What the capture is for: a button target takes buttons, triggers and stick directions; an axis target takes a
 // stick (its _x or _y) or, for an analog trigger target, a trigger.
@@ -92,6 +100,37 @@ export function asSource(input: string, want: Want): string | null {
   return `${stick[1]}_${want === "stick-x" ? "x" : "y"}`;
 }
 
+// Steam's controllers, as its ControllerStore global lists them: the index the input messages carry, VID:PID and
+// name. Read in place; nothing about a pad leaves the page.
+interface SteamPad {
+  nControllerIndex: number;
+  unVendorID: number;
+  unProductID: number;
+  strName: string;
+}
+
+function steamPads(): SteamPad[] {
+  try {
+    return (window as unknown as { ControllerStore?: { GetControllers(): SteamPad[] } }).ControllerStore?.GetControllers() ?? [];
+  } catch {
+    return [];
+  }
+}
+
+const hex = (n: number) => n.toString(16).padStart(4, "0");
+
+// The Steam controller indices of the pad with this VID:PID (two of one model are both accepted: Steam's list doesn't
+// say which one a player is). null: no way to tell, so any pad counts.
+export function padIndices(vidPid: string | null | undefined): number[] | null {
+  if (!vidPid) return null;
+  const found = steamPads().filter((c) => `${hex(c.unVendorID)}:${hex(c.unProductID)}` === vidPid.toLowerCase());
+  return found.length ? found.map((c) => c.nControllerIndex) : null;
+}
+
+export function steamPadName(index: number): string | null {
+  return steamPads().find((c) => c.nControllerIndex === index)?.strName ?? null;
+}
+
 export interface Capture {
   stop: () => void;
   // The UI event of the focused capture element: used when the controller state doesn't say what was pressed.
@@ -100,27 +139,44 @@ export interface Capture {
 
 // Calls onPress once with the first input pressed after `armMs` that fits `want` (inputs already held when the
 // capture starts must be let go first), or with a non-fitting input so the caller can say why it can't be used.
-export function capture(want: Want, onPress: (input: string, fits: boolean) => void, armMs = 400): Capture {
+// pads: the Steam controller indices to listen to (padIndices), or null for any. A press on another pad calls onOther
+// with its index and isn't taken.
+export function capture(want: Want, onPress: (input: string, fits: boolean) => void,
+  { pads = null, onOther }: { pads?: number[] | null; onOther?: (index: number) => void } = {}, armMs = 400): Capture {
+  const mine = (index: number) => pads === null || pads.includes(index);
   const start = Date.now();
   const before = new Map<number, Set<string>>();
   let done = false;
   let fallback: ReturnType<typeof setTimeout> | null = null;
 
-  // What caught the last press, for checking a pad on the Deck (window.mhLastCapture in Steam's debugger).
-  const finish = (input: string, source = "state", raw?: number) => {
+  // What caught each press, for checking a pad on the Deck (window.mhCaptures in Steam's debugger, the last 20).
+  const finish = (input: string, source = "state", raw?: number, more: Record<string, unknown> = {}) => {
     if (done) return;
     done = true;
-    (window as unknown as Record<string, unknown>).mhLastCapture = { input, source, raw, want, at: Date.now() };
+    const seen = ((window as unknown as Record<string, unknown>).mhCaptures ??= []) as unknown[];
+    seen.push({ input, source, raw, want, at: Date.now(), ...more });
+    seen.splice(0, Math.max(0, seen.length - 20));
     if (fallback) clearTimeout(fallback);
-    registration?.unregister();
+    release();
     onPress(input, asSource(input, want) !== null);
+  };
+  const release = () => {
+    registration?.unregister();
+    if (analog) {
+      analog.unregister();
+      (SteamClient.Input as unknown as { EnableControllerAnalogInputMessages?: (on: boolean) => void })
+        .EnableControllerAnalogInputMessages?.(false);
+    }
   };
 
   let registration: { unregister: () => void } | null = null;
+  let analog: { unregister: () => void } | null = null;
+  const scroll = new Map<number, { x: number; y: number; at: number; x0: number; y0: number; early: boolean }>();
   const down = new Set<string>();
   const input = SteamClient.Input as unknown as Record<string, unknown>;
+  const messages = typeof input.RegisterForControllerInputMessages === "function";
   try {
-    if (typeof input.RegisterForControllerInputMessages === "function") {
+    if (messages) {
       registration = (input.RegisterForControllerInputMessages as (
         cb: (index: number, button: number, pressed: boolean) => void) => { unregister: () => void })(
         (index, button, pressed) => {
@@ -129,7 +185,10 @@ export function capture(want: Want, onPress: (input: string, fits: boolean) => v
           const key = `${index}:${button}`;
           if (!pressed) down.delete(key);
           else if (Date.now() - start < armMs) down.add(key);
-          else if (!down.has(key) && MESSAGE[button] && MESSAGE[button] !== "guide") finish(MESSAGE[button], "messages", button);
+          else if (!down.has(key) && MESSAGE[button] && MESSAGE[button] !== "guide") {
+            if (mine(index)) finish(MESSAGE[button], "messages", button, { index });
+            else onOther?.(index);
+          }
         });
     } else registration = SteamClient.Input.RegisterForControllerStateChanges((changes: State[]) => {
       for (const change of changes as (State & { unControllerIndex: number })[]) {
@@ -146,16 +205,45 @@ export function capture(want: Want, onPress: (input: string, fits: boolean) => v
   } catch (e) {
     console.warn("map-helper: no controller state; capturing from UI events only", e);
   }
+  try {
+    if (typeof input.RegisterForControllerAnalogInputMessages === "function"
+        && typeof input.EnableControllerAnalogInputMessages === "function") {
+      const log = ((window as unknown as Record<string, unknown>).mhAnalogLog = []) as unknown[];
+      analog = (input.RegisterForControllerAnalogInputMessages as (
+        cb: (index: number, kind: number, down: boolean, x: number, y: number) => void) => { unregister: () => void })(
+        (index, kind, _down, x, y) => {
+          if (log.length < 40) log.push({ index, kind, x, y });
+          if (kind !== ANALOG_SCROLL || typeof x !== "number" || typeof y !== "number" || done || !mine(index)) return;
+          const now = Date.now();
+          const was = scroll.get(index);
+          // A new push starts after a rest; one already going when the capture opened counts only after a rest.
+          if (!was || now - was.at > SCROLL_REST_MS) {
+            scroll.set(index, { x, y, at: now, x0: x, y0: y, early: now - start < armMs });
+            return;
+          }
+          Object.assign(was, { x, y, at: now });
+          if (was.early) return;
+          const [dx, dy] = [x - was.x0, y - was.y0];
+          if (Math.max(Math.abs(dx), Math.abs(dy)) < SCROLL_PUSH) return;
+          finish(Math.abs(dx) > Math.abs(dy) ? `rs_${dx > 0 ? "right" : "left"}` : `rs_${dy < 0 ? "up" : "down"}`,
+            "analog", kind, { index, dx: Math.round(dx), dy: Math.round(dy) });
+        });
+      (input.EnableControllerAnalogInputMessages as (on: boolean) => void)(true);
+    }
+  } catch (e) {
+    console.warn("map-helper: no analog input messages; the right stick can't be captured", e);
+  }
 
   return {
     stop: () => {
       done = true;
       if (fallback) clearTimeout(fallback);
-      registration?.unregister();
+      release();
     },
     uiButton: (button: number) => {
       const input = UI[button as GamepadButton];
-      if (!input || done || Date.now() - start < armMs) return;
+      // The UI event doesn't say which pad sent it: with the input messages there (they do), it's left to them.
+      if (!input || done || Date.now() - start < armMs || (messages && pads !== null)) return;
       // Give the controller state a moment to report the same press with its physical position first.
       if (!fallback) fallback = setTimeout(() => finish(input, "ui", button), 150);
     },

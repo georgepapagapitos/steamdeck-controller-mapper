@@ -276,8 +276,14 @@ too much, and this is the second.
   `decky/src/map/consoles.tsx`; N64 so far) with the target lit, beside the player's pad with the current
   button ringed. Source: `SteamClient.Input.RegisterForControllerInputMessages(controllerIndex, button, pressed)`
   in a positional layout (`ControllerInputGamepadButton`, @decky/ui `Input.ts` @ 10b929d). On the Deck's client
-  of 2026-10-23 it reports the 8BitDo's presses; `RegisterForControllerStateChanges` no longer exists there (kept
-  for older clients), and the UI event is the fallback. A press already held when capture starts is ignored
+  of 2026-10-23 it reports the 8BitDo's and the DualSense's presses; `RegisterForControllerStateChanges` no longer
+  exists there (kept for older clients), and the UI event is the fallback only without the input messages (it
+  doesn't say which pad sent it). **Only the player's own pad counts:** the press's controller index is matched to
+  Steam's `ControllerStore` entries with the pad's VID:PID (`show` gives `vid_pid`); a press on another pad says
+  "That was the DualSense. Press it on the 8BitDo" and keeps waiting (checked on the Deck 2026-10-23). The **right
+  stick** comes through `RegisterForControllerAnalogInputMessages` (after `EnableControllerAnalogInputMessages(true)`)
+  as kind 47, a scroll position that keeps moving while the stick is held; a push is ≥ 60 of travel since the
+  capture armed, up = y falling (seen on the DualSense); right = x rising [VERIFY]. A press already held when capture starts is ignored
   until released. After 10 s it stops and offers Try again / Cancel.
 - **One decide screen:** the change in words (a binding moves the console input: one physical input per console
   input), an automatic swap when the pressed button had exactly one job (or keep both), a dry-run preview for the
