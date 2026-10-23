@@ -43,7 +43,7 @@ function InputDrives({ input, prefix, showInput }: { input: PadInput; prefix: st
 }
 
 // The selected control: its glyph and name, what each of its inputs drives, where that came from, and any note,
-// with "Change button" (or "Give it a job" when it does nothing) and "Back to default" for what a rule set.
+// with "Change button" (or "Assign" when it does nothing) and "Back to default" for what a rule set.
 export function DetailCard({ pad, prefix, control, steamOnly, isDeck, onChange, onDefault }: Props) {
   if (steamOnly) {
     return (
@@ -75,7 +75,7 @@ export function DetailCard({ pad, prefix, control, steamOnly, isDeck, onChange, 
     <section className="mh-card" aria-live="polite">
       <div className="mh-card-head">
         <Glyph pad={pad} label={control.glyph} size={26} className="mh-card-glyph" />
-        <span className="mh-card-name">{control.name}</span>
+        {control.name !== control.glyph && <span className="mh-card-name">{control.name}</span>}
       </div>
       <div className="mh-card-body">
         {control.inputs.map((input) => (
@@ -85,7 +85,7 @@ export function DetailCard({ pad, prefix, control, steamOnly, isDeck, onChange, 
       {onChange && (
         <Focusable className="mh-card-actions" flow-children="row">
           <DialogButton className="mh-card-button" onClick={onChange}>
-            {controlTargets(control).length ? t.map.changeButton : t.edit.giveJob}
+            {controlTargets(control).length ? t.map.changeButton : t.edit.assign}
           </DialogButton>
           {onDefault && (
             <DialogButton className="mh-card-button" onClick={onDefault}>

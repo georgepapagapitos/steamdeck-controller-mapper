@@ -2,16 +2,33 @@ import { GamepadButton } from "@decky/ui";
 
 // Catching the next press for "Change button" (docs/08 Flow 2, "Input capture vs UI navigation").
 //
-// First source: SteamClient.Input.RegisterForControllerStateChanges, Steam's raw state per controller. ulButtons
+// First source: SteamClient.Input.RegisterForControllerInputMessages(controllerIndex, button, pressed), Steam's
+// per-controller button events in a positional layout (A south, B east, X west, Y north) with stick directions and
+// back buttons; the button numbers are @decky/ui's ControllerInputGamepadButton (decky-frontend-lib
+// src/globals/steam-client/Input.ts @ 10b929d). The Deck's Steam client of 2026-10-23 has it and no longer has
+// RegisterForControllerStateChanges, which older clients had (the raw state below). The enum has no right-stick
+// directions: a right-stick push for a C button comes from the state API or the UI fallback only. [VERIFY] that
+// external pads report through it, and their back buttons.
+//
+// Older clients: SteamClient.Input.RegisterForControllerStateChanges, Steam's raw state per controller. ulButtons
 // and ulUpperButtons use the bit layout of the Steam Deck's HID report (SDL release-2.30.0
 // src/joystick/hidapi/SDL_hidapi_steamdeck.c L38-62: R2 0x1, L2 0x2, R1 0x4, L1 0x8, Y 0x10, B 0x20, X 0x40, A 0x80,
 // D-pad up/right/left/down 0x100-0x800, View 0x1000, Steam 0x2000, Menu 0x4000, L5 0x8000, R5 0x10000, L3 0x400000,
 // R3 0x4000000; upper word L4 0x200, R4 0x400, QAM 0x40000), as a community plugin decodes them for shortcuts
 // (Emiliopg91/decky-plugin-framework src/types/input.ts @ f69b374). Stick Y is positive up: SDL negates it for its
-// own axes (same file, L305-311). [VERIFY] that external pads report in the same positional layout.
+// own axes (same file, L305-311).
 //
 // Fallback: the UI event on the focused element (onButtonDown), which every pad sends but which is Steam's UI
-// action, after Steam Input's UI mapping. It's used only if no controller state arrives for the press.
+// action, after Steam Input's UI mapping. It's used only if neither API reports the press within 150 ms.
+
+// ControllerInputGamepadButton -> canonical input. Paddles as SDL numbers the Deck's (data/glyphs.json): the
+// lower back buttons L5/R5 are LBACK/RBACK, the upper L4/R4 LBACK_UPPER/RBACK_UPPER.
+const MESSAGE: Record<number, string> = {
+  0: "face_south", 1: "face_east", 2: "face_west", 3: "face_north", 4: "dpad_up", 5: "dpad_right", 6: "dpad_down",
+  7: "dpad_left", 8: "start", 9: "select", 20: "ls_up", 21: "ls_down", 22: "ls_left", 23: "ls_right", 25: "l3",
+  28: "l2", 29: "r2", 30: "l1", 31: "r1", 32: "paddle4", 33: "paddle3", 34: "guide", 35: "select", 36: "start",
+  41: "r3", 44: "paddle2", 45: "paddle1",
+};
 
 const LOWER: Record<number, string> = {
   0: "r2", 1: "l2", 2: "r1", 3: "l1", 4: "face_north", 5: "face_east", 6: "face_west", 7: "face_south",
@@ -89,17 +106,27 @@ export function capture(want: Want, onPress: (input: string, fits: boolean) => v
   let done = false;
   let fallback: ReturnType<typeof setTimeout> | null = null;
 
-  const finish = (input: string) => {
+  // What caught the last press, for checking a pad on the Deck (window.mhLastCapture in Steam's debugger).
+  const finish = (input: string, source = "state", raw?: number) => {
     if (done) return;
     done = true;
+    (window as unknown as Record<string, unknown>).mhLastCapture = { input, source, raw, want, at: Date.now() };
     if (fallback) clearTimeout(fallback);
     registration?.unregister();
     onPress(input, asSource(input, want) !== null);
   };
 
   let registration: { unregister: () => void } | null = null;
+  const input = SteamClient.Input as unknown as Record<string, unknown>;
   try {
-    registration = SteamClient.Input.RegisterForControllerStateChanges((changes: State[]) => {
+    if (typeof input.RegisterForControllerInputMessages === "function") {
+      registration = (input.RegisterForControllerInputMessages as (
+        cb: (index: number, button: number, pressed: boolean) => void) => { unregister: () => void })(
+        (_index, button, pressed) => {
+          const name = MESSAGE[button];
+          if (pressed && name && name !== "guide" && Date.now() - start >= armMs) finish(name, "messages", button);
+        });
+    } else registration = SteamClient.Input.RegisterForControllerStateChanges((changes: State[]) => {
       for (const change of changes as (State & { unControllerIndex: number })[]) {
         const now = held(change);
         const was = before.get(change.unControllerIndex);
@@ -125,7 +152,7 @@ export function capture(want: Want, onPress: (input: string, fits: boolean) => v
       const input = UI[button as GamepadButton];
       if (!input || done || Date.now() - start < armMs) return;
       // Give the controller state a moment to report the same press with its physical position first.
-      if (!fallback) fallback = setTimeout(() => finish(input), 150);
+      if (!fallback) fallback = setTimeout(() => finish(input, "ui", button), 150);
     },
   };
 }

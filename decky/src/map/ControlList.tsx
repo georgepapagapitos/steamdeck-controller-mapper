@@ -77,7 +77,7 @@ export function ControlList(props: Props) {
               <Row key={control.key} id={control.key} on={control.key === selected}
                 label={spotLabel(control, prefix)} onSelect={onSelect}
                 onActivate={onChange && (() => onChange(control))}
-                okText={targets.length ? t.map.changeButton : t.edit.giveJob}
+                okText={targets.length ? t.map.changeButton : t.edit.assign}
                 onSecondary={onDefault && canDefault?.(control) ? () => onDefault(control) : undefined}
                 secondaryText={t.edit.backToDefault}>
                 <span className="mh-row-glyph"><Glyph pad={pad} label={control.glyph} size={22} /></span>

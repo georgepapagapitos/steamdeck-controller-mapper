@@ -9,7 +9,9 @@ import { type Change, type EditResult, type Op, type Scope, type Target, editRul
 import { t } from "../strings";
 import { Styles } from "../styles";
 import { type Capture, type Want, asSource, capture } from "./capture";
-import type { Control } from "./controls";
+import { ConsolePad, hasConsolePad } from "./consoles";
+import { type Control, groupControls } from "./controls";
+import { PadDrawing } from "./PadDrawing";
 
 const CAPTURE_MS = 10000;
 
@@ -29,7 +31,7 @@ interface Bind {
 type Step =
   | { kind: "pick" }
   | { kind: "job"; job: Job }
-  | { kind: "capture"; job: Job; want: Want; message?: string }
+  | { kind: "capture"; job: Job; want: Want; message?: string; stopped?: boolean }
   | { kind: "confirm"; job: Job; want: Want; pressed: string }
   | { kind: "scope"; binds: Bind[] }
   | { kind: "result"; result: EditResult };
@@ -68,21 +70,27 @@ export function jobsOf(control: Control): Job[] {
   });
 }
 
-// "Give it a job" choices: console inputs for a button, a pair of axes (both at once) for a stick.
-function jobChoices(targets: Target[], input: string, prefix: string): { key: string; text: string; binds: Bind[] }[] {
+// "Assign" choices: console inputs for a button, a pair of axes (both at once) for a stick. The question
+// names the system, so the labels go without its prefix.
+function jobChoices(targets: Target[], input: string): { key: string; text: string; binds: Bind[] }[] {
   const stick = input === "ls" || input === "rs";
   if (!stick) {
     return targets.filter((x) => x.kind !== "axis").map((x) => ({
-      key: x.target, text: named(prefix, x.label), binds: [{ target: x.target, label: x.label, source: input }],
+      key: x.target, text: x.label, binds: [{ target: x.target, label: x.label, source: input }],
     }));
   }
   return targets.filter((x) => x.kind === "axis" && x.target.endsWith("_x")).flatMap((x) => {
     const y = targets.find((o) => o.target === `${x.target.slice(0, -2)}_y`);
     if (!y) return [];
-    const text = named(prefix, x.label.replace(/\s*X$/, ""));
+    const text = x.label.replace(/\s*X$/, "");
     return [{ key: x.target, text, binds: [{ target: x.target, label: x.label, source: `${input}_x` },
                                           { target: y.target, label: y.label, source: `${input}_y` }] }];
   });
+}
+
+// The drawing's control for a physical input: a stick half or axis is its stick's control.
+function controlKeyFor(controls: Control[], input: string): string | null {
+  return controls.find((c) => c.inputs.some((i) => i.input === input || input.startsWith(`${i.input}_`)))?.key ?? null;
 }
 
 // A physical input in this player's own words: its glyph and name, a stick half or axis as the stick's glyph.
@@ -149,30 +157,42 @@ function Button({ onClick, children, disabled }: { onClick: () => void; children
 
 // The capture screen: one focused element that swallows every button (so nothing navigates or closes the modal)
 // and hands its UI events to the capture as the fallback source.
-function CaptureView({ title, hint, message, current, onPress, onTimeout, want }: {
+// The capture screen: one focused element that swallows every button (so nothing navigates or closes the modal)
+// and hands its UI events to the capture as the fallback source. Beside the title: the console's pad with the
+// input being changed lit, and the player's pad with the button that does it now outlined; a press lights the
+// pressed button there for a moment before the flow moves on.
+function CaptureView({ title, hint, message, consolePad, pad, onPress, onTimeout, want }: {
   title: string;
   hint: string;
   message?: string;
-  current: ReactNode;
+  consolePad: ReactNode;
+  pad: (pressed: string | null) => ReactNode;
   want: Want;
   onPress: (input: string) => void;
   onTimeout: () => void;
 }) {
   const handle = useRef<Capture | null>(null);
   const [left, setLeft] = useState(CAPTURE_MS);
+  const [pressed, setPressed] = useState<string | null>(null);
   useEffect(() => {
-    handle.current = capture(want, (input) => onPress(input));
+    let flash: ReturnType<typeof setTimeout> | null = null;
+    handle.current = capture(want, (input) => {
+      setPressed(input);
+      flash = setTimeout(() => onPress(input), 450);
+    });
     const started = Date.now();
     const tick = setInterval(() => {
       const rest = CAPTURE_MS - (Date.now() - started);
       setLeft(Math.max(rest, 0));
       if (rest <= 0) {
+        clearInterval(tick);
         handle.current?.stop();
         onTimeout();
       }
     }, 100);
     return () => {
       clearInterval(tick);
+      if (flash) clearTimeout(flash);
       handle.current?.stop();
     };
   }, []);
@@ -198,7 +218,10 @@ function CaptureView({ title, hint, message, current, onPress, onTimeout, want }
       aria-live="assertive"
     >
       <div className="mh-modal-title">{title}</div>
-      <div className="mh-capture-ring" aria-hidden="true">{current}</div>
+      <div className="mh-capture-pads">
+        {consolePad && <div className="mh-capture-pane">{consolePad}</div>}
+        <div className="mh-capture-pane">{pad(pressed)}</div>
+      </div>
       {message && <div className="mh-modal-warn">{message}</div>}
       <div className="mh-modal-note">{hint}</div>
       <div className="mh-capture-bar" aria-hidden="true">
@@ -360,7 +383,8 @@ export function EditFlow({ closeModal, launch, player, players, control, prefix,
     job.targets.length ? { kind: "capture", job, want: wantFor(job) } : { kind: "job", job };
   const [step, setStep] = useState<Step>(jobs.length === 1 ? first(jobs[0]) : { kind: "pick" });
   const [targets, setTargets] = useState<Target[] | null>(null);
-  const capturing = step.kind === "capture";
+  const capturing = step.kind === "capture" && !step.stopped;
+  const controls = useMemo(() => groupControls(player.inputs), [player]);
   const close = () => closeModal?.();
 
   useEffect(() => {
@@ -387,40 +411,67 @@ export function EditFlow({ closeModal, launch, player, players, control, prefix,
     );
   } else if (step.kind === "job") {
     const { glyph } = inputWords(player, step.job.input.input);
-    const choices = jobChoices(targets ?? [], step.job.input.input, prefix);
+    const choices = jobChoices(targets ?? [], step.job.input.input);
     body = (
       <>
-        <div className="mh-modal-title">{t.edit.whatShould(glyph, launch.system_name || launch.system.toUpperCase())}</div>
+        <div className="mh-modal-title mh-title-glyph">
+          <Glyph pad={player.pad} label={glyph} size={26} className="mh-glyph" />
+          <span>{t.edit.whatShould(launch.system_name || launch.system.toUpperCase())}</span>
+        </div>
         {!targets ? <SteamSpinner background="transparent" style={{ height: 40 }} /> : (
           <Focusable className="mh-target-grid" flow-children="grid">
-            {choices.map((c) => (
-              <DialogButton key={c.key} className="mh-target" onClick={() => setStep({ kind: "scope", binds: c.binds })}>
+            {choices.map((c, i) => (
+              <DialogButton key={c.key} className="mh-target" preferredFocus={i === 0}
+                onClick={() => setStep({ kind: "scope", binds: c.binds })}>
                 {c.text}
               </DialogButton>
             ))}
           </Focusable>
         )}
-        <Buttons>
-          <Button onClick={() => (jobs.length > 1 ? setStep({ kind: "pick" }) : close())}>{t.edit.cancel}</Button>
-        </Buttons>
+        {targets && (
+          <Buttons>
+            <Button onClick={() => (jobs.length > 1 ? setStep({ kind: "pick" }) : close())}>{t.edit.cancel}</Button>
+          </Buttons>
+        )}
       </>
     );
   } else if (step.kind === "capture") {
     const what = step.job.targets.map((x) => named(prefix, x.label)).join(", ");
     const title = step.want === "button" ? t.edit.pressFor(what)
       : step.want === "trigger" ? t.edit.pullFor(what) : t.edit.moveFor(what);
-    body = (
-      <CaptureView
-        key={step.message ?? "first"}
-        title={title}
-        hint={t.edit.pressHint}
-        message={step.message}
-        want={step.want}
-        current={<Glyph pad={player.pad} label={step.job.input.glyph} size={44} className="mh-glyph" />}
-        onTimeout={() => setStep({ ...step, message: t.edit.nothingPressed })}
-        onPress={(pressed) => setStep({ kind: "confirm", job: step.job, want: step.want, pressed })}
-      />
-    );
+    const lit = step.job.targets.map((x) => x.target);
+    const consolePad = <ConsolePad system={launch.system} lit={lit} label={t.edit.consolePad(what)} />;
+    const current = controlKeyFor(controls, step.job.input.input);
+    if (step.stopped) {
+      body = (
+        <>
+          <div className="mh-modal-title">{title}</div>
+          <div className="mh-modal-warn">{t.edit.nothingPressed}</div>
+          <Buttons>
+            <Button onClick={() => setStep({ kind: "capture", job: step.job, want: step.want })}>{t.edit.tryAgain}</Button>
+            <Button onClick={close}>{t.edit.cancel}</Button>
+          </Buttons>
+        </>
+      );
+    } else {
+      body = (
+        <CaptureView
+          key={step.message ?? "first"}
+          title={title}
+          hint={t.edit.pressHint}
+          message={step.message}
+          want={step.want}
+          consolePad={hasConsolePad(launch.system) ? consolePad : null}
+          pad={(pressed) => (
+            <PadDrawing pad={player.pad} controls={controls}
+              selected={pressed ? controlKeyFor(controls, pressed) : current}
+              outlined={pressed ? null : current} />
+          )}
+          onTimeout={() => setStep({ ...step, stopped: true })}
+          onPress={(pressed) => setStep({ kind: "confirm", job: step.job, want: step.want, pressed })}
+        />
+      );
+    }
   } else if (step.kind === "confirm") {
     const { job, want, pressed } = step;
     const source = asSource(pressed, want);

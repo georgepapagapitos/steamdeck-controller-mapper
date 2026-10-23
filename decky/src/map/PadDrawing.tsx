@@ -9,6 +9,7 @@ interface Props {
   pad: Pad;
   controls: Control[];
   selected: string | null;
+  outlined?: string | null; // waiting for a press: the control that does the job now, ringed but not lit
 }
 
 // Box units → percentages of the drawing, and font sizes in container-width units, so the drawing scales with
@@ -28,6 +29,13 @@ function spotStyle([cx, cy, w, h]: Spot, glyph: string): CSSProperties {
   };
 }
 
+// Kenney's glyphs fill about 3/4 of their box (8-56 of 64), so a glyph's box is 4/3 of the spot it stands for;
+// wide, short spots (shoulders, Select/Start) take their size from the width.
+function iconStyle([cx, cy, w, h]: Spot): CSSProperties {
+  const size = (Math.max(Math.min(w, h), 0.6 * Math.max(w, h)) * 4) / 3;
+  return { left: pctX(cx - size / 2), top: pctY(cy - size / 2), width: pctX(size), height: pctY(size) };
+}
+
 export function spotLabel(control: Control, prefix: string): string {
   const targets = controlTargets(control);
   const what = targets.length ? targets.map((l) => (prefix ? `${prefix} ${l}` : l)).join(", ") : t.map.nothing;
@@ -39,7 +47,7 @@ export function spotLabel(control: Control, prefix: string): string {
 // buttons, so the list beside it takes focus and the drawing lights up whichever control the list is on.
 // A control with a Kenney glyph is drawn as that glyph, tinted with its source's colour; any other keeps its label
 // in a bordered pill, the border in that colour.
-export function PadDrawing({ pad, controls, selected }: Props) {
+export function PadDrawing({ pad, controls, selected, outlined }: Props) {
   const def = shapeDef(pad.shape);
   const placed = controls.filter((c) => def.spots[c.key]);
   return (
@@ -53,9 +61,10 @@ export function PadDrawing({ pad, controls, selected }: Props) {
         return (
           <div
             key={control.key}
-            className={`mh-spot${icon ? " mh-spot-icon" : ""}${control.key === selected ? " mh-on" : ""}`}
+            className={`mh-spot${icon ? " mh-spot-icon" : ""}${control.key === selected && !outlined ? " mh-on" : ""}${
+              control.key === outlined ? " mh-was" : ""}`}
             data-kind={controlKind(control)}
-            style={spotStyle(spot, control.glyph)}
+            style={icon ? iconStyle(spot) : spotStyle(spot, control.glyph)}
             aria-hidden="true"
           >
             {icon ? <Icon name={icon} size="100%" /> : control.glyph}

@@ -62,20 +62,27 @@ const css = `
 .mh-spot[data-kind="none"] { border-style: dashed; border-color: ${colors.none}; color: ${colors.muted}; }
 .mh-spot.mh-on { border-color: ${colors.selected}; border-style: solid; background: #3a2a14; color: ${colors.text}; }
 /* A spot drawn as its Kenney glyph: the glyph takes the source's colour, the selected one an orange halo. */
-.mh-spot-icon { border: none; background: transparent; color: ${colors.emulator}; border-radius: 50%; }
+.mh-spot-icon { border: none; background: transparent; color: ${colors.emulator}; border-radius: 50%; padding: 0; }
 .mh-spot-icon[data-kind="rule"] { color: ${colors.rule}; }
 .mh-spot-icon[data-kind="emudeck"] { color: ${colors.emudeck}; }
 .mh-spot-icon[data-kind="none"] { color: ${colors.none}; }
-.mh-spot-icon.mh-on { background: transparent; color: ${colors.selected}; box-shadow: 0 0 0 3px #3a2a14, 0 0 10px 3px ${colors.selected}; }
+.mh-spot-icon.mh-on { background: transparent; color: ${colors.selected}; box-shadow: 0 0 0 2px ${colors.selected}; }
 
 /* The focus ring: Steam marks whatever the D-pad is on with .gpfocus (our Focusables add .mh-focus too). Every focusable
    thing on our screens, ours or Steam's (DialogButton, Field, menu items), gets the same clear white ring. */
+/* !important: Steam's own DialogButton and Field styles set outline and box-shadow to none on focus. */
 .mh-route .gpfocus, .mh-modal .gpfocus, .mh-focus {
-  outline: 2px solid ${colors.focus}; outline-offset: 2px; box-shadow: 0 0 0 6px ${colors.focusGlow};
+  outline: 3px solid ${colors.focus} !important; outline-offset: 2px !important;
+  box-shadow: 0 0 0 7px ${colors.focusGlow} !important;
 }
-.mh-route.gpfocus, .mh-route .mh-capture.gpfocus { outline: none; box-shadow: none; }
+.mh-route.gpfocus, .mh-route .mh-capture.gpfocus, .mh-modal .mh-capture.gpfocus {
+  outline: none !important; box-shadow: none !important;
+}
 /* In the Quick Access panel rows sit edge to edge and the panel clips outside them: the ring goes inside. */
-.mh-qam .gpfocus { outline: 2px solid ${colors.focus}; outline-offset: -2px; box-shadow: none; border-radius: 4px; }
+.mh-qam .gpfocus {
+  outline: 2px solid ${colors.focus} !important; outline-offset: -2px !important; box-shadow: none !important;
+  border-radius: 4px;
+}
 
 .mh-strip {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px;
@@ -157,8 +164,11 @@ const css = `
 }
 
 /* Modals: the edit flow, results, resets. Steam's ModalRoot gives the frame; this is what's inside. */
-.mh-modal { display: flex; flex-direction: column; gap: 12px; min-width: 460px; max-width: 640px; color: ${colors.text}; }
-.mh-modal-title { font-size: 18px; font-weight: 700; line-height: 1.3; }
+.mh-modal { display: flex; flex-direction: column; gap: 10px; min-width: 460px; max-width: 660px; color: ${colors.text}; }
+.mh-modal-title { font-size: 17px; font-weight: 700; line-height: 1.3; }
+.mh-modal .DialogButton.mh-modal-button, .mh-modal .DialogButton.mh-target, .mh-modal .DialogButton.mh-job,
+.mh-modal .DialogButton.mh-chip-button { min-height: 34px; padding: 4px 14px; font-size: 14px; line-height: 1.2; }
+.mh-title-glyph { display: flex; align-items: center; gap: 10px; }
 .mh-modal-note { font-size: 13px; color: ${colors.muted}; line-height: 1.45; }
 .mh-modal-warn { font-size: 13px; color: ${colors.warn}; line-height: 1.45; }
 .mh-modal-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
@@ -176,22 +186,34 @@ const css = `
 .mh-capture {
   display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 8px 4px; text-align: center;
 }
+.mh-capture-pads { display: flex; gap: 16px; width: 100%; justify-content: center; }
+.mh-capture-pane { flex: 1 1 0; max-width: 300px; min-width: 0; }
+.mh-console { width: 100%; height: auto; display: block; }
+.mh-capture .mh-modal-title { align-self: stretch; }
+.mh-spot.mh-was { box-shadow: 0 0 0 2px ${colors.muted}; border-radius: 50%; }
+.mh-spot.mh-was:not(.mh-spot-icon) { border-color: ${colors.muted}; border-style: dashed; }
 .mh-capture-ring {
   width: 84px; height: 84px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
   border: 3px solid ${colors.accent}; color: ${colors.text}; animation: mh-pulse 1.4s ease-in-out infinite;
 }
 @keyframes mh-pulse { 0%, 100% { box-shadow: 0 0 0 0 ${colors.focusGlow}; } 50% { box-shadow: 0 0 0 12px rgba(26,159,255,0); } }
-@media (prefers-reduced-motion: reduce) { .mh-capture-ring { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .mh-capture-pads { display: flex; gap: 16px; width: 100%; justify-content: center; }
+.mh-capture-pane { flex: 1 1 0; max-width: 300px; min-width: 0; }
+.mh-console { width: 100%; height: auto; display: block; }
+.mh-capture .mh-modal-title { align-self: stretch; }
+.mh-spot.mh-was { box-shadow: 0 0 0 2px ${colors.muted}; border-radius: 50%; }
+.mh-spot.mh-was:not(.mh-spot-icon) { border-color: ${colors.muted}; border-style: dashed; }
+.mh-capture-ring { animation: none; } }
 .mh-capture-bar { width: 100%; height: 4px; border-radius: 2px; background: ${colors.surfaceLow}; overflow: hidden; }
 .mh-capture-bar > div { height: 100%; background: ${colors.accent}; transition: width 100ms linear; }
 
 .mh-choice { display: flex; flex-direction: column; gap: 6px; }
 .mh-choice-label { font-size: 11px; font-weight: 600; color: ${colors.muted}; text-transform: uppercase; letter-spacing: 0.8px; }
 .mh-choice-row { display: flex; gap: 8px; flex-wrap: wrap; }
-.mh-choice-row .mh-chip-button { width: auto; min-width: 0; min-height: 34px; padding: 0 14px; font-size: 13px;
-  display: inline-flex; align-items: center; gap: 6px; }
+.mh-choice-row .mh-chip-button { width: auto; min-width: 0; display: inline-flex; align-items: center; gap: 6px; }
+/* Chosen: the accent fill and a check. Focus adds the white ring on top, so the two never look alike. */
 .mh-choice-row .mh-chip-on { background: ${colors.accent} !important; color: ${colors.onAccent} !important; }
-.mh-preview { max-height: 150px; overflow-y: auto; padding: 8px 10px; border-radius: 8px; background: ${colors.surfaceLow}; }
+.mh-preview { max-height: 104px; overflow-y: auto; padding: 8px 10px; border-radius: 8px; background: ${colors.surfaceLow}; }
 .mh-changes { display: flex; flex-direction: column; gap: 8px; }
 .mh-change-group { display: flex; flex-direction: column; gap: 4px; }
 .mh-change-player { font-size: 11px; font-weight: 600; color: ${colors.muted}; }

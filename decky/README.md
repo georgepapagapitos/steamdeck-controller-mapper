@@ -10,8 +10,8 @@ what each one does in the game, and the buttons only Steam sees (back buttons,
 paddles, touchpad click). Everything works with the D-pad and A/B; L1/R1 switch
 players on the button map.
 
-Changing a mapping starts on the button map: select a button and press A (**Change button**, or **Give it a
-job** for one that does nothing), press the button you want, then say where it applies: this game or all the
+Changing a mapping starts on the button map: select a button and press A (**Change button**, or **Assign**
+for one that does nothing), press the button you want, then say where it applies: this game or all the
 system's games, any controller, every pad of that kind, or only that one pad. The plugin shows what changes for
 the pads connected now, saves a rule in `~/.local/share/map-helper/rules`, and the change applies the next time a
 game starts. **Undo** is offered right after; X on a button a rule changed is **Back to default**; the ≡ button

@@ -37,7 +37,7 @@ function Row({ rule, busy, onToggle, onDelete }: {
       noFocusRing
       onActivate={busy ? undefined : onToggle}
       onClick={busy ? undefined : onToggle}
-      onOKActionDescription={rule.on ? t.rules.off : t.rules.on}
+      onOKActionDescription={rule.on ? t.rules.turnOff : t.rules.turnOn}
       onSecondaryButton={onDelete}
       onSecondaryActionDescription={t.rules.delete}
       onGamepadFocus={reveal}
