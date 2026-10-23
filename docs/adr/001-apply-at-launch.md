@@ -29,8 +29,9 @@ we put in front of the launcher. See [07](../07-launch-integration.md).
    SRM parser for a managed emulator (`userConfigurations.json`), so it reaches
    Steam at the user's next "Save to Steam"; map-helper never writes
    `shortcuts.vdf`. Parsers that append their args to the Exe (RetroArch) are
-   switched to launch options, which gives those shortcuts new app ids
-   (docs/07 "`map-helper setup` and `uninstall`").
+   left alone: wrapping them would give their shortcuts new Steam app ids and
+   lose per-shortcut settings and playtime (the owner's call, 2026-10-23;
+   docs/07 "`map-helper setup` and `uninstall`").
 2. **ES-DE launches:** an ES-DE `game-start` custom event script calls
    `mh-run --hook --es-de`, which works out the emulator and core from ES-DE's
    system commands and the gamelist's alternative emulator. setup installs the
@@ -54,7 +55,7 @@ we put in front of the launcher. See [07](../07-launch-integration.md).
 - ➖ Launch latency budget (500 ms max, fail-open). A cut-off stops before the
   writer commits, so it never leaves a half-written file; the shim, not Python,
   starts the emulator, so nothing in map-helper can stop a launch (docs/07).
-- ➖ RetroArch's SRM shortcuts get new Steam app ids once (their Exe changes).
+- ➖ RetroArch games launched from their SRM Steam shortcuts aren't wrapped (doing so would change those shortcuts' app ids); only ES-DE launches of RetroArch get mappings applied.
 - ES-DE's `game-start` fires before the emulator starts and blocks until the
   script ends, per ES-DE's source (docs/07 Option E). [VERIFY] on a Deck, with
   the latency mh-run adds there, and that Steam runs

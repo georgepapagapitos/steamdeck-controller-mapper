@@ -63,9 +63,10 @@ class SetupTest(Base):
         self.assertEqual(p["Nintendo GameCube - Dolphin"]["executableArgs"],
                          f'vblank_mode=0 {shim} --emulator dolphin -- %command% -b -e "${{filePath}}"')
         self.assertFalse(p["Nintendo GameCube - Dolphin"]["executable"]["appendArgsToExecutable"])
+        # RetroArch's parsers put their args in the Exe: wrapping them would change the shortcuts' app ids.
         snes = p["Nintendo SNES (Super Nintendo) - RetroArch Snes9x"]
-        self.assertTrue(snes["executableArgs"].startswith(f"{shim} --emulator retroarch -- %command% -L "))
-        self.assertFalse(snes["executable"]["appendArgsToExecutable"])
+        self.assertNotIn("mh-run", snes["executableArgs"])
+        self.assertTrue(snes["executable"]["appendArgsToExecutable"])
         # No descriptor for PUAE, and not an emulator we manage: untouched.
         self.assertNotIn("mh-run", p["Amiga - RetroArch PUAE"]["executableArgs"])
         self.assertNotIn("mh-run", p["Sony PlayStation - DuckStation"]["executableArgs"])
@@ -85,7 +86,7 @@ class SetupTest(Base):
         changed = [(a, b) for a, b in zip(before, after) if a != b]
         self.assertTrue(changed)
         for old, new in changed:
-            self.assertTrue('"executableArgs"' in old or '"appendArgsToExecutable"' in old, old)
+            self.assertIn('"executableArgs"', old)
 
     def test_idempotent_and_uninstall_gives_back_identical_files(self):
         before = digest(self.home)
@@ -214,9 +215,15 @@ class DoctorHooksTest(Base):
         setup.setup(self.places, write=True)
         config = self.home / "Steam" / "userdata" / "12345" / "config"
         config.mkdir(parents=True)
-        (config / "shortcuts.vdf").write_bytes(binary_vdf({"shortcuts": {"0": SRM_DOLPHIN}}))
+        # RetroArch's SRM shortcuts carry their args in the Exe; setup leaves them alone, so doctor doesn't nag.
+        retroarch = {"AppName": "Made Up Game", "Exe": '"/home/deck/Emulation/tools/launchers/retroarch.sh" -L '
+                     '/home/deck/.var/app/org.libretro.RetroArch/config/retroarch/cores/snes9x_libretro.so '
+                     '"/run/media/sd/Emulation/roms/snes/Made Up Game.sfc"'}
+        (config / "shortcuts.vdf").write_bytes(binary_vdf({"shortcuts": {"0": SRM_DOLPHIN, "1": retroarch}}))
         found = self.checks(self.home / "Steam")
-        self.assertEqual([s for s, m in found if "don't run mh-run yet" in m], ["warning"])
+        self.assertEqual([m for s, m in found if "don't run mh-run yet" in m and s == "warning"],
+                         ["steam: 1 emulator shortcut(s) don't run mh-run yet (Super Mario Sunshine); run Steam ROM "
+                          "Manager's \"Save to Steam\" to pick up the parser change"])
 
 
 if __name__ == "__main__":

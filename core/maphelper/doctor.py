@@ -258,7 +258,7 @@ def _srm_hooks(places, steam_root: Path, done: bool) -> list[Finding]:
     except ValueError as e:
         return [Finding("warning", "launch-hooks", f"srm: couldn't read {places.srm_config} ({e})")]
     bare = [p.get("configTitle") or str(p.get("parserId")) for p in parsers if isinstance(p, dict)
-            and setup._emulator_of(p) and "mh-run" not in str(p.get("executableArgs") or "")]
+            and setup.wrappable(p) and "mh-run" not in str(p.get("executableArgs") or "")]
     out = []
     if bare:
         out.append(Finding("warning" if done else "info", "launch-hooks",
@@ -273,8 +273,10 @@ def _srm_hooks(places, steam_root: Path, done: bool) -> list[Finding]:
         stale = []
         for sc in shortcuts:
             exe, opts = str(vdf.lookup(sc, "Exe") or ""), str(vdf.lookup(sc, "LaunchOptions") or "")
-            parser = {"executable": {"path": exe.strip('"').split('" ')[0]}, "executableArgs": exe + " " + opts}
-            if setup._emulator_of(parser) and "mh-run" not in exe + opts:
+            path, _, exe_args = exe.strip('"').partition('" ')
+            parser = {"executable": {"path": path, "appendArgsToExecutable": bool(exe_args.strip())},
+                      "executableArgs": exe + " " + opts}
+            if setup.wrappable(parser) and "mh-run" not in exe + opts:
                 stale.append(str(vdf.lookup(sc, "AppName") or "?"))
         if stale:
             out.append(Finding("warning", "launch-hooks",

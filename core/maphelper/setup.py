@@ -226,7 +226,7 @@ def _remove_file(report: Report, record: dict, part: str, key: str, write: bool)
 def _emulator_of(parser: dict) -> Optional[str]:
     """The managed emulator an SRM parser launches, by its executable (EmuDeck's parsers: ${retroarchpath},
     .../launchers/dolphin-emu.sh, .../launchers/pcsx2-qt.sh). RetroArch parsers count only when map-helper has a
-    descriptor for their core: wrapping one changes the shortcut's app id for nothing otherwise."""
+    descriptor for their core."""
     exe = str((parser.get("executable") or {}).get("path") or "")
     name = exe.replace("\\", "/").rsplit("/", 1)[-1].lower()
     if "retroarch" in exe.lower():
@@ -237,6 +237,14 @@ def _emulator_of(parser: dict) -> Optional[str]:
     if name == "pcsx2-qt.sh":
         return "pcsx2"
     return None
+
+
+def wrappable(parser: dict) -> Optional[str]:
+    """The managed emulator setup wraps this parser for, or None. Parsers that put their args in the shortcut's Exe
+    are never wrapped: that would change their shortcuts' app ids (see _srm_setup)."""
+    if (parser.get("executable") or {}).get("appendArgsToExecutable"):
+        return None
+    return _emulator_of(parser)
 
 
 def _core_files() -> set:
@@ -270,10 +278,10 @@ def _srm_setup(report: Report, record: dict, places: Places, write: bool) -> Non
         report.add("srm", "refuse", f"{path}: can't read it ({e})")
         return
     mine = record.get("srm", {}).get("parsers", {})
-    edits, planned, appid = [], {}, []
+    edits, planned, kept = [], {}, []
     for i, parser in enumerate(parsers if isinstance(parsers, list) else []):
         emulator = _emulator_of(parser) if isinstance(parser, dict) else None
-        args_span, append_span = spans.get((i, "executableArgs")), spans.get((i, "executable", "appendArgsToExecutable"))
+        args_span = spans.get((i, "executableArgs"))
         pid = str(parser.get("parserId")) if emulator else None
         if not emulator or args_span is None or pid in mine:
             continue
@@ -281,18 +289,23 @@ def _srm_setup(report: Report, record: dict, places: Places, write: bool) -> Non
         title = parser.get("configTitle") or pid
         if MARK in args and "mh-run" in args:
             continue                                  # wrapped by hand, or by another setup: leave it be
+        if parser["executable"].get("appendArgsToExecutable"):
+            # SRM puts these args in the Exe field (file-parser.ts appendArgsPromise L851-856 @ f68289a), so
+            # %command% would need the parser to stop appending. That changes the Exe and with it the shortcut's app
+            # id (generateShortAppId(exe, title), L892-895), losing per-shortcut Steam settings and playtime. The
+            # owner chose to keep those (2026-10-23): such parsers stay as they are; ES-DE's hook covers them.
+            kept.append(title)
+            continue
         new_args = wrap_args(args, emulator, places.shim)
         entry = {"title": title, "emulator": emulator,
                  "args": [text[args_span[0]:args_span[1]], json.dumps(new_args, ensure_ascii=False)]}
         edits.append((args_span, entry["args"][1]))
-        if parser["executable"].get("appendArgsToExecutable") and append_span is not None:
-            # SRM puts these args in the Exe field (file-parser.ts appendArgsPromise L851-856 @ f68289a); %command%
-            # needs them in the launch options, so the parser stops appending. The Exe changes, and with it the
-            # shortcut's app id (generateShortAppId(exe, title), L892-895).
-            entry["append"] = [text[append_span[0]:append_span[1]], "false"]
-            edits.append((append_span, "false"))
-            appid.append(title)
         planned[pid] = entry
+    if kept:
+        report.add("srm", "report", f"left {len(kept)} parser(s) alone ({', '.join(kept[:3])}"
+                                    f"{', ...' if len(kept) > 3 else ''}): they put their args in the shortcut's "
+                                    "Exe, and wrapping them would give their Steam shortcuts new app ids (losing "
+                                    "per-shortcut settings and playtime). Launches through ES-DE are still covered")
     if not planned:
         report.add("srm", "ok", f"every SRM parser for a managed emulator runs mh-run ({path})")
         return
@@ -303,11 +316,6 @@ def _srm_setup(report: Report, record: dict, places: Places, write: bool) -> Non
     for pid, entry in planned.items():
         report.add("srm", "install", f"{'would wrap' if not write else 'wrapped'} parser \"{entry['title']}\" "
                                      f"({entry['emulator']})")
-    if appid:
-        report.add("srm", "report", f"{len(appid)} parser(s) put their args in the shortcut's Exe until now "
-                                    f"({', '.join(appid[:3])}{', ...' if len(appid) > 3 else ''}). Their Steam "
-                                    "shortcuts get new app ids at the next Save to Steam: per-shortcut Steam "
-                                    "settings (controller layout, playtime) don't carry over")
     report.add("srm", "report", "takes effect when you next run Steam ROM Manager's \"Save to Steam\"")
     if not write:
         return
@@ -344,10 +352,6 @@ def _srm_uninstall(report: Report, record: dict, places: Places, write: bool) ->
         current = text[span[0]:span[1]]
         if current == entry["args"][1]:
             edits.append((span, entry["args"][0]))
-            if "append" in entry:
-                aspan = spans.get((i, "executable", "appendArgsToExecutable"))
-                if aspan and text[aspan[0]:aspan[1]] == entry["append"][1]:
-                    edits.append((aspan, entry["append"][0]))
             report.add("srm", "remove", f"{'would unwrap' if not write else 'unwrapped'} parser \"{entry['title']}\"")
         elif prefix(places.shim, entry["emulator"]) in parsers[i]["executableArgs"]:
             # Changed since, but our prefix is still there: take out just the prefix.

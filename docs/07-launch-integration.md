@@ -269,8 +269,9 @@ undoes exactly that: a file or value someone changed since is left alone (an SRM
 carry our prefix loses just the prefix).
 
 - **Shim**: writes `~/.local/bin/mh-run` (0755). It refuses to overwrite a file that isn't its own.
-- **SRM parsers** (`~/.config/steam-rom-manager/userData/userConfigurations.json`): every parser whose executable is
-  `${retroarchpath}` with a core map-helper has a descriptor for, `.../dolphin-emu.sh` or `.../pcsx2-qt.sh` gets
+- **SRM parsers** (`~/.config/steam-rom-manager/userData/userConfigurations.json`): every parser with
+  `appendArgsToExecutable: false` whose executable is `${retroarchpath}` with a core map-helper has a descriptor
+  for, `.../dolphin-emu.sh` or `.../pcsx2-qt.sh` gets
   `<shim> --emulator <id> -- ` right before `%command%` in `executableArgs`, or `<shim> --emulator <id> -- %command%`
   in front when there's no `%command%`. Only those JSON values change, edited in place; the rest of the file keeps
   its bytes. A copy goes to `$STATE/backups/setup/` first. Shapes:
@@ -278,12 +279,13 @@ carry our prefix loses just the prefix).
     shortcut's launch options already. Only the launch options change; the app id doesn't.
   - `appendArgsToExecutable: true` (RetroArch: `-L .../snes9x_libretro.so "${filePath}"`): SRM appends the args to
     the Exe and clears the launch options (`appendArgsPromise`, `src/lib/file-parser.ts` L851-856 @
-    `SteamGridDB/steam-rom-manager@f68289a`). `%command%` only works in launch options, so setup also sets
-    `appendArgsToExecutable` to `false`. The Exe then holds just the launcher, as Dolphin's does, so we never rely on
-    how Steam expands `%command%` around an Exe with args. The cost: SRM's app id is
-    `generateShortAppId(exe, title)` (L892-895), so these shortcuts get **new app ids** at the next "Save to Steam",
-    and per-shortcut Steam state (controller layout, playtime, collections Steam keeps by id) doesn't follow. setup
-    says so and lists them. Uninstall puts the old Exe back, and with it the old ids.
+    `SteamGridDB/steam-rom-manager@f68289a`). `%command%` only works in launch options, so wrapping these would
+    mean setting `appendArgsToExecutable` to `false`, which changes the Exe, and SRM's app id is
+    `generateShortAppId(exe, title)` (L892-895): the shortcuts would get **new app ids** at the next "Save to
+    Steam", and per-shortcut Steam state (controller layout, playtime, collections Steam keeps by id) wouldn't
+    follow. **setup leaves these parsers alone** and says so (the owner's call, 2026-10-23); RetroArch games
+    launched from ES-DE are covered by the `game-start` hook, and ones launched from these Steam shortcuts aren't.
+    `doctor` doesn't count them as missing the hook.
   - Nothing reaches Steam until the user runs SRM's **Save to Steam**; `doctor` lists emulator shortcuts in
     `shortcuts.vdf` that don't run mh-run yet. setup never writes `shortcuts.vdf`.
   - setup refuses while SRM runs: it keeps its parsers in memory and saves them from its UI. **[VERIFY]** that SRM
