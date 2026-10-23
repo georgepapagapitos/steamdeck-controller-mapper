@@ -1,5 +1,6 @@
 import { Focusable } from "@decky/ui";
 import type { Player } from "../data";
+import { shortPadName } from "../format";
 import { t } from "../strings";
 
 interface Props {
@@ -28,7 +29,7 @@ export function PlayerTabs({ players, current, onPick }: Props) {
             onClick={() => onPick(index)}
           >
             <span style={{ fontWeight: 700 }}>{t.playerShort(player.player)}</span>
-            <span>{player.pad.name}</span>
+            <span>{shortPadName(player.pad.name)}</span>
           </Focusable>
         );
       })}

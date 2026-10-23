@@ -1,4 +1,3 @@
-import { Focusable } from "@decky/ui";
 import type { CSSProperties } from "react";
 import { t } from "../strings";
 import { type Control, controlKind, controlTargets } from "./controls";
@@ -9,12 +8,10 @@ interface Props {
   shape: string;
   controls: Control[];
   selected: string | null;
-  prefix: string;
-  onSelect: (key: string) => void;
 }
 
 // Box units → percentages of the drawing, and font sizes in container-width units, so the drawing scales with
-// the screen and the hotspots stay on their buttons.
+// its column and the labels stay on their buttons.
 const pctX = (n: number) => `${(n / BOX.width) * 100}%`;
 const pctY = (n: number) => `${(n / BOX.height) * 100}%`;
 const cq = (n: number) => `${(n / BOX.width) * 100}cqw`;
@@ -36,39 +33,28 @@ export function spotLabel(control: Control, prefix: string): string {
   return `${control.glyph}, ${control.name}: ${what}`;
 }
 
-// The pad in its own shape, one focusable hotspot per control, labelled with the pad's glyph and coloured by
-// where its mapping comes from. Focus selects, so moving over the pad with the D-pad updates the detail card.
-export function PadDrawing({ padName, shape, controls, selected, prefix, onSelect }: Props) {
+// The pad in its own shape, each control labelled with the pad's glyph and coloured by where its mapping comes
+// from. It's a picture, not something to navigate: Steam's D-pad focus can't move reliably between freely placed
+// buttons, so the list beside it takes focus and the drawing lights up whichever control the list is on.
+export function PadDrawing({ padName, shape, controls, selected }: Props) {
   const def = shapeDef(shape);
   const placed = controls.filter((c) => def.spots[c.key]);
   return (
-    <Focusable className="mh-pad" role="group" aria-label={t.map.drawing(padName)}>
+    <div className="mh-pad" role="img" aria-label={t.map.drawing(padName)}>
       <svg viewBox={`0 0 ${BOX.width} ${BOX.height}`} aria-hidden="true">
         {def.outline}
       </svg>
-      {placed.map((control) => {
-        const on = control.key === selected;
-        return (
-          <Focusable
-            key={control.key}
-            className={`mh-spot${on ? " mh-on" : ""}`}
-            data-kind={controlKind(control)}
-            style={spotStyle(def.spots[control.key], control.glyph)}
-            role="button"
-            aria-pressed={on}
-            aria-label={spotLabel(control, prefix)}
-            focusClassName="mh-focus"
-            noFocusRing
-            preferredFocus={on}
-            onActivate={() => onSelect(control.key)}
-            onClick={() => onSelect(control.key)}
-            onGamepadFocus={() => onSelect(control.key)}
-            onOKActionDescription={t.map.select}
-          >
-            {control.glyph}
-          </Focusable>
-        );
-      })}
-    </Focusable>
+      {placed.map((control) => (
+        <div
+          key={control.key}
+          className={`mh-spot${control.key === selected ? " mh-on" : ""}`}
+          data-kind={controlKind(control)}
+          style={spotStyle(def.spots[control.key], control.glyph)}
+          aria-hidden="true"
+        >
+          {control.glyph}
+        </div>
+      ))}
+    </div>
   );
 }

@@ -91,40 +91,36 @@ function Players({ data }: { data: LastLaunch }) {
 }
 
 function WhoIsPlayerOne({ data }: { data: LastLaunch }) {
+  // Field rows, not plain text: the QAM scrolls by moving focus, and text that can't take focus can't be reached.
   return (
     <PanelSection title={t.whoIsP1}>
       <PanelSectionRow>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <Field focusable highlightOnFocus padding="compact" bottomSeparator="none"
+          description={data.policy?.reason ? t.policyWhy(data.policy.reason) : undefined}>
           <div className="mh-qam-text">{policyText(data.policy, data.launch.mode)}</div>
-          {data.policy?.reason && <div className="mh-qam-text">{t.policyWhy(data.policy.reason)}</div>}
-        </div>
+        </Field>
       </PanelSectionRow>
     </PanelSection>
+  );
+}
+
+function Fact({ label, value }: { label: string; value: string }) {
+  return (
+    <PanelSectionRow>
+      <Field focusable highlightOnFocus padding="compact" bottomSeparator="none" label={label}>
+        <span className="mh-qam-value">{value}</span>
+      </Field>
+    </PanelSectionRow>
   );
 }
 
 function Footer({ data }: { data: LastLaunch }) {
   const { launch } = data;
   return (
-    <PanelSection>
-      <PanelSectionRow>
-        <div className="mh-qam-facts">
-          <div className="mh-qam-fact">
-            <span>{t.lastLaunch}</span>
-            <span>{launchTime(launch.ts)}</span>
-          </div>
-          {launch.ms != null && (
-            <div className="mh-qam-fact">
-              <span>{t.appliedLabel}</span>
-              <span>{t.appliedIn(launch.ms)}</span>
-            </div>
-          )}
-          <div className="mh-qam-fact">
-            <span>{t.launchedFrom}</span>
-            <span>{modeName(launch.mode)}</span>
-          </div>
-        </div>
-      </PanelSectionRow>
+    <PanelSection title={t.lastLaunch}>
+      <Fact label={t.lastLaunch} value={launchTime(launch.ts)} />
+      {launch.ms != null && <Fact label={t.appliedLabel} value={t.appliedIn(launch.ms)} />}
+      <Fact label={t.launchedFrom} value={modeName(launch.mode)} />
     </PanelSection>
   );
 }

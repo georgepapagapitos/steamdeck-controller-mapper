@@ -8,7 +8,7 @@ import { takeRequestedPlayer } from "../navigation";
 import { Loading, Message, SampleBanner, failureText } from "../States";
 import { t } from "../strings";
 import { Styles } from "../styles";
-import { BackStrip, steamKey } from "./BackStrip";
+import { steamKey } from "./BackStrip";
 import { ControlList } from "./ControlList";
 import { groupControls, steamOnlyInputs } from "./controls";
 import { DetailCard } from "./DetailCard";
@@ -97,20 +97,15 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
           <div className="mh-left">
             {sample && <SampleBanner result={{ ok: true, data, sample }} />}
             {controls.length ? (
-              <PadDrawing
-                padName={player.pad.name}
-                shape={player.pad.shape}
-                controls={controls}
-                selected={selected}
-                prefix={prefix}
-                onSelect={setSelected}
-              />
+              <PadDrawing padName={player.pad.name} shape={player.pad.shape} controls={controls} selected={selected} />
             ) : (
               <Message title={player.pad.name} body={t.map.noInputs} />
             )}
-            <BackStrip inputs={backs} isDeck={isDeck} selected={selected} onSelect={setSelected} />
-            <OptionChips player={player} />
             <Legend />
+            <DetailCard prefix={prefix} control={control} steamOnly={steamOnly} isDeck={isDeck} />
+          </div>
+          <div className="mh-right">
+            <OptionChips player={player} />
             {warnings.length > 0 && (
               <div className="mh-warnings" role="note" aria-label={t.map.warnings}>
                 {warnings.map((w, i) => (
@@ -118,10 +113,8 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
                 ))}
               </div>
             )}
-          </div>
-          <div className="mh-right">
-            <DetailCard prefix={prefix} control={control} steamOnly={steamOnly} isDeck={isDeck} />
-            <ControlList controls={controls} selected={selected} prefix={prefix} onSelect={setSelected} />
+            <ControlList controls={controls} steamOnly={backs} isDeck={isDeck} selected={selected} prefix={prefix}
+              onSelect={setSelected} />
           </div>
         </div>
       )}

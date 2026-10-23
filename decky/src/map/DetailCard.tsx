@@ -77,7 +77,7 @@ export function DetailCard({ prefix, control, steamOnly, isDeck }: Props) {
         <InputDrives key={input.input} input={input} prefix={prefix} showInput={several} />
       ))}
       <div className="mh-card-actions">
-        <DialogButton disabled focusable={false} style={{ width: "auto", minWidth: 0, minHeight: 44, padding: "0 16px" }}>
+        <DialogButton disabled focusable={false} style={{ width: "auto", minWidth: 0, minHeight: 30, padding: "0 12px", fontSize: 12 }}>
           {t.map.changeButton}
         </DialogButton>
         <span className="mh-soon">{t.map.comingSoon}</span>

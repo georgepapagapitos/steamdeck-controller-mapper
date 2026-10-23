@@ -131,3 +131,13 @@ export function warningText(warning: unknown): string {
 export function hasPlayers(data: LastLaunch): boolean {
   return Array.isArray(data.players) && data.players.length > 0;
 }
+
+// "8Bitdo Ultimate 2 Wireless Controller" → "8BitDo Ultimate 2", "Steam Deck Controller" → "Steam Deck": tabs
+// and rows are narrow, and "Wireless Controller" says nothing there.
+export function shortPadName(name: string): string {
+  const short = name
+    .replace(/^8bitdo\b/i, "8BitDo")
+    .replace(/\s+(Wireless\s+)?Controller$/i, "")
+    .trim();
+  return short || name;
+}
