@@ -283,7 +283,7 @@ too much, and this is the second.
   "That was the DualSense. Press it on the 8BitDo" and keeps waiting (checked on the Deck 2026-10-23). The **right
   stick** comes through `RegisterForControllerAnalogInputMessages` (after `EnableControllerAnalogInputMessages(true)`)
   as kind 47, a scroll position that keeps moving while the stick is held; a push is ≥ 60 of travel since the
-  capture armed, up = y falling (seen on the DualSense); right = x rising [VERIFY]. A press already held when capture starts is ignored
+  capture armed, up = y falling, right = x rising (checked on the DualSense and the 8BitDo, 2026-10-23). A press already held when capture starts is ignored
   until released. After 10 s it stops and offers Try again / Cancel.
 - **One decide screen:** the change in words (a binding moves the console input: one physical input per console
   input), an automatic swap when the pressed button had exactly one job (or keep both), a dry-run preview for the

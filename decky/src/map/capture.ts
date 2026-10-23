@@ -12,8 +12,8 @@ import { GamepadButton } from "@decky/ui";
 // message array decky-frontend-lib types, and Steam's UI reports the right stick as kind 47, ANALOG_SCROLL (the
 // right stick scrolls in Big Picture): FAILINATOR5000/decky-cheevodeck src/components/memories/rightStick.ts
 // @ main, read 2026-10-23. x and y are a scroll position that keeps moving while the stick is held (about 9 per
-// message at full tilt), not the stick's deflection; pushing up makes y fall (a DualSense on the owner's Deck,
-// 2026-10-23). So a push is the distance moved since the capture armed.
+// message at full tilt), not the stick's deflection; pushing up makes y fall and right makes x rise (a DualSense and
+// the 8BitDo on the owner's Deck, 2026-10-23). So a push is the distance moved since the capture armed.
 //
 // Older clients: SteamClient.Input.RegisterForControllerStateChanges, Steam's raw state per controller. ulButtons
 // and ulUpperButtons use the bit layout of the Steam Deck's HID report (SDL release-2.30.0
