@@ -322,6 +322,85 @@ class RetroArchAdapter:
             return None
         return value
 
+    # -- show ------------------------------------------------------------------
+
+    def describe(self, user: int, after: Callable, desc: dict, config_root: Optional[Path] = None,
+                 game: Optional[str] = None, folder: Optional[str] = None):
+        """What user's pad drives once the patches are written (after: as current, after the write). Each physical
+        input sends its RetroPad id unless the remap moves it (an absent key is identity, -1 unmapped); the core
+        reads the ids its descriptor's targets name. Player 1 also gets the hotkey enable button noted."""
+        from ..show import Described
+        out, file = Described(port=user), self.remap_file(desc)
+        names = {v: k for k, v in self.ids.items()}
+        default = ("emulator", f"{desc['core']} default", False)
+        hold = desc.get("c_button_chord", {}).get("hold")
+        for physical, source in self.pad["physical_to_retropad"].items():
+            if source not in self.ids:
+                continue                             # full axes: their halves are listed
+            key = self._key(user, source)
+            raw = after(file, None, key)
+            core_input = names.get(self.ids[source] if raw is None else int(raw.strip('"')))
+            src = default if raw is None else ("emulator", f"remap {Path(file).name}", after.patched(file, None, key))
+            for target, wanted in desc["targets"].items():
+                if core_input and wanted in (core_input, core_input.rstrip("+-")):
+                    out.drives.append((physical, target, src))
+            if hold and core_input == hold:
+                out.notes[physical] = (f"{desc['core']}'s C-button modifier: hold it and the face buttons give "
+                                       f"C buttons", default)
+        if user == 1:
+            self._describe_enable(after, out)
+        self._describe_options(user, after, desc, config_root, game, folder, out)
+        return out
+
+    def _describe_enable(self, after: Callable, out) -> None:
+        hk, cfg = self.hotkeys, self.hotkeys["file"]
+        indices = hk["drivers"].get((after(cfg, None, hk["driver_key"]) or "").strip('"'))
+        if indices is None:
+            return
+        for suffix, table in (("_btn", indices["buttons"]), ("_axis", indices["axes"])):
+            key = f"input_{hk['enable']}{suffix}"
+            value = (after(cfg, None, key) or "").strip('"')
+            physical = next((p for p, v in table.items() if str(v) == value), None)
+            if physical is None:
+                continue
+            if after.patched(cfg, None, key):
+                src = ("emulator", cfg, True)        # a hotkey rule moved it
+            elif all((after(cfg, None, k) or "").strip('"') == v for k, v in hk["emudeck_enable"].items()
+                     if not k.startswith("_")):
+                src = ("emudeck", "EmuDeck's RetroArch hotkey button", False)
+            else:
+                src = ("emulator", cfg, False)
+            text = "RetroArch's hotkey button (hold it with another button)"
+            if physical in out.notes:
+                text = f"{text}; {out.notes[physical][0]}"
+            out.notes[physical] = (text, src)
+
+    def _describe_options(self, user: int, after: Callable, desc: dict, config_root: Optional[Path],
+                          game: Optional[str], folder: Optional[str], out) -> None:
+        """The descriptor's options as the .opt RetroArch loads after the write has them: the file this run writes,
+        else the one options_target picks."""
+        if not desc.get("options"):
+            return
+        written = sorted(f for f in after.files if f.endswith(".opt"))
+        if written:
+            rel = written[0]
+        else:
+            game_specific = (after(self.hotkeys["file"], None, "game_specific_options") or "").strip('"') != "false"
+            rel, _ = self.options_target(config_root, desc, game, folder, game_specific)
+        for option, spec in desc["options"].items():
+            if spec.get("per_player") and user > spec["players"]:
+                continue
+            key = spec["key"].format(N=user)
+            raw = after(rel, None, key)
+            if raw is None:
+                raw = spec["default"][user - 1] if isinstance(spec["default"], list) else spec["default"]
+                src = ("emulator", f"{desc['core']} default", False)
+            else:
+                raw = raw.strip('"')
+                src = ("emulator", Path(rel).name, after.patched(rel, None, key))
+            value = int(raw) / 100 if "percent_values" in spec and raw.isdigit() else raw
+            out.options.append((option, value, src, user if spec.get("per_player") else 1))
+
     @staticmethod
     def _key(user: int, name: str) -> str:
         """B -> input_player1_btn_b, LEFT_X+ -> input_player1_stk_l_x+ (input_remapping_save_file)."""

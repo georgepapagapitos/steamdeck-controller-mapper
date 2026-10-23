@@ -61,6 +61,19 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--state-dir", type=Path, default=Path.home() / ".local" / "state" / "map-helper",
                    help="where pristine backups go")
 
+    p = sub.add_parser("show", help="what each button of each connected pad does in an emulator (nothing written)")
+    p.add_argument("--last", action="store_true", help="the last launch mh-run handled ($STATE/last-launch.json)")
+    p.add_argument("--emulator", choices=sorted(EMULATORS))
+    p.add_argument("--core", help="RetroArch core (descriptor id or library name)")
+    p.add_argument("--system")
+    p.add_argument("--game")
+    p.add_argument("--rom", type=Path, help="RetroArch: the ROM, whose folder name picks a folder options file")
+    p.add_argument("--config-root", type=Path, help="the emulator's config directory (default: EmuDeck's)")
+    add_probe_arguments(p)
+    p.add_argument("--rules", type=Path, action="append", help="user rule directory (default: examples/)")
+    p.add_argument("--state-dir", type=Path, default=Path.home() / ".local" / "state" / "map-helper")
+    p.add_argument("--json", action="store_true")
+
     p = sub.add_parser("backup", help="save the current state of every file map-helper has written")
     p.add_argument("--name", help="backup name (default: the time, e.g. 20261022-153000)")
     p.add_argument("--list", action="store_true", help="list the backups instead")
@@ -109,7 +122,7 @@ def main(argv: list[str] | None = None) -> int:
         return mh_run(argv[1:])
     args = parser.parse_args(argv)
     return {"validate": cmd_validate, "devices": cmd_devices, "explain": cmd_explain,
-            "apply": cmd_apply, "backup": cmd_backup, "restore": cmd_restore,
+            "apply": cmd_apply, "show": cmd_show, "backup": cmd_backup, "restore": cmd_restore,
             "doctor": cmd_doctor, "setup": cmd_setup, "uninstall": cmd_setup,
             "self-install": cmd_self_install}[args.command](args)
 
@@ -311,6 +324,47 @@ def cmd_apply(args) -> int:
     print(result.diff or "No changes.", end="" if result.diff else "\n")
     if args.write and result.changed_files:
         print(f"wrote: {', '.join(result.changed_files)}", file=sys.stderr)
+    return 0
+
+
+def cmd_show(args) -> int:
+    import time
+    from . import pipeline, show
+    if args.last:
+        doc = show.read_last(args.state_dir)
+        if doc is None:
+            print(f"No launch recorded yet: mh-run writes {args.state_dir / show.LAST} when it handles one.")
+            return 0
+    else:
+        if not (args.emulator and args.system):
+            print("error: show needs --emulator and --system (or --last)", file=sys.stderr)
+            return 2
+        start = time.monotonic()
+        emulator = pipeline.EMULATORS[args.emulator]
+        core = args.core
+        if args.emulator == "retroarch":
+            adapter = emulator.adapter()
+            try:
+                desc = adapter.core_for(args.system, core)
+            except ValueError as e:
+                print(f"error: {e}", file=sys.stderr)
+                return 2
+            core = next(cid for cid, d in adapter.cores.items() if d is desc)
+        req = pipeline.Request(args.emulator, args.system, args.config_root or emulator.config_root,
+                               args.rules or [EXAMPLES], core=core, game=args.game, rom=args.rom, probe_args=args,
+                               state_dir=args.state_dir)
+        contexts = []
+        try:
+            outcome = pipeline.run(req, log=lambda line: None, inspect=contexts.append)
+        except pipeline.ApplyError as e:
+            print(f"error: {e}", file=sys.stderr)
+            return 2
+        changed = outcome.result.changed_files
+        doc = show.assemble({"mode": "show", "emulator": args.emulator, "core": core, "system": args.system,
+                             "game": args.game, "ms": round((time.monotonic() - start) * 1000),
+                             "outcome": "changed" if changed else "no-changes", "detail": ", ".join(changed)},
+                            show.document(contexts[0]))
+    print(json.dumps(doc, indent=2, ensure_ascii=False) if args.json else show.render(doc), end="\n" if args.json else "")
     return 0
 
 

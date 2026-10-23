@@ -159,6 +159,51 @@ class DolphinAdapter:
             value = f"@({'+'.join(quoted)})" if len(quoted) > 1 else quoted[0]
             out.patches.append(Patch(spec["file"], spec["section"], key, value))
 
+    # -- show ------------------------------------------------------------------
+
+    def describe(self, player: int, after: Callable, system: str = "gc"):
+        """What player's GCPad drives once the patches are written (after: as current, after the write): each
+        target's expression, read back through the token table. Only the alternatives (`|`) that are one control of
+        this pad count; chords and controls of another device (`SDL/1/...:Back`) don't."""
+        from ..show import Described
+        out = Described(port=player if player <= GC_PORTS else None)
+        if system not in self.systems or out.port is None:
+            return out
+        by_token = self._by_token()
+        for target, spec in self.table["targets"].items():
+            if not target.startswith(f"{system}."):
+                continue
+            section = spec["section"].format(n=player)
+            for key in spec["keys"].values() if "keys" in spec else [spec["key"]]:
+                src = ("emulator", spec["file"], after.patched(spec["file"], section, key))
+                for alt in (after(spec["file"], section, key) or "").split("|"):
+                    alt = alt.strip()
+                    token = alt[1:-1] if len(alt) > 1 and alt[0] == alt[-1] == "`" else alt
+                    if token in by_token and (alt != token or _LETTERS_ONLY.match(token)):
+                        out.drives.append((by_token[token], target, src))
+        section = f"GCPad{player}"
+        motor = after("GCPadNew.ini", section, "Rumble/Motor")
+        out.options.append(("rumble.enabled", bool(motor), self._option_source(after, section, "Rumble/Motor"),
+                            player))
+        for option, dz_key in (("deadzones.ls", "gc.main_stick"), ("deadzones.rs", "gc.c_stick")):
+            spec = self.table["options"]["deadzone"][dz_key]
+            raw = after("GCPadNew.ini", section, spec["key"])
+            value = float(raw) / 100 if raw else spec["default"] / 100
+            out.options.append((option, round(value, 4), self._option_source(after, section, spec["key"]), player))
+        return out
+
+    @staticmethod
+    def _option_source(after: Callable, section: str, key: str) -> tuple:
+        if after("GCPadNew.ini", section, key) is None:
+            return ("emulator", "Dolphin default", False)
+        return ("emulator", "GCPadNew.ini", after.patched("GCPadNew.ini", section, key))
+
+    def _by_token(self) -> dict:
+        """Dolphin token -> physical input, the legacy names EmuDeck's files use included."""
+        legacy = self.table["legacy_physical_tokens"]
+        tables = (legacy["emudeck_steam_virtual_examples"], legacy["xinput_style_face_aliases"], self.tokens)
+        return {token: name for table in tables for name, token in table.items() if isinstance(token, str)}
+
     # -- helpers ---------------------------------------------------------------
 
     def _token(self, name: str, out: Rendered) -> Optional[str]:

@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "_notes": "What `map-helper show` prints for each physical input: [glyph, name] per pad style, positional like everything else (docs/03). Emulators see Steam's virtual Xbox 360 pad, so a pad's south button is SDL's A whatever it says on it: on a Switch Pro or an 8BitDo in Nintendo style that button is marked B. A style lists only what differs from `generic`; `families` overrides a style for one family. `shapes` maps a controllers.json style to the drawing the UI uses; any other style is `generic`. `ls`/`rs` are the sticks as one input each. Paddle numbers are SDL's: PADDLE1 is the Xbox Elite's P1 (upper, under the right hand), PADDLE2 its P3 (upper left), PADDLE3 P2 (lower right), PADDLE4 P4 (lower left); on the Deck SDL reads R4, L4, R5, L5 into them. Which SDL paddle a two-paddle pad (8BitDo Ultimate 2, DualSense Edge) reports for each side is [VERIFY].",
+  "_sources": [
+    "SDL release-2.30.0 include/SDL_gamecontroller.h L731-755 (button enum, MISC1 and PADDLE1-4 comments): https://github.com/libsdl-org/SDL/blob/release-2.30.0/include/SDL_gamecontroller.h#L731-L755",
+    "SDL release-2.30.0 src/joystick/hidapi/SDL_hidapi_steamdeck.c L280-287 (R4, L4, R5, L5 -> PADDLE1-4): https://github.com/libsdl-org/SDL/blob/release-2.30.0/src/joystick/hidapi/SDL_hidapi_steamdeck.c#L280-L287",
+    "The pads' own markings: DualShock 4 (Share, Options, PS), DualSense (Create, Options, PS, mic), Xbox (View, Menu, LB/RB, LT/RT), Switch Pro (B south, A east, Y west, X north, -, +, ZL/ZR, Home, Capture), Steam Deck (A/B/X/Y, L1/R1, L2/R2, View, Menu, L4/L5/R4/R5)"
+  ],
+  "shapes": { "playstation": "playstation", "xbox": "xbox", "nintendo": "nintendo", "steamdeck": "deck" },
+  "order": ["face_south", "face_east", "face_west", "face_north", "dpad_up", "dpad_down", "dpad_left", "dpad_right",
+            "l1", "r1", "l2", "r2", "l3", "r3", "ls", "rs", "select", "start", "guide", "misc1", "touchpad_click",
+            "paddle1", "paddle2", "paddle3", "paddle4"],
+  "styles": {
+    "generic": {
+      "face_south": ["S", "South"], "face_east": ["E", "East"], "face_west": ["W", "West"], "face_north": ["N", "North"],
+      "dpad_up": ["↑", "D-pad up"], "dpad_down": ["↓", "D-pad down"], "dpad_left": ["←", "D-pad left"],
+      "dpad_right": ["→", "D-pad right"],
+      "l1": ["L1", "Left bumper"], "r1": ["R1", "Right bumper"], "l2": ["L2", "Left trigger"], "r2": ["R2", "Right trigger"],
+      "l3": ["L3", "Left stick click"], "r3": ["R3", "Right stick click"], "ls": ["LS", "Left stick"],
+      "rs": ["RS", "Right stick"], "select": ["Select", "Select"], "start": ["Start", "Start"], "guide": ["Guide", "Guide"],
+      "misc1": ["Misc", "Extra button"], "touchpad_click": ["Touchpad", "Touchpad click"],
+      "paddle1": ["RP", "Right paddle"], "paddle2": ["LP", "Left paddle"], "paddle3": ["RP2", "Lower right paddle"],
+      "paddle4": ["LP2", "Lower left paddle"]
+    },
+    "playstation": {
+      "face_south": ["✕", "Cross"], "face_east": ["○", "Circle"], "face_west": ["□", "Square"], "face_north": ["△", "Triangle"],
+      "select": ["Share", "Share"], "start": ["Options", "Options"], "guide": ["PS", "PS button"]
+    },
+    "xbox": {
+      "face_south": ["A", "A"], "face_east": ["B", "B"], "face_west": ["X", "X"], "face_north": ["Y", "Y"],
+      "l1": ["LB", "Left bumper"], "r1": ["RB", "Right bumper"], "l2": ["LT", "Left trigger"], "r2": ["RT", "Right trigger"],
+      "select": ["View", "View"], "start": ["Menu", "Menu"], "guide": ["Xbox", "Xbox button"], "misc1": ["Share", "Share"],
+      "paddle1": ["P1", "Paddle P1"], "paddle2": ["P3", "Paddle P3"], "paddle3": ["P2", "Paddle P2"], "paddle4": ["P4", "Paddle P4"]
+    },
+    "nintendo": {
+      "face_south": ["B", "B"], "face_east": ["A", "A"], "face_west": ["Y", "Y"], "face_north": ["X", "X"],
+      "l1": ["L", "L"], "r1": ["R", "R"], "l2": ["ZL", "ZL"], "r2": ["ZR", "ZR"],
+      "select": ["−", "Minus"], "start": ["+", "Plus"], "guide": ["Home", "Home"], "misc1": ["Capture", "Capture"]
+    },
+    "deck": {
+      "face_south": ["A", "A"], "face_east": ["B", "B"], "face_west": ["X", "X"], "face_north": ["Y", "Y"],
+      "select": ["View", "View"], "start": ["Menu", "Menu"], "guide": ["Steam", "Steam button"],
+      "paddle1": ["R4", "R4"], "paddle2": ["L4", "L4"], "paddle3": ["R5", "R5"], "paddle4": ["L5", "L5"]
+    }
+  },
+  "families": {
+    "sony.dualsense": { "select": ["Create", "Create"], "misc1": ["Mic", "Mute button"] }
+  },
+  "steam_only": ["paddle1", "paddle2", "paddle3", "paddle4", "misc1", "touchpad_click"],
+  "_steam_only_notes": "Inputs Steam's virtual pad doesn't have: it is an Xbox 360 pad (28de:11ff, 'Microsoft X-Box 360 pad N', data/controllers.json virtual_devices), with no paddles, share/mic/capture button or touchpad, so an emulator behind Steam Input never sees them. Steam Input can still map them to buttons the virtual pad has."
+}

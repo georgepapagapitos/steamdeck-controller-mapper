@@ -221,7 +221,8 @@ running game got. `map-helper show --last --json` prints that file.
                         "source": { "kind": "rule", "rule_id": "user.any.n64.layout-live-faces",
                                     "rule_label": "N64 layout 1: ...", "scope": "all N64 games, any pad" } } ] },
         { "input": "select", "glyph": "Create", "name": "Create", "drives": [],
-          "note": "RetroArch's hotkey button (hold it with another button)" },
+          "note": "RetroArch's hotkey button (hold it with another button)",
+          "note_source": { "kind": "emudeck", "detail": "EmuDeck's RetroArch hotkey button" } },
         { "input": "paddle1", "glyph": "P1", "name": "Left paddle", "drives": [], "steam_only": true }
       ],
       "options": [
@@ -237,7 +238,15 @@ running game got. `map-helper show --last --json` prints that file.
 - `source.kind`: `rule` (a user or pack rule; `rule_id`, `rule_label`, `scope` in words), `emulator` (the emulator's
   own default, or its config file as found; `detail` says which), `emudeck` (EmuDeck set it: hotkeys, AutoMap).
 - An input can drive several targets (a clash, also in `warnings`) or none (`drives: []`, optionally a `note`).
-  `steam_only: true` marks back buttons and paddles, which emulators never see.
+  A `note` comes with its `note_source` (same shape as `source`). `steam_only: true` marks back buttons and paddles,
+  and the other inputs Steam's virtual Xbox 360 pad lacks (`misc1`: the DualSense mic or Switch capture button;
+  `touchpad_click`), which emulators never see behind Steam Input.
+- `inputs` lists only what the pad has: `ls` and `rs` are the sticks as one input each; paddles, `misc1` and
+  `touchpad_click` appear when the pad's capabilities say so. `pad.emulator_port` is the emulator's own port number
+  (RetroArch user, Dolphin GCPad, PCSX2 Pad), null when the player has none (Dolphin past 4, PCSX2 past 2).
+- `launch.mode` is `wrap`, `hook` or `es-de` from mh-run and `show` from the command; `detail` lists the changed
+  files on `changed`. Options are canonical values (`deadzones.ls` 0.05 for the core's 5%); `label` names the value
+  for `pak` (Rumble pak) and the setting otherwise.
 - `shape`, glyphs and names come from the pad's family and style (`data/controllers.json`) through `data/glyphs.json`;
   an unknown pad gets `generic` and positional names (South, East, ...).
 - No device ids, MACs or serials ever appear in it: it may be shown, logged or shared.
@@ -291,6 +300,7 @@ map-helper devices claim <device-id> <model>
 map-helper rules list|show|add|edit|rm|enable|disable
 map-helper explain --emulator dolphin --system gc [--game GALE01] [--player 1]
 map-helper apply   --emulator dolphin [--system gc] [--game ...] [--dry-run]
+map-helper show    --emulator retroarch --system n64 [--core ...] [--game ...] [--json]   # or --last
 map-helper import  --emulator dolphin --scope family:sony.dualshock4/system:gc
 map-helper capture <device-id>          # prints normalized events (debug)
 map-helper hooks status|install|repair|remove

@@ -215,6 +215,35 @@ class PCSX2Adapter:
             written.add(key)
         return written
 
+    # -- show ------------------------------------------------------------------
+
+    def describe(self, player: int, after: Callable, system: str = "ps2"):
+        """What player's [PadN] drives once the patches are written (after: as current, after the write). A binding
+        names its pad (SDL-<n>/<control>); keyboard bindings and chords (` & `) don't count."""
+        from ..show import Described
+        out = Described(port=player if player <= PORTS else None)
+        if system not in self.systems or out.port is None:
+            return out
+        by_token = {t: name for name, t in self.tokens.items() if isinstance(t, str)}
+        section = f"Pad{player}"
+        for target, spec in self.table["targets"].items():
+            for key in spec["keys"].values() if "keys" in spec else [spec["key"]]:
+                value = after(FILE, section, key) or ""
+                found = _SDL_REF.match(value)
+                if found and "&" not in value and value[found.end():] in by_token:
+                    out.drives.append((by_token[value[found.end():]], target,
+                                       ("emulator", "PCSX2.ini", after.patched(FILE, section, key))))
+        source = lambda key: (("emulator", "PCSX2 default", False) if after(FILE, section, key) is None
+                              else ("emulator", "PCSX2.ini", after.patched(FILE, section, key)))
+        large = self.table["options"]["rumble"]["keys"]["large"]
+        out.options.append(("rumble.enabled", bool(after(FILE, section, large)), source(large), player))
+        spec = self.table["options"]["deadzone"]["stick"]
+        raw = after(FILE, section, spec["key"])
+        for option in ("deadzones.ls", "deadzones.rs"):         # one Deadzone for both sticks
+            out.options.append((option, round(float(raw), 4) if raw else spec["default"], source(spec["key"]),
+                                player))
+        return out
+
     # -- helpers ---------------------------------------------------------------
 
     def _repoint(self, section: str, keys: list, device: str, out: Rendered) -> None:

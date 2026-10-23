@@ -97,7 +97,7 @@
     "playstation": { "face_south": "✕", "face_east": "○", "face_west": "□", "face_north": "△", "l1": "L1", "r1": "R1", "l2": "L2", "r2": "R2", "select": "Share", "start": "Options", "guide": "PS" },
     "xbox": { "face_south": "A", "face_east": "B", "face_west": "X", "face_north": "Y", "l1": "LB", "r1": "RB", "l2": "LT", "r2": "RT", "select": "View", "start": "Menu", "guide": "Xbox" },
     "nintendo": { "face_south": "B", "face_east": "A", "face_west": "Y", "face_north": "X", "l1": "L", "r1": "R", "l2": "ZL", "r2": "ZR", "select": "−", "start": "+", "guide": "Home" },
-    "steamdeck": { "face_south": "A", "face_east": "B", "face_west": "X", "face_north": "Y", "l1": "L1", "r1": "R1", "l2": "L2", "r2": "R2", "select": "View", "start": "Menu", "paddle1": "L4", "paddle2": "R4", "paddle3": "L5", "paddle4": "R5" },
+    "steamdeck": { "face_south": "A", "face_east": "B", "face_west": "X", "face_north": "Y", "l1": "L1", "r1": "R1", "l2": "L2", "r2": "R2", "select": "View", "start": "Menu", "paddle1": "R4", "paddle2": "L4", "paddle3": "R5", "paddle4": "L5" },
     "sega6": { "face_south": "A", "face_east": "B", "r1": "C", "face_west": "X", "face_north": "Y", "l1": "Z", "start": "Start" }
   },
   "sources": [

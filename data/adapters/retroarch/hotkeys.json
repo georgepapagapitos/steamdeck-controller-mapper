@@ -11,6 +11,7 @@
   "_enable_rule": "While input_enable_hotkey is bound, every other hotkey needs it held (input_hotkey_blocked L12083, input_keys_pressed L13561, input/input_driver.c). So a RetroArch hotkey is always <enable> + <action>, with one enable input shared by all hotkeys, including the ones map-helper doesn't manage.",
 
   "enable": "enable_hotkey",
+  "emudeck_enable": { "input_enable_hotkey_btn": "4", "input_enable_hotkey_axis": "nul", "_source": "EmuDeck's retroarch.cfg template @ dddb302 L243-246 (tests/fixtures/retroarch/emudeck-default/retroarch.cfg): Select. `show` calls a live value equal to it EmuDeck's." },
   "targets": {
     "hotkey.menu": "menu_toggle",
     "hotkey.exit": "exit_emulator",

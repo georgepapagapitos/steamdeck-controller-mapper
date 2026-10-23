@@ -5,7 +5,7 @@
 | Var | Default | Contents |
 |-----|---------|----------|
 | `$DATA` | `~/.local/share/map-helper/` | `rules/*.json`, `devices.json`, `packs/`, `settings.json` |
-| `$STATE` | `~/.local/state/map-helper/` | `touched.json`, `journal/`, `backups/`, `logs/`, `locks/`, `hashes.json`, `last-launch.json` |
+| `$STATE` | `~/.local/state/map-helper/` | `touched.json`, `journal/`, `backups/`, `logs/`, `locks/`, `hashes.json`, `last-launch.json` (what each button did in the last launch mh-run handled, replaced at every launch; [08](08-ui-ux.md) "The data") |
 | `$INSTALL` | `~/.local/lib/map-helper/current` (symlink to a versioned dir) + shims in `~/.local/bin`; the Decky plugin dir only holds the UI and installs/updates this ([14](14-packaging-permissions.md)) | code, `data/` (controller DB, layouts, shipped defaults) |
 
 Everything in `$DATA` is user-owned and portable. `$STATE` is machine-specific
