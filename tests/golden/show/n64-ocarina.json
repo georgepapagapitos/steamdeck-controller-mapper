@@ -643,15 +643,15 @@
         },
         {
           "input": "paddle1",
-          "glyph": "P1",
-          "name": "Paddle P1",
+          "glyph": "PR",
+          "name": "Right paddle (PR)",
           "drives": [],
           "steam_only": true
         },
         {
           "input": "paddle2",
-          "glyph": "P3",
-          "name": "Paddle P3",
+          "glyph": "PL",
+          "name": "Left paddle (PL)",
           "drives": [],
           "steam_only": true
         }
