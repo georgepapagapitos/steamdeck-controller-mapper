@@ -1,0 +1,67 @@
+{
+  "rules": [
+    {
+      "$schema": "../schema/rule.schema.json",
+      "schema_version": 1,
+      "id": "user.any.n64.stick-rumble",
+      "label": "N64: smaller stick deadzone, a rumble pak for every player",
+      "applies_to": {
+        "controller": { "level": "any" },
+        "content": { "level": "system", "system": "n64" }
+      },
+      "options": {
+        "deadzones": { "ls": 0.05 },
+        "pak": "rumble"
+      },
+      "notes": "Mupen64Plus-Next cuts its own deadzone (default 15%) out of the stick's travel before scaling to the N64's +-80 (emulate_game_controller_via_libretro.c L291-302, libretro.c L838-841 @ mupen64plus-libretro-nx 12edd2c); Steam Input applies a deadzone too, so 5% here. One pak per controller (main.c L1591-1663): rumble means no memory pak."
+    },
+    {
+      "$schema": "../schema/rule.schema.json",
+      "schema_version": 1,
+      "id": "user.any.n64.mario-kart-64.memory-pak",
+      "label": "Mario Kart 64: memory pak",
+      "applies_to": {
+        "controller": { "level": "any" },
+        "content": { "level": "game", "system": "n64", "game_id": "Mario Kart 64 (USA)" }
+      },
+      "options": { "pak": "memory" },
+      "notes": "The core's ROM database marks it Mempak=Yes (custom/mupen64plus-core/main/mupen64plus.ini.h L9357-9362 @ 12edd2c). The game id is RetroArch's content name [VERIFY] for a .7z."
+    },
+    {
+      "$schema": "../schema/rule.schema.json",
+      "schema_version": 1,
+      "id": "user.any.n64.perfect-dark.memory-pak",
+      "label": "Perfect Dark: memory pak",
+      "applies_to": {
+        "controller": { "level": "any" },
+        "content": { "level": "game", "system": "n64", "game_id": "Perfect Dark (USA) (Rev 1)" }
+      },
+      "options": { "pak": "memory" },
+      "notes": "Mempak=Yes in the core's ROM database (mupen64plus.ini.h L12012 @ 12edd2c)."
+    },
+    {
+      "$schema": "../schema/rule.schema.json",
+      "schema_version": 1,
+      "id": "user.any.n64.diddy-kong-racing.memory-pak",
+      "label": "Diddy Kong Racing: memory pak",
+      "applies_to": {
+        "controller": { "level": "any" },
+        "content": { "level": "game", "system": "n64", "game_id": "Diddy Kong Racing (USA) (En,Fr) (Rev 1)" }
+      },
+      "options": { "pak": "memory" },
+      "notes": "Mempak=Yes in the core's ROM database (mupen64plus.ini.h L3637 @ 12edd2c)."
+    },
+    {
+      "$schema": "../schema/rule.schema.json",
+      "schema_version": 1,
+      "id": "user.any.n64.wave-race-64.memory-pak",
+      "label": "Wave Race 64: memory pak",
+      "applies_to": {
+        "controller": { "level": "any" },
+        "content": { "level": "game", "system": "n64", "game_id": "Wave Race 64 - Kawasaki Jet Ski (USA) (Rev 1)" }
+      },
+      "options": { "pak": "memory" },
+      "notes": "Mempak=Yes in the core's ROM database (mupen64plus.ini.h L17394 @ 12edd2c)."
+    }
+  ]
+}

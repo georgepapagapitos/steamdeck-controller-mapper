@@ -1,0 +1,61 @@
+{
+  "rules": [
+    {
+      "$schema": "../schema/rule.schema.json",
+      "schema_version": 1,
+      "id": "user.any.n64.layout-live-faces",
+      "label": "N64 layout 1: the core's layout, with the dead face buttons on C-down and C-left",
+      "applies_to": {
+        "controller": { "level": "any" },
+        "content": { "level": "system", "system": "n64" }
+      },
+      "bindings": {
+        "n64.standard.c_down": { "input": "face_east" },
+        "n64.standard.c_left": { "input": "face_north" }
+      },
+      "notes": "Mupen64Plus-Next's default layout only reads the east and north face buttons while R2 is held (the C-button chord), so on their own they do nothing (custom/mupen64plus-core/plugin/emulate_game_controller_via_libretro.c L351-368 @ mupen64plus-libretro-nx 12edd2c). This puts C-down and C-left on them. The right stick still gives all four C buttons, and R2 + face buttons still work."
+    },
+    {
+      "$schema": "../schema/rule.schema.json",
+      "schema_version": 1,
+      "id": "user.any.n64.layout-face-c",
+      "label": "N64 layout 2: face buttons are the C buttons, A and B on the bumpers",
+      "enabled": false,
+      "applies_to": {
+        "controller": { "level": "any" },
+        "content": { "level": "system", "system": "n64" }
+      },
+      "bindings": {
+        "n64.standard.c_up": { "input": "face_north" },
+        "n64.standard.c_down": { "input": "face_south" },
+        "n64.standard.c_left": { "input": "face_west" },
+        "n64.standard.c_right": { "input": "face_east" },
+        "n64.standard.a": { "input": "r1" },
+        "n64.standard.b": { "input": "l1" },
+        "n64.standard.r": { "input": "r2" },
+        "n64.standard.l": { "input": "select" }
+      },
+      "notes": "For C-heavy games (Ocarina's items and songs, Star Fox). Z stays on L2 and the right stick still gives the C buttons. N64 L moves to Select, which is also EmuDeck's hotkey-enable button [VERIFY] that Select still reaches the core."
+    },
+    {
+      "$schema": "../schema/rule.schema.json",
+      "schema_version": 1,
+      "id": "user.any.n64.layout-independent-c",
+      "label": "N64 layout 3: the core's 'independent C buttons' scheme, as a remap",
+      "enabled": false,
+      "applies_to": {
+        "controller": { "level": "any" },
+        "content": { "level": "system", "system": "n64" }
+      },
+      "bindings": {
+        "n64.standard.c_right": { "input": "r1" },
+        "n64.standard.c_left": { "input": "l1" },
+        "n64.standard.c_down": { "input": "face_east" },
+        "n64.standard.c_up": { "input": "face_north" },
+        "n64.standard.r": { "input": "r2" },
+        "n64.standard.l": { "input": "select" }
+      },
+      "notes": "The same buttons as the core option mupen64plus-alt-map=True (emulate_game_controller_via_libretro.c L339-349 @ 12edd2c), done as a remap so the core option can stay at its default. A on the bottom, B on the left, Z on L2 as before."
+    }
+  ]
+}

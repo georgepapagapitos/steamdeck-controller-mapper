@@ -19,8 +19,10 @@ def base(**overrides):
 class ValidateTest(unittest.TestCase):
     def test_examples_are_valid(self):
         for path in sorted((REPO / "examples").glob("*.json")):
-            with self.subTest(path=path.name):
-                self.assertEqual(validate_rule(json.loads(path.read_text())), [])
+            doc = json.loads(path.read_text(encoding="utf-8"))
+            for rule in doc["rules"] if "rules" in doc else [doc]:      # a bundle, as store.load_rules reads it
+                with self.subTest(path=path.name, rule=rule.get("id")):
+                    self.assertEqual(validate_rule(rule), [])
 
     def test_minimal_rule_is_valid(self):
         self.assertEqual(validate_rule(base()), [])
