@@ -358,7 +358,7 @@ hooks must therefore never point into `~/homebrew/plugins/map-helper/`.
   PY='/usr/bin/python3'
   if [ -x "$PY" ] && [ -f "$MH" ]; then
       T=""
-      command -v timeout >/dev/null 2>&1 && T="timeout -s KILL 2"
+      command -v timeout >/dev/null 2>&1 && T="timeout -k 3 -s TERM 2"
       $T "$PY" -I "$MH" mh-run --no-exec "$@" </dev/null >/dev/null 2>&1
   fi
   [ "$1" = "--hook" ] && exit 0
@@ -374,7 +374,9 @@ hooks must therefore never point into `~/homebrew/plugins/map-helper/`.
   `$STATE/logs/launch.log` itself ([07](07-launch-integration.md)), so its
   output goes to `/dev/null`; the emulator keeps the terminal. coreutils'
   `timeout` (in the base image) is only a backstop for a hang the watchdog
-  can't interrupt, and is skipped where it doesn't exist (macOS).
+  can't interrupt, and is skipped where it doesn't exist (macOS). It sends TERM
+  first: before the writer's gate that aborts with nothing written; after the
+  gate mh-run ignores it so a commit is never cut between two renames.
 - **Removing the Decky plugin leaves the hook and CLI working.** Because
   `_uninstall` can't tell an update from an uninstall (§2), real uninstall is
   explicit: Settings → Uninstall, or `map-helper uninstall`. That restores

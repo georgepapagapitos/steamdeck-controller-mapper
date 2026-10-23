@@ -103,7 +103,7 @@ MH={_sh_quote(str(entry))}
 PY={_sh_quote(python)}
 if [ -x "$PY" ] && [ -f "$MH" ]; then
     T=""
-    command -v timeout >/dev/null 2>&1 && T="timeout -s KILL 2"
+    command -v timeout >/dev/null 2>&1 && T="timeout -k 3 -s TERM 2"
     $T "$PY" -I "$MH" mh-run --no-exec "$@" </dev/null >/dev/null 2>&1
 fi
 [ "$1" = "--hook" ] && exit 0

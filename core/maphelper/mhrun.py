@@ -57,8 +57,10 @@ class Budget:
             return                                          # Windows (dev only): the deadline checks still apply
 
         def fire(signum, frame):
-            raise BudgetExceeded("watchdog: over the time budget")
+            raise BudgetExceeded("watchdog: over the time budget" if signum == signal.SIGALRM
+                                 else "stopped by the shim's timeout backstop")
         self._old = signal.signal(signal.SIGALRM, fire)
+        signal.signal(signal.SIGTERM, fire)         # the shim's backstop: before the gate it aborts like the watchdog
         signal.setitimer(signal.ITIMER_REAL, max(self.deadline - self.clock(), 0.001))
 
     def disarm(self) -> None:
@@ -70,7 +72,12 @@ class Budget:
     def gate(self) -> bool:
         """The writer's gate: watchdog off, then one last look at the clock. True: commit."""
         self.disarm()
-        return self.clock() < self.deadline
+        go = self.clock() < self.deadline
+        if go and threading.current_thread() is threading.main_thread():
+            # Past the gate only renames are left; let them finish rather than leave the set half applied. The shim's
+            # SIGKILL comes later (timeout -k) and only for a real hang.
+            signal.signal(signal.SIGTERM, signal.SIG_IGN)
+        return go
 
 
 class _Parser(argparse.ArgumentParser):

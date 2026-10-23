@@ -256,7 +256,7 @@ of `map-helper devices`.
 
 `~/.local/bin/mh-run` is a POSIX sh shim ([14](14-packaging-permissions.md) §6). It runs
 `/usr/bin/python3 -I ~/.local/lib/map-helper/current/mh_entry.py mh-run --no-exec "$@"` with stdin, stdout and
-stderr on `/dev/null` (and under coreutils `timeout -s KILL 2` as a backstop, where it exists), then the **shell**
+stderr on `/dev/null` (and under coreutils `timeout -k 3 -s TERM 2` as a backstop, where it exists: TERM before the writer's gate aborts like the watchdog and writes nothing; after the gate mh-run ignores TERM so the renames finish, and KILL follows only a real hang), then the **shell**
 execs the command after `--`. A missing install, a missing Python, or a Python that crashes still launches the
 game, and the emulator replaces the shell, so Steam keeps the PID it started. With `--hook` the shim exits 0 instead.
 Run without the shim (`python3 -I mh_entry.py mh-run ...` without `--no-exec`), mh-run execs the command itself

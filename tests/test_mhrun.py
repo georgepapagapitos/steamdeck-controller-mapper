@@ -201,6 +201,19 @@ class FailOpenTest(Launch):
         self.assertEqual(digest(root), before)
         self.assertFalse((self.state / "touched.json").exists())
 
+    def test_backstop_term_aborts_before_the_gate_and_is_ignored_after(self):
+        # The shim's `timeout -k 3 -s TERM 2`: before the gate TERM is a budget abort (nothing written); once the gate
+        # says go, TERM can't cut the renames short.
+        import signal
+        saved = signal.getsignal(signal.SIGTERM)
+        self.addCleanup(signal.signal, signal.SIGTERM, saved)
+        budget = mhrun.Budget(0.0, 500, clock=lambda: 0.1)
+        budget.arm()
+        with self.assertRaises(mhrun.BudgetExceeded):
+            signal.getsignal(signal.SIGTERM)(signal.SIGTERM, None)
+        self.assertTrue(budget.gate())
+        self.assertIs(signal.getsignal(signal.SIGTERM), signal.SIG_IGN)
+
 
 class HookTest(Launch):
     def esde_root(self):
