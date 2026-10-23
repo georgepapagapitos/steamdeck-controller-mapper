@@ -7,3 +7,7 @@ CLAUDE.md
 AGENTS.md
 BOARD.md
 .claude
+# Decky plugin build output
+decky/node_modules
+decky/dist
+decky/out

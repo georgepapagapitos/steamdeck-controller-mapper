@@ -1,0 +1,39 @@
+{
+  "name": "map-helper",
+  "version": "0.0.1",
+  "description": "Decky Loader plugin for map-helper: shows what each button does in the game you are playing, per player and per controller.",
+  "type": "module",
+  "private": true,
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "build": "rollup -c",
+    "build:fixture": "rollup -c --environment MH_FIXTURE",
+    "watch": "rollup -c -w",
+    "typecheck": "tsc --noEmit"
+  },
+  "license": "GPL-3.0-or-later",
+  "devDependencies": {
+    "@decky/rollup": "1.0.2",
+    "@decky/ui": "4.12.1",
+    "@types/react": "19.1.17",
+    "@types/react-dom": "19.1.11",
+    "rollup": "4.64.3",
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "@decky/api": "1.1.3",
+    "react-icons": "5.7.0",
+    "tslib": "2.8.1"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "ignoreMissing": [
+        "react",
+        "react-dom"
+      ]
+    },
+    "overrides": {
+      "@rollup/pluginutils": "5.4.0"
+    }
+  }
+}
