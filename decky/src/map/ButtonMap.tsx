@@ -11,9 +11,9 @@ import { Loading, Message, SampleBanner, failureText } from "../States";
 import { t } from "../strings";
 import { Styles } from "../styles";
 import { steamKey } from "./BackStrip";
-import { ControlList } from "./ControlList";
+import { ControlList, DEFAULTS_KEY } from "./ControlList";
 import { type Control, groupControls, steamOnlyInputs } from "./controls";
-import { type MapContext, backToDefault, openEdit, openMenu, ruleDrives } from "./actions";
+import { type MapContext, backToDefault, backToDefaults, openEdit, openMenu, ruleDrives } from "./actions";
 import { DetailCard } from "./DetailCard";
 import { Legend, OptionChips } from "./OptionChips";
 import { PadDrawing } from "./PadDrawing";
@@ -70,11 +70,20 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
   const controls = useMemo(() => groupControls(player?.inputs ?? []), [player]);
   const backs = useMemo(() => steamOnlyInputs(player?.inputs ?? []), [player]);
   const [selected, setSelected] = useState<string | null>(() => controls[0]?.key ?? null);
+  const right = useRef<HTMLDivElement>(null);
+  // Focus on the selected row, once React has drawn it (after a player switch, or a modal closing).
+  const focusSelected = () => setTimeout(() => right.current?.querySelector<HTMLElement>(".mh-row.mh-on")?.focus(), 80);
 
+  // Another player keeps the button you're on when their pad has it (focus stays on that row); otherwise the first
+  // row is selected and focused, so the card, the drawing and the focus ring never disagree.
   const pick = (index: number) => {
     if (index === current || !players[index]) return;
+    const inputs = players[index].inputs;
+    const keys = [...groupControls(inputs).map((c) => c.key), ...steamOnlyInputs(inputs).map(steamKey)];
+    const keep = selected !== null && keys.includes(selected) ? selected : keys[0] ?? null;
     setCurrent(index);
-    setSelected(groupControls(players[index].inputs)[0]?.key ?? null);
+    setSelected(keep);
+    if (keep !== selected) focusSelected();
   };
 
   // L1/R1 switch players, like tabs elsewhere in Steam.
@@ -98,16 +107,22 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
   const steamOnly = backs.find((b) => steamKey(b) === selected);
   const warnings = data.warnings ?? [];
   const [pending, setPending] = useState(() => pendingFor(launch.ts));
-  const right = useRef<HTMLDivElement>(null);
   const ctx: MapContext | null = player ? {
     launch, player, players, prefix,
-    refocus: () => setTimeout(() => right.current?.querySelector<HTMLElement>(".mh-row.mh-on")?.focus(), 80),
+    refocus: focusSelected,
     onSaved: (delta: number) => {
       notePending(launch.ts, delta);
       setPending(pendingFor(launch.ts));
     },
   } : null;
   const canDefault = (c: Control) => ruleDrives(c).length > 0;
+  // "Back to emulator defaults" heads the list whenever one of your rules changes a button in this launch (any
+  // player's), or a change is saved for the next one: right where you look, not only behind ≡.
+  const ruleButtons = controls.filter(canDefault).length;
+  const rulesHere = ruleButtons > 0 || pending > 0
+    || players.some((p) => groupControls(p.inputs).some((c) => ruleDrives(c).length > 0));
+  const defaults = ctx && rulesHere
+    ? { note: ruleButtons ? t.edit.defaultsRowNote(ruleButtons) : null, onActivate: () => backToDefaults(ctx) } : undefined;
   const undo = useUndo();
   const menu = ctx ? () => openMenu(ctx, undo?.label ?? null) : undefined;
 
@@ -139,7 +154,8 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
               <Message title={player.pad.name} body={t.map.noInputs} />
             )}
             <Legend />
-            <DetailCard pad={player.pad} prefix={prefix} control={control} steamOnly={steamOnly} isDeck={isDeck} />
+            <DetailCard pad={player.pad} prefix={prefix} control={control} steamOnly={steamOnly} isDeck={isDeck}
+              defaults={selected === DEFAULTS_KEY} systemName={launch.system_name || launch.system.toUpperCase()} />
           </div>
           <div className="mh-right" ref={right}>
             {pending > 0 && <div className="mh-pending" role="status">{t.edit.pending(pending)}</div>}
@@ -153,7 +169,7 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
             )}
             <ControlList pad={player.pad} controls={controls} steamOnly={backs} isDeck={isDeck} selected={selected}
               prefix={prefix} onSelect={setSelected} onChange={ctx ? (c) => openEdit(ctx, c) : undefined}
-              onDefault={ctx ? (c) => backToDefault(ctx, c) : undefined} canDefault={canDefault} />
+              onDefault={ctx ? (c) => backToDefault(ctx, c) : undefined} canDefault={canDefault} defaults={defaults} />
           </div>
         </div>
       )}

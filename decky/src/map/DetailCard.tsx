@@ -10,6 +10,8 @@ interface Props {
   control?: Control;
   steamOnly?: PadInput;
   isDeck: boolean;
+  defaults?: boolean; // the "Back to emulator defaults" row is selected
+  systemName?: string;
 }
 
 function InputDrives({ input, prefix, showInput }: { input: PadInput; prefix: string; showInput: boolean }) {
@@ -17,7 +19,9 @@ function InputDrives({ input, prefix, showInput }: { input: PadInput; prefix: st
   return (
     <div className="mh-card-drive">
       {showInput && <div className="mh-card-input">{`${input.glyph} · ${input.name}`}</div>}
-      {input.drives.length === 0 && <div className="mh-card-target">{t.map.nothingLong}</div>}
+      {input.drives.length === 0 && (
+        <div className="mh-card-target">{input.note ? t.map.nothingAlone : t.map.nothingLong}</div>
+      )}
       {input.drives.map((drive, i) => (
         <div key={`${drive.target}-${i}`} className="mh-card-drive">
           <div className="mh-card-target">{label(drive.label)}</div>
@@ -41,7 +45,15 @@ function InputDrives({ input, prefix, showInput }: { input: PadInput; prefix: st
 
 // The selected control: its glyph and name, what each of its inputs drives, where that came from, and any note,
 // The list row it follows has the actions (A Change button, X Back to default); Steam's footer names them.
-export function DetailCard({ pad, prefix, control, steamOnly, isDeck }: Props) {
+export function DetailCard({ pad, prefix, control, steamOnly, isDeck, defaults, systemName }: Props) {
+  if (defaults) {
+    return (
+      <section className="mh-card" aria-live="polite">
+        <div className="mh-card-target">{t.edit.defaultsRow}</div>
+        <div className="mh-card-note">{t.edit.defaultsCard(systemName ?? "")}</div>
+      </section>
+    );
+  }
   if (steamOnly) {
     return (
       <section className="mh-card" aria-live="polite">

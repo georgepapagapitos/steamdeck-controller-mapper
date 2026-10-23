@@ -258,10 +258,20 @@ What the plugin does today, a shortened Flow 2 reached from Flow 3b. Tried on th
 version (focusable header and tabs, a detail card with buttons, separate confirm, scope and result screens) was
 too much, and this is the second.
 
-- **One focus column.** Only the button list takes focus. B back, ≡ menu (rules list, undo, reset this game, reset
-  the system), Y undo, L1/R1 players; the header's buttons answer to touch. The focused row is the only
+- **One focus column.** Only the button list takes focus. B back, ≡ menu (undo, rules list, back to emulator
+  defaults), Y undo, L1/R1 players; the header's buttons answer to touch. The focused row is the only
   highlight; the drawing and the card follow it. A row's A is Change button (Assign when it does nothing), X is
-  Back to default when one of the user's rules sets it.
+  Back to default when one of the user's rules sets it. A row that does nothing says what it does with a
+  modifier held instead ("C▶ with R2 held": Mupen64Plus-Next's C-button chord, from the core descriptor).
+- **Focus stays in the list.** The selected row takes focus when the page opens (`autoFocus`; from the Quick Access
+  menu focus used to stay on the top bar's collapsed search field), and up/down/left/right at the list's ends
+  stay put: the list's `onMoveUp/Down/Left/Right` nav options, which Steam's nav node calls only when moving among
+  its children found nothing (`CFocusNavNode.OnNavigationEvent` in the client, read on the Deck 2026-10-23). An
+  `onGamepadDirection` handler on the rows ran on every press and swallowed the D-pad. Switching players keeps
+  the row when the other pad has that input, else focuses the first; every modal closes back onto the row.
+- **Back to emulator defaults** heads the list whenever one of the user's rules changes a button in this launch
+  (or a change is saved for the next): A opens one modal listing the rules, with "Only <game>" and, when it turns
+  off more, "All <system> games". Also in ≡.
 - **Capture**, in a modal whose one element swallows every button: the console's pad (our own drawing,
   `decky/src/map/consoles.tsx`; N64 so far) with the target lit, beside the player's pad with the current
   button ringed. Source: `SteamClient.Input.RegisterForControllerInputMessages(controllerIndex, button, pressed)`
@@ -273,8 +283,8 @@ too much, and this is the second.
   input), an automatic swap when the pressed button had exactly one job (or keep both), a dry-run preview for the
   pads connected now (`map-helper rules edit --dry-run`), and three save buttons: this game, all the system's
   games, only this controller (all the system's games). Saving closes it with a toast; Y undoes.
-- **Back to default** takes the binding out of the rule that set it at once (undo with Y). **Resets** list the
-  rules a dry run would turn off and ask first; they turn rules off, never delete.
+- **Back to default** takes the binding out of the rule that set it at once (undo with Y). **Back to emulator
+  defaults** lists the rules a dry run would turn off and asks first; it turns rules off, never deletes.
 - **Rules list** (`/map-helper/rules`): every rule in `rules/` and `rules-off/`, A turns one on or off (a parked
   file moves to `rules/`, the other rules in it stay off), X deletes after a confirm. Clashes (two rules with one
   scope setting the same input) are shown.

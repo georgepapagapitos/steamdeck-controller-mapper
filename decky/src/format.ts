@@ -114,7 +114,8 @@ export function optionValue(option: PadOption): string {
   if (typeof value === "number") {
     return key.includes("deadzone") && value >= 0 && value <= 1 ? t.options.percent(value) : String(value);
   }
-  return label.toLowerCase().includes(value.toLowerCase()) ? "" : value;
+  // A pak's label names it ("Memory pak", "No pak" for none), so its value would only repeat it.
+  return key === "pak" || label.toLowerCase().includes(value.toLowerCase()) ? "" : value;
 }
 
 export function optionText(option: PadOption): string {

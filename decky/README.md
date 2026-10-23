@@ -10,9 +10,10 @@ what each one does in the game, and the buttons only Steam sees (back buttons,
 paddles, touchpad click). Everything works with the D-pad and A/B; L1/R1 switch
 players on the button map.
 
-On the button map only the list of buttons takes focus: the D-pad moves up and down it, the drawing and the card
-follow, L1/R1 switch players, B goes back, ≡ opens the menu (rules list, undo, resets) and Y undoes the last
-change; Steam's footer names them. The header's buttons and tabs answer to touch.
+On the button map only the list of buttons takes focus, from the moment it opens: the D-pad moves up and down it
+(and stays in it at the ends), the drawing and the card follow, L1/R1 switch players, B goes back, ≡ opens the menu
+(undo, rules list, back to emulator defaults) and Y undoes the last change; Steam's footer names them. The
+header's buttons and tabs answer to touch.
 
 To change a mapping, press A on a button (**Change button**, or **Assign** for one that does nothing) and press
 the button you want, while the console's pad (N64 so far) shows the input being changed lit beside yours. One
@@ -20,7 +21,9 @@ screen then says what happens ("N64 A moves from A to Y"), swaps the two buttons
 had a job (or keeps both), previews what changes for the controllers connected now, and saves with one of three
 buttons: this game, all the system's games, or only this controller. The rule goes in
 `~/.local/share/map-helper/rules` and applies the next time a game starts. X on a button one of your rules set is
-**Back to default**. Every change is undone with Y. The resets in ≡ turn rules off rather than delete them.
+**Back to default**. When your rules change this game, **Back to emulator defaults** heads the list (and is in ≡):
+it turns them off for this game or for all the system's games, after listing them. Every change is undone with Y;
+nothing is deleted.
 **Your rules** (in the Quick Access panel and ≡) lists every rule with an on/off switch, including the ones parked
 in `~/.local/share/map-helper/rules-off`.
 

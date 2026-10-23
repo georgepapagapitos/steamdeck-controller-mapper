@@ -1,5 +1,5 @@
 import { useQuickAccessVisible } from "@decky/api";
-import { ButtonItem, Field, PanelSection, PanelSectionRow, Router } from "@decky/ui";
+import { ButtonItem, Field, PanelSection, PanelSectionRow } from "@decky/ui";
 import { useEffect, useRef } from "react";
 import { FaCheck, FaChevronRight, FaExclamationTriangle } from "react-icons/fa";
 import { useLastLaunch } from "../backend";
@@ -10,21 +10,13 @@ import { Loading, Message, SampleBanner, failureText } from "../States";
 import { t } from "../strings";
 import { Styles } from "../styles";
 
-// Whether Steam has a game running now (ES-DE counts while it's open): the panel shows the last launch either
-// way, and says "Now playing" only then.
-function gameRunning(): boolean {
-  try {
-    return !!Router.MainRunningApp;
-  } catch {
-    return false;
-  }
-}
-
+// The last launch, game running or not: ES-DE stays open between games, so Steam can't say whether this one
+// still runs. "Last played" is true either way.
 function NowPlaying({ data }: { data: LastLaunch }) {
   const { launch } = data;
   const good = launch.outcome === "changed" || launch.outcome === "no-changes";
   return (
-    <PanelSection title={gameRunning() ? t.nowPlaying : t.lastPlayed(launchTime(launch.ts))}>
+    <PanelSection title={t.lastPlayed(launchTime(launch.ts))}>
       <PanelSectionRow>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <div className="mh-qam-game">{gameTitle(launch)}</div>

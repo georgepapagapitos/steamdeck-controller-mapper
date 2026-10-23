@@ -155,6 +155,8 @@ const css = `
   font-weight: 600; color: ${colors.muted}; text-transform: uppercase; letter-spacing: 0.8px; }
 .mh-list-heading-note { text-transform: none; letter-spacing: 0; font-weight: 400; }
 .mh-row-none { color: ${colors.muted}; }
+.mh-row-defaults { color: ${colors.rule}; font-weight: 600; }
+.mh-row-defaults-note { flex: none; font-size: 11px; color: ${colors.muted}; white-space: nowrap; }
 .mh-row-note { color: ${colors.emulator}; font-size: 12px; }
 .mh-row-note[data-kind="emudeck"] { color: ${colors.emudeck}; }
 .mh-row-note[data-kind="rule"] { color: ${colors.rule}; }
