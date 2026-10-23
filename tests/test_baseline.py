@@ -4,6 +4,8 @@ Found on the owner's Deck (2026-10-23): a Smash-only swap saved from the plugin 
 remap, so every N64 game got it, and taking the rule out left the swap in the file.
 """
 
+import contextlib
+import io
 import json
 import shutil
 import unittest
@@ -41,10 +43,14 @@ class BaselineTest(Base):
             (self.rules / f"{doc['id']}.json").write_text(json.dumps(doc), encoding="utf-8")
 
     def launch(self, game):
-        code, out = run_cli(["apply", "--emulator", "retroarch", "--core", "mupen64plus_next", "--system", "n64",
-                             "--game", game, "--config-root", str(self.root), "--rules", str(self.rules), "--write",
-                             "--state-dir", str(self.state), *self.probe()])
+        """Runs the launch's apply; returns what it printed, warnings (stderr) included."""
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            code, out = run_cli(["apply", "--emulator", "retroarch", "--core", "mupen64plus_next", "--system", "n64",
+                                 "--game", game, "--config-root", str(self.root), "--rules", str(self.rules), "--write",
+                                 "--state-dir", str(self.state), *self.probe()])
         self.assertEqual(code, 0, out)
+        return out + err.getvalue()
 
     def game_rmp(self, game):
         return self.root / "config/remaps/Mupen64Plus-Next" / f"{game}.rmp"
@@ -80,6 +86,18 @@ class BaselineTest(Base):
         self.assertEqual(self.south_drives(OCARINA), ["A"])
         files = load_manifest(self.state)["retroarch"]["files"]
         self.assertNotIn(str(self.game_rmp(OCARINA).relative_to(self.root)), files)
+
+    def test_a_game_remap_map_helper_made_isnt_warned_about(self):
+        # Seen on the Deck: the launch that deleted Smash's remap still warned that the remap shadows the core's.
+        self.put(rule("game-swap", OCARINA_ONLY, SWAP))
+        self.assertNotIn("game or folder remap", self.launch(OCARINA))
+        self.put()
+        self.assertNotIn("game or folder remap", self.launch(OCARINA))
+
+    def test_someone_elses_game_remap_is_still_warned_about(self):
+        self.game_rmp(MARIO_KART).parent.mkdir(parents=True, exist_ok=True)
+        self.game_rmp(MARIO_KART).write_text('input_player1_btn_a = "0"\n', encoding="utf-8")
+        self.assertIn("game or folder remap", self.launch(OCARINA))
 
     def test_the_decks_state_moves_into_the_game_remap(self):
         # What the owner's Deck had: the swap in a core remap map-helper created (here from a system rule), then

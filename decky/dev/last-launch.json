@@ -42,7 +42,13 @@
                 "detail": "Mupen64Plus-Next default"
               }
             }
-          ]
+          ],
+          "note": "C▼ while ZR is held (the core's C-button modifier)",
+          "note_source": {
+            "kind": "emulator",
+            "detail": "Mupen64Plus-Next default"
+          },
+          "note_short": "C▼ with ZR held"
         },
         {
           "input": "face_east",
@@ -74,7 +80,13 @@
                 "detail": "Mupen64Plus-Next default"
               }
             }
-          ]
+          ],
+          "note": "C◀ while ZR is held (the core's C-button modifier)",
+          "note_source": {
+            "kind": "emulator",
+            "detail": "Mupen64Plus-Next default"
+          },
+          "note_short": "C◀ with ZR held"
         },
         {
           "input": "face_north",
@@ -375,7 +387,13 @@
                 "detail": "Mupen64Plus-Next default"
               }
             }
-          ]
+          ],
+          "note": "C▼ while RT is held (the core's C-button modifier)",
+          "note_source": {
+            "kind": "emulator",
+            "detail": "Mupen64Plus-Next default"
+          },
+          "note_short": "C▼ with RT held"
         },
         {
           "input": "face_east",
@@ -407,7 +425,13 @@
                 "detail": "Mupen64Plus-Next default"
               }
             }
-          ]
+          ],
+          "note": "C◀ while RT is held (the core's C-button modifier)",
+          "note_source": {
+            "kind": "emulator",
+            "detail": "Mupen64Plus-Next default"
+          },
+          "note_short": "C◀ with RT held"
         },
         {
           "input": "face_north",
@@ -723,7 +747,13 @@
                 "detail": "Mupen64Plus-Next default"
               }
             }
-          ]
+          ],
+          "note": "C▼ while R2 is held (the core's C-button modifier)",
+          "note_source": {
+            "kind": "emulator",
+            "detail": "Mupen64Plus-Next default"
+          },
+          "note_short": "C▼ with R2 held"
         },
         {
           "input": "face_east",
@@ -755,7 +785,13 @@
                 "detail": "Mupen64Plus-Next default"
               }
             }
-          ]
+          ],
+          "note": "C◀ while R2 is held (the core's C-button modifier)",
+          "note_source": {
+            "kind": "emulator",
+            "detail": "Mupen64Plus-Next default"
+          },
+          "note_short": "C◀ with R2 held"
         },
         {
           "input": "face_north",
@@ -1057,7 +1093,13 @@
                 "detail": "Mupen64Plus-Next default"
               }
             }
-          ]
+          ],
+          "note": "C▼ while R2 is held (the core's C-button modifier)",
+          "note_source": {
+            "kind": "emulator",
+            "detail": "Mupen64Plus-Next default"
+          },
+          "note_short": "C▼ with R2 held"
         },
         {
           "input": "face_east",
@@ -1089,7 +1131,13 @@
                 "detail": "Mupen64Plus-Next default"
               }
             }
-          ]
+          ],
+          "note": "C◀ while R2 is held (the core's C-button modifier)",
+          "note_source": {
+            "kind": "emulator",
+            "detail": "Mupen64Plus-Next default"
+          },
+          "note_short": "C◀ with R2 held"
         },
         {
           "input": "face_north",

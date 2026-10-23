@@ -36,6 +36,7 @@ class Described:
     port: Optional[int] = None
     drives: list = field(default_factory=list)     # (physical input, target, source)
     notes: dict = field(default_factory=dict)      # physical input -> (text, source, short text for a list row)
+    chords: list = field(default_factory=list)     # (physical input, target, physical input to hold, source)
     options: list = field(default_factory=list)    # (option key, canonical value, source, player whose rules set it)
 
 
@@ -138,6 +139,13 @@ def _inputs(controller, glyphs: dict, described: Described, source: "_Sources", 
                 row["drives"].append({"target": target, "label": _target_label(target, layout),
                                       "source": source.binding(target, physical, src)})
         note = next((described.notes[p] for p in parts if p in described.notes), None)
+        chord = next(((t, hold, src) for p, t, hold, src in described.chords if p in parts), None)
+        if chord:
+            # Mupen64Plus-Next's face buttons give C buttons while R2 is held: say so, in the pad's own glyph, on a
+            # row that otherwise reads "Nothing".
+            label, hold = _target_label(chord[0], layout), table.get(chord[1], (chord[1],))[0]
+            text, short = f"{label} while {hold} is held (the core's C-button modifier)", f"{label} with {hold} held"
+            note = (f"{note[0]}; {text}", note[1], f"{note[2]}; {short}") if note else (text, chord[2], short)
         if note:
             row["note"], row["note_source"] = note[0], source.note(name, note[1])
             row["note_short"] = note[2]

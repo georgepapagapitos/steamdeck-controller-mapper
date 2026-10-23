@@ -374,12 +374,14 @@ class RetroArchAdapter:
         names = {v: k for k, v in self.ids.items()}
         default = ("emulator", f"{desc['core']} default", False)
         hold = desc.get("c_button_chord", {}).get("hold")
+        chord = {v: k for k, v in desc.get("c_button_chord", {}).items() if k != "hold" and not k.startswith("_")}
+        sends = {}                                   # physical -> the RetroPad input it sends after the remap
         for physical, source in self.pad["physical_to_retropad"].items():
             if source not in self.ids:
                 continue                             # full axes: their halves are listed
             key = self._key(user, source)
             raw = after(file, None, key)
-            core_input = names.get(self.ids[source] if raw is None else int(raw.strip('"')))
+            core_input = sends[physical] = names.get(self.ids[source] if raw is None else int(raw.strip('"')))
             src = default if raw is None else ("emulator", f"remap {Path(file).name}", after.patched(file, None, key))
             for target, wanted in desc["targets"].items():
                 if system and not target.startswith(f"{system}."):
@@ -389,6 +391,11 @@ class RetroArchAdapter:
             if hold and core_input == hold:
                 out.notes[physical] = (f"{desc['core']}'s C-button modifier: hold it and the face buttons give "
                                        f"C buttons", default, "Hold for C buttons")
+        held = next((p for p, i in sends.items() if hold and i == hold), None)
+        for physical, core_input in sends.items():
+            target = chord.get(core_input)
+            if held and target and (not system or target.startswith(f"{system}.")):
+                out.chords.append((physical, target, held, default))
         if user == 1:
             self._describe_enable(after, out)
         self._describe_options(user, after, desc, config_root, game, folder, out)
@@ -470,8 +477,9 @@ class RetroArchAdapter:
                             "controller name, so the core-level file we write isn't used")
         folder = Path(config_root) / REMAP_DIR / desc["core"]
         mine = Path(getattr(self, "remap_rel", None) or self.remap_file(desc)).name
+        ours = getattr(current, "created", lambda rel: False)      # a remap map-helper made (baseline.py) isn't one
         for shadow in sorted(folder.glob("*.rmp")) if folder.is_dir() else []:
-            if shadow.name != mine:
+            if shadow.name != mine and not ours(shadow.relative_to(config_root).as_posix()):
                 warnings.append(f"retroarch: {shadow.relative_to(config_root)} is a game or folder remap; when it "
                                 f"matches, RetroArch loads it instead of {mine} (no layering)")
         return warnings
