@@ -315,7 +315,7 @@ function DecideView({ launch, player, players, prefix, step, onSaved, onAgain, o
   return (
     <>
       <div className="mh-decide">
-        <Glyph pad={player.pad} label={words.glyph} size={40} className="mh-glyph" />
+        <Glyph pad={player.pad} label={words.glyph} size={32} className="mh-glyph" />
         <span className="mh-decide-arrow" aria-hidden="true">→</span>
         <span className="mh-decide-what">{what}</span>
       </div>

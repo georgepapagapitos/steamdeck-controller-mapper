@@ -167,7 +167,7 @@ const css = `
 }
 
 /* Modals: the edit flow, results, resets. Steam's ModalRoot gives the frame; this is what's inside. */
-.mh-modal { display: flex; flex-direction: column; gap: 10px; min-width: 460px; max-width: 660px; color: ${colors.text}; }
+.mh-modal { display: flex; flex-direction: column; gap: 8px; min-width: 460px; max-width: 660px; color: ${colors.text}; }
 .mh-modal-title { font-size: 17px; font-weight: 700; line-height: 1.3; }
 .mh-modal .DialogButton.mh-modal-button, .mh-modal .DialogButton.mh-target, .mh-modal .DialogButton.mh-job,
 .mh-modal .DialogButton.mh-chip-button { min-height: 34px; padding: 4px 14px; font-size: 14px; line-height: 1.2; }
@@ -190,12 +190,16 @@ const css = `
   display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 8px 4px; text-align: center;
 }
 .mh-decide { display: flex; align-items: center; gap: 14px; }
-.mh-decide-arrow { font-size: 22px; color: ${colors.muted}; }
-.mh-decide-what { font-size: 22px; font-weight: 700; color: ${colors.rule}; }
+.mh-decide-arrow { font-size: 19px; color: ${colors.muted}; }
+.mh-decide-what { font-size: 19px; font-weight: 700; color: ${colors.rule}; }
 .mh-swap { display: flex; gap: 8px; flex-wrap: wrap; }
 .mh-swap .DialogButton.mh-chip-button { width: auto; min-width: 0; min-height: 32px; padding: 4px 12px; font-size: 13px;
   display: inline-flex; align-items: center; gap: 6px; }
 .mh-swap .mh-chip-on { background: ${colors.accent} !important; color: ${colors.onAccent} !important; }
+/* The three save buttons share one row (wrapping to two pushed Cancel off the 534 px screen); long names wrap
+   inside their button. */
+.mh-modal-buttons.mh-save-row { flex-wrap: nowrap; }
+.mh-save-row .mh-modal-button { flex: 1 1 0; min-width: 0; }
 .mh-save-row .DialogButton.mh-primary { min-height: 40px; font-weight: 600; background: #1d4d78 !important;
   color: ${colors.text} !important; }
 .mh-save-row .DialogButton.mh-primary.gpfocus { background: ${colors.accent} !important; color: ${colors.onAccent} !important; }
@@ -212,25 +216,7 @@ const css = `
   border: 3px solid ${colors.accent}; color: ${colors.text}; animation: mh-pulse 1.4s ease-in-out infinite;
 }
 @keyframes mh-pulse { 0%, 100% { box-shadow: 0 0 0 0 ${colors.focusGlow}; } 50% { box-shadow: 0 0 0 12px rgba(26,159,255,0); } }
-@media (prefers-reduced-motion: reduce) { .mh-decide { display: flex; align-items: center; gap: 14px; }
-.mh-decide-arrow { font-size: 22px; color: ${colors.muted}; }
-.mh-decide-what { font-size: 22px; font-weight: 700; color: ${colors.rule}; }
-.mh-swap { display: flex; gap: 8px; flex-wrap: wrap; }
-.mh-swap .DialogButton.mh-chip-button { width: auto; min-width: 0; min-height: 32px; padding: 4px 12px; font-size: 13px;
-  display: inline-flex; align-items: center; gap: 6px; }
-.mh-swap .mh-chip-on { background: ${colors.accent} !important; color: ${colors.onAccent} !important; }
-.mh-save-row .DialogButton.mh-primary { min-height: 40px; font-weight: 600; background: #1d4d78 !important;
-  color: ${colors.text} !important; }
-.mh-save-row .DialogButton.mh-primary.gpfocus { background: ${colors.accent} !important; color: ${colors.onAccent} !important; }
-.mh-bumper { font-size: 10px; font-weight: 700; color: ${colors.muted}; border: 1px solid ${colors.border};
-  border-radius: 4px; padding: 1px 4px; align-self: center; }
-.mh-capture-pads { display: flex; gap: 16px; width: 100%; justify-content: center; }
-.mh-capture-pane { flex: 1 1 0; max-width: 300px; min-width: 0; }
-.mh-console { width: 100%; height: auto; display: block; }
-.mh-capture .mh-modal-title { align-self: stretch; }
-.mh-spot.mh-was { box-shadow: 0 0 0 2px ${colors.muted}; border-radius: 50%; }
-.mh-spot.mh-was:not(.mh-spot-icon) { border-color: ${colors.muted}; border-style: dashed; }
-.mh-capture-ring { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .mh-capture-ring { animation: none; } }
 .mh-capture-bar { width: 100%; height: 4px; border-radius: 2px; background: ${colors.surfaceLow}; overflow: hidden; }
 .mh-capture-bar > div { height: 100%; background: ${colors.accent}; transition: width 100ms linear; }
 
@@ -240,7 +226,7 @@ const css = `
 .mh-choice-row .mh-chip-button { width: auto; min-width: 0; display: inline-flex; align-items: center; gap: 6px; }
 /* Chosen: the accent fill and a check. Focus adds the white ring on top, so the two never look alike. */
 .mh-choice-row .mh-chip-on { background: ${colors.accent} !important; color: ${colors.onAccent} !important; }
-.mh-preview { max-height: 104px; overflow-y: auto; padding: 8px 10px; border-radius: 8px; background: ${colors.surfaceLow}; }
+.mh-preview { max-height: 84px; overflow-y: auto; padding: 8px 10px; border-radius: 8px; background: ${colors.surfaceLow}; }
 .mh-changes { display: flex; flex-direction: column; gap: 8px; }
 .mh-change-group { display: flex; flex-direction: column; gap: 4px; }
 .mh-change-player { font-size: 11px; font-weight: 600; color: ${colors.muted}; }
