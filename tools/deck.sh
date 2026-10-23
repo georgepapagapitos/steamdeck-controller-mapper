@@ -88,5 +88,5 @@ case "${1:-}" in
   capture) shift; capture "$@" ;;
   watch) shift; watch "$@" ;;
   ssh) exec ssh "$HOST" ;;
-  *) sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  *) sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
