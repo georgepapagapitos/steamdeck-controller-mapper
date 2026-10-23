@@ -581,8 +581,12 @@ def uninstall(places: Places, write: bool = False) -> Report:
         _srm_uninstall(report, record, places, write)
         _esde_setting_uninstall(report, record, places, write)
         _remove_file(report, record, "es-de script", "esde_script", write)
-        _remove_file(report, record, "shim", "shim", write)
-        _remove_file(report, record, "cli shim", "cli_shim", write)
+        if report.refused:
+            # A parser or script left in place still runs the shim; removing it would break those launches.
+            report.add("shim", "keep", "kept: something that runs it was left in place (see above)")
+        else:
+            _remove_file(report, record, "shim", "shim", write)
+            _remove_file(report, record, "cli shim", "cli_shim", write)
         if write:
             save_record(places.state_dir, record)
     # Last, and only with nothing refused: this may be the tree uninstall itself runs from (its imports are done).
