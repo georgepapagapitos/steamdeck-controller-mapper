@@ -77,24 +77,27 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
     setSelected(groupControls(players[index].inputs)[0]?.key ?? null);
   };
 
-  // Development aid: every focus move on this page and every button that reached it, in
-  // window.mhFocusLog (Steam's debugger, SharedJSContext). Element class and text only; nothing about devices.
+  // Development aid, temporary (remove before pushing): focus moves within this page and the buttons that reached
+  // it, in window.mhFocusLog (Steam's debugger, SharedJSContext). Watches only this page's own elements, so the
+  // text it notes is our own labels, never Steam's UI.
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const doc = root.current?.ownerDocument;
-    if (!doc) return;
+    const page = root.current;
+    const doc = page?.ownerDocument;
+    if (!page || !doc) return;
     const log = ((window as unknown as Record<string, unknown>).mhFocusLog ??= []) as unknown[];
     const note = (what: string) => log.length < 400 && log.push(`${Date.now() % 100000} ${what}`);
     const describe = (el: Element) => `${el.className.toString().split(" ").filter((c) => c.startsWith("mh-") || c === "DialogButton")
       .join(".")}|${(el.textContent ?? "").trim().slice(0, 24)}`;
-    note(`open ${doc.querySelector(".gpfocus") ? describe(doc.querySelector(".gpfocus")!) : "(no focus)"}`);
+    const focused = page.querySelector(".gpfocus");
+    note(`open ${focused ? describe(focused) : "(no focus on this page)"}`);
     const observer = new MutationObserver((records) => {
       for (const r of records) {
         const el = r.target as Element;
         if (el.classList?.contains("gpfocus") && !(r.oldValue ?? "").includes("gpfocus")) note(`focus ${describe(el)}`);
       }
     });
-    observer.observe(doc.body, { subtree: true, attributes: true, attributeFilter: ["class"], attributeOldValue: true });
+    observer.observe(page, { subtree: true, attributes: true, attributeFilter: ["class"], attributeOldValue: true });
     return () => observer.disconnect();
   }, []);
 
