@@ -494,7 +494,8 @@ export function EditFlow({ closeModal, launch, player, players, control, prefix,
   const hasTargets = !!targets;
   useEffect(() => {
     const id = setTimeout(() => {
-      const el = root.current?.querySelector<HTMLElement>(".mh-first, .mh-capture, .DialogButton");
+      const el = root.current?.querySelector<HTMLElement>(".mh-first")
+        ?? root.current?.querySelector<HTMLElement>(".mh-capture, .DialogButton");
       el?.focus();
     }, 60);
     return () => clearTimeout(id);
