@@ -78,6 +78,14 @@ class WrapTest(Launch):
         self.assertIn("changed: ", self.log())
         self.assertTrue((self.roots["retroarch"] / "config/remaps/Snes9x/Snes9x.rmp").is_file())
 
+    def test_the_log_names_each_players_model_and_how_old_steams_slots_are(self):
+        # Steam seats pads at their first input in a game session; the log shows which order mh-run used and whether
+        # the slot file had just been rewritten, to line up with Steam's console_log (docs/13 S1).
+        self.run_mh(["--emulator", "retroarch", *self.probe("retroarch"), "--", "retroarch.sh", "-L",
+                     "snes9x_libretro.so", "/r/roms/snes/a.sfc"])
+        self.assertIn("players=4 order=nintendo.switch-pro,8bitdo.ultimate2,sony.dualsense,valve.steamdeck "
+                      "slots_age=", self.log())
+
     def test_dolphin_reads_the_disc_header(self):
         rom = disc(self.tmp / "roms" / "gc" / "Melee.iso", b"GALE01")
         command = ["/home/deck/Emulation/tools/launchers/dolphin-emu.sh", "-b", "-e", str(rom)]
