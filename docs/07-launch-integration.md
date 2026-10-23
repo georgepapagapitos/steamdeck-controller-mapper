@@ -248,8 +248,10 @@ of `map-helper devices`.
    logged; the command still runs. Nothing is printed: stdout and stderr are swallowed while mh-run works, because in
    wrap mode the emulator inherits them. Hook mode always exits 0. A command that can't be executed returns 127.
 6. **Log**: one line per launch in `$STATE/logs/launch.log`, rolled to `launch.log.1` past 256 KB:
-   `2026-10-22T18:45:27 wrap emulator=retroarch system=snes core=snes9x game=a players=4 ms=69 no changes`, or
-   `changed: <files>`, `skipped: <why>`, `error: <exception>`.
+   `2026-10-22T18:45:27 wrap emulator=retroarch system=snes core=snes9x game=a players=2
+   order=sony.dualsense,valve.steamdeck slots_age=3.2 ms=69 no changes`, or `changed: <files>`, `skipped: <why>`,
+   `error: <exception>`. `order` is each player's model (no device ids); `slots_age` is the seconds since Steam last
+   rewrote its slot file, which it does when it seats a pad at its first input in a game session ([13](13-research-spikes.md) S1).
 7. Optional, not done: `$STATE/last-launch.json` for the Decky UI ("Active mapping: DS4 → GC (family rule)").
 
 ### The shim, and who runs the command

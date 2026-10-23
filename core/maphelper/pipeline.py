@@ -44,6 +44,7 @@ class Outcome:
     result: ApplyResult
     warnings: list = field(default_factory=list)
     players: int = 0
+    order: list = field(default_factory=list)    # each player's model id, for mh-run's log (no device ids)
 
 
 @dataclass
@@ -121,12 +122,13 @@ def run(req: Request, log: Callable[[str], None], gate: Optional[Callable[[], bo
     layouts = load_layouts(DATA / "layouts")
     target = Target(system=req.system, emulator=req.emulator, game_id=req.game)
 
-    players, assigned, joysticks = {}, {}, []
+    players, assigned, joysticks, models = {}, {}, [], []
     if req.players:
         for n, spec in enumerate(req.players, start=1):
             model, _, device_id = spec.partition("@")
             controller = db.classify((device_id,) if device_id else (), claimed_model=model)
             players[n] = resolver.set_by_rules(resolver.resolve(report.rules, controller, target, layouts))
+            models.append(controller.model or "unknown")
     else:
         # No --player: the pads connected now, in Steam's order (docs/04 §5.1 steam-order), each player also pointed
         # at its own pad in the emulator's numbering (§5.2).
@@ -143,6 +145,7 @@ def run(req: Request, log: Callable[[str], None], gate: Optional[Callable[[], bo
                 log(f"warning: player {n} ({name}) needs a model claim; resolving it as {controller.model or 'unknown'}"
                     f" (style {controller.style})")
             players[n] = resolver.set_by_rules(resolver.resolve(report.rules, controller, target, layouts))
+            models.append(controller.model or "unknown")
             assigned[n] = joystick
             slot = f"steam slot {joystick.slot.slot}" if joystick.slot else "not behind Steam"
             log(f"player {n}: {name} ({slot}) -> {joystick.device.name} ({' '.join(joystick.device.handlers)}), "
@@ -154,7 +157,7 @@ def run(req: Request, log: Callable[[str], None], gate: Optional[Callable[[], bo
     result = apply_patches(req.config_root, rendering.rendered.patches, rendering.managed, state_dir=req.state_dir,
                            dry_run=not req.write, emulator=req.emulator, gate=gate, rewritten=emulator.rewritten)
     warnings = [w for p in players.values() for w in p.warnings] + rendering.rendered.warnings + rendering.checks
-    return Outcome(result, warnings, len(players))
+    return Outcome(result, warnings, len(players), models)
 
 
 def _reader(config_root: Path) -> Callable[[str, Optional[str], str], Optional[str]]:

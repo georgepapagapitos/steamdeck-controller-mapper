@@ -205,6 +205,7 @@ def prepare(args, command: list[str], esde: Optional[list[str]], budget: Budget,
     root = args.config_root or pipeline.EMULATORS[emulator].config_root
     if not root.is_dir():
         raise Skip(f"no config at {root} (has the emulator run once?)")
+    entry["slots_age"] = _age(args.virtual_info)
     with lock(Path(args.state_dir) / "locks" / f"{emulator}.lock"):
         budget.check("taking the lock")
         req = pipeline.Request(emulator, system, root, args.rules or [USER_RULES], core=core,
@@ -212,7 +213,16 @@ def prepare(args, command: list[str], esde: Optional[list[str]], budget: Budget,
         outcome = pipeline.run(req, log=lambda line: None, gate=budget.gate, adapter=adapter)
     if outcome.result.aborted:
         raise BudgetExceeded("over the time budget before writing; nothing written")
-    entry.update(players=outcome.players, changed=outcome.result.changed_files)
+    entry.update(players=outcome.players, order=",".join(outcome.order), changed=outcome.result.changed_files)
+
+
+def _age(path) -> Optional[float]:
+    """Seconds since Steam last wrote its slot file. Steam rewrites it when it seats a pad (the first input from each
+    pad in a game session, console_log "Seating controller N in slot M"), so a small age says the order is fresh."""
+    try:
+        return round(time.time() - os.stat(path).st_mtime, 1)
+    except (OSError, TypeError):
+        return None
 
 
 def _core_id(adapter, core_file: Optional[str]) -> Optional[str]:
@@ -251,7 +261,7 @@ def write_log(state_dir: Path, entry: dict) -> None:
     if log.is_file() and log.stat().st_size > LOG_MAX:
         os.replace(log, log.with_name("launch.log.1"))
     fields = [time.strftime("%Y-%m-%dT%H:%M:%S"), entry.get("mode", "?")]
-    for key in ("emulator", "system", "core", "game", "label", "players"):
+    for key in ("emulator", "system", "core", "game", "label", "players", "order", "slots_age"):
         if entry.get(key) not in (None, ""):
             fields.append(f"{key}={entry[key]}")
     if "error" in entry:
