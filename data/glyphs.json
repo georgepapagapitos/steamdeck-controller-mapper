@@ -45,8 +45,9 @@
   },
   "families": {
     "sony.dualsense": { "select": ["Create", "Create"], "misc1": ["Mic", "Mute button"] },
-    "8bitdo.ultimate": { "paddle1": ["PR", "Right paddle (PR)"], "paddle2": ["PL", "Left paddle (PL)"],
-                         "_source": "Printed PL/PR on the owner's Ultimate 2 Wireless (2026-10-23). paddle1 = PR, paddle2 = PL as SDL maps the 8BitDo Pro 2, whose driver reports the same raw order L4, R4, PL, PR (src/joystick/hidapi/SDL_hidapi_8bitdo.c L36-42, src/joystick/SDL_gamepad.c L1231-1232 @ libsdl-org/SDL a04d5cf); SDL's gamepad layer has no paddle mapping for the Ultimate 2 itself" }
+    "8bitdo.ultimate": { "paddle1": ["R4", "Right extra bumper (R4)"], "paddle2": ["L4", "Left extra bumper (L4)"],
+                         "paddle3": ["PR", "Right paddle (PR)"], "paddle4": ["PL", "Left paddle (PL)"],
+                         "_source": "Printed L4/R4 and PL/PR on the owner's Ultimate 2 Wireless (2026-10-23). Numbered as SDL maps the 8BitDo Pro 3, which has the same four extra buttons in the same raw order (b11 L4, b12 R4, b13 PL, b14 PR: src/joystick/hidapi/SDL_hidapi_8bitdo.c L36-42; paddle1:b12, paddle2:b11, paddle3:b14, paddle4:b13: src/joystick/SDL_gamepad.c L1233-1234 @ libsdl-org/SDL a04d5cf). SDL's gamepad layer has no paddle mapping for the Ultimate 2 itself" }
   },
   "steam_only": ["paddle1", "paddle2", "paddle3", "paddle4", "misc1", "touchpad_click"],
   "_steam_only_notes": "Inputs Steam's virtual pad doesn't have: it is an Xbox 360 pad (28de:11ff, 'Microsoft X-Box 360 pad N', data/controllers.json virtual_devices), with no paddles, share/mic/capture button or touchpad, so an emulator behind Steam Input never sees them. Steam Input can still map them to buttons the virtual pad has."

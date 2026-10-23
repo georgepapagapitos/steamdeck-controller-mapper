@@ -643,13 +643,27 @@
         },
         {
           "input": "paddle1",
+          "glyph": "R4",
+          "name": "Right extra bumper (R4)",
+          "drives": [],
+          "steam_only": true
+        },
+        {
+          "input": "paddle2",
+          "glyph": "L4",
+          "name": "Left extra bumper (L4)",
+          "drives": [],
+          "steam_only": true
+        },
+        {
+          "input": "paddle3",
           "glyph": "PR",
           "name": "Right paddle (PR)",
           "drives": [],
           "steam_only": true
         },
         {
-          "input": "paddle2",
+          "input": "paddle4",
           "glyph": "PL",
           "name": "Left paddle (PL)",
           "drives": [],

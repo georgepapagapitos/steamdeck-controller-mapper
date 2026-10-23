@@ -114,7 +114,9 @@ class N64Test(Base):
         self.assertNotIn("note", row(doc["players"][1], "select"))       # hotkeys are player 1's
         u2 = doc["players"][1]
         paddles = [r for r in u2["inputs"] if r["input"].startswith("paddle")]
-        self.assertEqual([r["input"] for r in paddles], ["paddle1", "paddle2"])
+        # The Ultimate 2's L4/R4 and PL/PR, numbered as SDL numbers the 8BitDo Pro 3 (data/glyphs.json).
+        self.assertEqual([(r["input"], r["glyph"]) for r in paddles],
+                         [("paddle1", "R4"), ("paddle2", "L4"), ("paddle3", "PR"), ("paddle4", "PL")])
         self.assertTrue(all(r["steam_only"] and r["drives"] == [] for r in paddles))
         deck = doc["players"][3]
         self.assertEqual(deck["pad"]["shape"], "deck")
