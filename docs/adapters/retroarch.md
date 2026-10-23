@@ -135,6 +135,33 @@ content closes or RetroArch quits, `input_remapping_deinit(true)` rewrites
 adds turbo/device keys) and saves any change the user made in Quick Menu →
 Controls into it. When it is false, the menu shows "Flush Remap File" instead.
 
+What the save writes (`input_remapping_save_file`): a new file from memory,
+keys sorted, with `input_libretro_device_pN`, `input_playerN_analog_dpad_mode`
+and `input_remap_port_pN` for every port below `input_max_users`, the remap
+keys that aren't identity (identity ones are left out; unmapped ones are `-1`,
+or left out when the core doesn't describe that input), and the `input_turbo_*`
+settings. On a Deck the save also lost player 2's lines, for reasons not yet
+known **[VERIFY]** ([13](../13-research-spikes.md)). mh-run writes the whole
+managed set at every launch, so the next launch puts them back.
+
+**Telling RetroArch's save from a replacement.** The writer would otherwise
+take a changed `.rmp` we created for someone else's file (see
+[09](../09-storage-safety-sync.md), the manifest). `saved_on_exit` in the
+adapter calls it RetroArch's own save, still ours, when all of these hold:
+
+- `remap_save_on_exit` isn't `"false"` in `retroarch.cfg`;
+- the file has `input_libretro_device_p1`, which every save writes;
+- every `input_playerN_btn_*`/`_stk_*` key in it is one we last wrote, with
+  our value. Keys of ours that are missing are fine (identity, or dropped).
+
+EmuDeck's ABXY toggle renames its shipped `<core>.rmp.disabled` over the file:
+four `input_player1_btn_*` lines and no device line, so it fails the second
+test. A Quick Menu edit saved on quit fails the third, and a save made by hand
+with `remap_save_on_exit` off fails the first; both make the file the user's.
+Not covered: an EmuDeck file that RetroArch had loaded and saved, renamed over
+ours, whose remaps all equal ours. Restore then deletes a file that holds the
+same remaps as ours.
+
 **`config_save_on_exit`** (default **true**): `retroarch.cfg` is rewritten at
 quit (`CMD_EVENT_MENU_SAVE_CURRENT_CONFIG` in `retroarch_main_quit_finish`).
 `config_save_file` reads the existing file and overwrites the keys it knows,
@@ -480,6 +507,8 @@ Select+R2 (the canonical fast-forward is always the toggle);
   `.rmp` at content close, normalised and with any Quick Menu edits. Drift
   detection must compare parsed key/values, not bytes. Edits made in RetroArch
   land in our managed file and are lost at the next launch unless imported.
+  The writer and restore still treat the save as ours (load precedence above);
+  `doctor` warns.
 - **`config_save_on_exit` is on by default.** `retroarch.cfg` is rewritten at
   quit. Never use `--appendconfig` for hotkeys; its values leak into the main
   config.
@@ -527,6 +556,7 @@ Paths in its output are relative to the config root. EmuDeck's
 | `<core>.rmp` next to EmuDeck's `<core>.rmp.disabled` | warning | EmuDeck's layout switch to ABXY moves `.rmp.disabled` over ours; switching back renames ours to `.rmp.disabled` |
 | `<core>.rmp` alone for one of EmuDeck's 10 toggled cores | warning | the switch to BAYX renames it to `.rmp.disabled` (with `controllerLayout=abxy` it's likely EmuDeck's own file) |
 | cores with only `.rmp.disabled` | info | EmuDeck's ABXY remaps are parked (normal under `baxy`) |
+| `remap_save_on_exit` not `false`, and map-helper's manifest lists a `.rmp` | warning | RetroArch saves its remaps over ours when a game closes; mh-run rewrites them at the next launch, so Quick Menu remap edits don't last |
 
 "AutoMap" is EmuDeck's, and it doesn't touch RetroArch (only Dolphin, Cemu
 and the Switch emulators, [07](../07-launch-integration.md)). RetroArch's own
@@ -546,12 +576,12 @@ Sources: `input/input_driver.c` @ `eb7335f`: `input_config_get_autoconfig_dir`
 
 RetroArch, master `eb7335f939c39be703662c2a0e07c106f99b64ac` (version 1.22.2), cross-checked at tag `v1.22.2`:
 
-- `configuration.c`: `config_load_remap` (L8107–8227), `input_remapping_load_file` (L10313), `input_remapping_save_file` (L10496), `input_config_bind_map` (L347), `save_keybind_joykey`/`save_keybind_hat`/`save_keybind_axis` (L8259–8355), `input_config_get_prefix` (L8418), `config_save_file` (L9095), `JOYPAD_DEFAULT_DRIVER` (L736–790), setting keys (L1947, L2114, L2120, L2250, L2263, L2265). <https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/configuration.c>
-- `input/input_driver.c`: remap application in `input_driver_poll` (L15916–16060), original-bit suppression in `input_state_device` (L4435–4475) and `input_state_internal` (L5153–5170), `input_remapping_update_port_map` (L16849), `input_remapping_deinit` (L16905), `input_remapping_defaults_into`, `input_key_pressed` (L9640). <https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/input/input_driver.c>
+- `configuration.c`: `config_load_remap` (L8107–8227), `input_remapping_load_file` (L10313), `input_remapping_save_file` (L10496–10699: new file L10528, identity left out and unmapped as `-1` L10589–10600 and L10628–10639, device line L10657, turbo L10676–10682; same at `v1.22.2`), `input_config_bind_map` (L347), `save_keybind_joykey`/`save_keybind_hat`/`save_keybind_axis` (L8259–8355), `input_config_get_prefix` (L8418), `config_save_file` (L9095), `JOYPAD_DEFAULT_DRIVER` (L736–790), setting keys (L1947, L2114, L2120, L2250, L2263, L2265). <https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/configuration.c>
+- `input/input_driver.c`: remap application in `input_driver_poll` (L15916–16060), original-bit suppression in `input_state_device` (L4435–4475) and `input_state_internal` (L5153–5170), `input_remapping_update_port_map` (L16849), `input_remapping_deinit` (L16905–16919, saves only when passed `remap_save_on_exit`), `input_remapping_defaults_into`, `input_key_pressed` (L9640). <https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/input/input_driver.c>
 - `input/input_defines.h`: `RARCH_FIRST_CUSTOM_BIND` = 16, `RARCH_UNMAPPED` = 1024, analog bind enum, `analog_dpad_mode` enum (L31–103, L209–218). <https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/input/input_defines.h>
 - `libretro-common/include/libretro.h`: `RETRO_DEVICE_ID_JOYPAD_*` (L309–371), `RETRO_DEVICE_SUBCLASS` (L138). <https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/libretro-common/include/libretro.h>
 - `config.def.h`: `DEFAULT_CONFIG_SAVE_ON_EXIT` (L730), `DEFAULT_REMAP_SAVE_ON_EXIT` (L736), `DEFAULT_AUTO_REMAPS_ENABLE` (L1094). <https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/config.def.h>
-- `runloop.c`: `runloop_event_deinit_core` remap save (L5666–5679), `runloop_event_init_core` remap load (L6684–6718), `runloop_path_set_basename` (L11135), `runloop_path_set_basename_to_archive` (L6497). `retroarch.c`: `retroarch_main_quit_finish` (L10528–10585), `--appendconfig` help (L7802–7813). <https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/runloop.c>
+- `runloop.c`: `runloop_event_deinit_core` remap save (L5666–5679), `runloop_event_init_core` remap load (L6684–6718), `runloop_path_set_basename` (L11135), `runloop_path_set_basename_to_archive` (L6497). `retroarch.c`: `retroarch_main_quit_finish` (L10528–10585, remap save L10550), `--appendconfig` help (L7802–7813). <https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/runloop.c>
 - `input/drivers_joypad/sdl2_joypad.c`: `sdl2_pad_get_button` (L59–65), `sdl2_pad_get_axis` (L81–97), `SDL_IsGameController` / `SDL_GameControllerOpen` in `sdl2_pad_connect` (L121–125), button/axis counts for game controllers (L181–194), ident `"sdl2"` (L669). <https://github.com/libretro/RetroArch/blob/eb7335f939c39be703662c2a0e07c106f99b64ac/input/drivers_joypad/sdl2_joypad.c>
 - `input/input_driver.c`: hotkey gating by the enable bind, `input_hotkey_blocked` (L12083) and `input_keys_pressed` (L13561).
 - SDL 2.30.0 (`release-2.30.0`, `859844e`) `include/SDL_gamecontroller.h`: `SDL_GameControllerAxis` (L620–630), `SDL_GameControllerButton` (L731–755). <https://github.com/libsdl-org/SDL/blob/859844eae358447be8d66e6da59b6fb3df0ed778/include/SDL_gamecontroller.h>

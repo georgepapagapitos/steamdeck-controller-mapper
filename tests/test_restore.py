@@ -19,6 +19,19 @@ def tree(root: Path) -> dict:
     return {p.relative_to(root).as_posix(): p.read_bytes() for p in sorted(root.rglob("*")) if p.is_file()}
 
 
+def retroarch_save(path: Path, drop: str = "input_player2_", edit: dict = None):
+    """What RetroArch's remap save on quit leaves (input_remapping_save_file, configuration.c @ eb7335f): a new file,
+    keys sorted, device/port lines for each of input_max_users (5 here), the non-identity remaps it held, turbo
+    settings. Lines starting with `drop` are left out, as the Deck's save left out player 2's (docs/13)."""
+    keys = dict(ln.split(" = ", 1) for ln in path.read_text(encoding="utf-8").splitlines()
+                if not ln.startswith(drop))
+    for n in range(1, 6):
+        keys |= {f"input_libretro_device_p{n}": '"1"', f"input_player{n}_analog_dpad_mode": '"0"',
+                 f"input_remap_port_p{n}": f'"{n - 1}"'}
+    keys |= {"input_turbo_enable": '"true"', "input_turbo_mode": '"0"', "input_turbo_period": '"6"'} | (edit or {})
+    path.write_text("".join(f"{k} = {v}\n" for k, v in sorted(keys.items())), encoding="utf-8")
+
+
 class RestoreTest(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
@@ -33,9 +46,15 @@ class RestoreTest(unittest.TestCase):
             code = main(list(argv) + ["--state-dir", str(self.state)])
         return code, out.getvalue()
 
-    def apply_both(self):
+    def apply_retroarch(self, players=1):
         self.cli("apply", "--emulator", "retroarch", "--system", "snes", "--config-root", str(self.ra),
-                 "--player", "sony.dualsense", "--rules", str(REPO / "examples"), "--write")
+                 *["--player", "sony.dualsense"] * players, "--rules", str(REPO / "examples"), "--write")
+
+    def created(self):
+        return json.loads((self.state / MANIFEST).read_text(encoding="utf-8"))["retroarch"]["files"][REMAP]["created"]
+
+    def apply_both(self):
+        self.apply_retroarch()
         self.cli("apply", "--emulator", "dolphin", "--system", "gc", "--game", "GALE01",
                  "--config-root", str(self.dolphin), "--player", "sony.ds4.v2", "--rules", str(REPO / "examples"),
                  "--write")
@@ -91,6 +110,46 @@ class RestoreTest(unittest.TestCase):
         self.apply_both()                                             # writes over EmuDeck's file now
         self.cli("restore", "--emulator", "retroarch")
         self.assertEqual((self.ra / REMAP).read_bytes(), emudeck)    # EmuDeck's, not deleted
+
+    def test_retroarchs_own_save_is_still_ours(self):
+        # remap_save_on_exit (on in the capture) saves the loaded remap over ours when content closes
+        self.apply_both()
+        retroarch_save(self.ra / REMAP)
+        code, out = self.cli("restore", "--emulator", "retroarch")
+        self.assertEqual(code, 0, out)
+        self.assertIn(f"deleted        retroarch: {REMAP}", out)
+        self.assertEqual(tree(self.ra), tree(RETROARCH))
+
+    def test_apply_over_retroarchs_save_rewrites_the_whole_managed_set(self):
+        self.apply_retroarch(players=2)
+        ours = (self.ra / REMAP).read_text(encoding="utf-8")
+        self.assertIn("input_player2_btn_b", ours)
+        retroarch_save(self.ra / REMAP)                             # player 2's lines are gone
+        self.apply_retroarch(players=2)                             # what mh-run does at the next launch
+        saved = (self.ra / REMAP).read_text(encoding="utf-8").splitlines()
+        self.assertTrue(set(ours.splitlines()) <= set(saved))
+        self.assertTrue(self.created())
+        self.cli("restore", "--emulator", "retroarch")
+        self.assertFalse((self.ra / REMAP).exists())
+
+    def test_an_edit_saved_from_retroarch_makes_it_theirs(self):
+        self.apply_both()
+        retroarch_save(self.ra / REMAP, edit={"input_player1_btn_b": '"1"'})   # B sends Y, set in the Quick Menu
+        edited = (self.ra / REMAP).read_bytes()
+        self.apply_both()
+        self.assertFalse(self.created())
+        self.cli("restore", "--emulator", "retroarch")
+        self.assertEqual((self.ra / REMAP).read_bytes(), edited)
+
+    def test_a_save_with_remap_save_on_exit_off_is_theirs(self):
+        # Then RetroArch only saves when the user picks Save Remap File, which makes it theirs.
+        cfg = self.ra / "retroarch.cfg"
+        cfg.write_text(cfg.read_text(encoding="utf-8").replace('remap_save_on_exit = "true"',
+                                                                 'remap_save_on_exit = "false"'), encoding="utf-8")
+        self.apply_both()
+        retroarch_save(self.ra / REMAP)
+        self.assertEqual(self.cli("restore", "--emulator", "retroarch")[0], 1)
+        self.assertTrue((self.ra / REMAP).exists())
 
     def test_named_backup(self):
         self.apply_both()

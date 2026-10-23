@@ -12,6 +12,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Callable, Optional
 
+from ..formats.ini import IniDocument
 from ..resolve import Resolution
 from ..store import load_json
 from ..writer import Patch
@@ -21,6 +22,7 @@ DATA = Path(__file__).resolve().parents[3] / "data" / "adapters" / "retroarch"
 REMAP_DIR = "config/remaps"   # input_remapping_directory's default under the config root; EmuDeck keeps it
 SUFFIXES = ("_btn", "_axis")
 _PORT_LINE = re.compile(r"^\s*input_player\d+_joypad_index\s*=", re.MULTILINE)
+_REMAP_KEY = re.compile(r"^input_player\d+_(btn|stk)_")
 
 
 class RetroArchAdapter:
@@ -274,3 +276,33 @@ class RetroArchAdapter:
                 warnings.append(f"retroarch: {override.relative_to(config_root)} sets joypad ports; an override "
                                 f"beats retroarch.cfg, so its players keep the pads it names")
         return warnings
+
+
+def saved_on_exit(config_root: Path, rel: str, written: dict) -> bool:
+    """Is the remap map-helper created, last written with `written` ((section, key) -> value), now only RetroArch's
+    own save of it? Then it's still ours: apply keeps it `created` and restore deletes it.
+
+    RetroArch saves the loaded remap when content closes or it quits, and only when remap_save_on_exit is on
+    (input_remapping_deinit, input/input_driver.c L16905-16919, called from runloop.c L5675 and retroarch.c L10550;
+    default true, config.def.h L736). input_remapping_save_file (configuration.c L10496-10699) writes a new file from
+    memory: input_libretro_device_pN for every port below input_max_users (L10657), the remap keys that aren't
+    identity (identity ones are left out, unmapped ones are -1 or left out, L10589-10600, L10628-10639) and the turbo
+    settings. All at RetroArch eb7335f. So its save of our file has the device line, and every remap key in it is one
+    we wrote, with our value; some of ours may be gone (seen on a Deck: player 2's lines, docs/13). EmuDeck's ABXY
+    toggle renames its own <core>.rmp.disabled over the file instead (emuDeckRetroArch.sh @ dddb302 L363-374): four
+    input_player1_btn_* lines and no device line (tests/fixtures/retroarch). A Quick Menu edit saved on quit puts a
+    value of the user's in, which makes the file theirs, as does a save made by hand with remap_save_on_exit off."""
+    root = Path(config_root)
+    cfg = root / "retroarch.cfg"
+    settings = IniDocument.parse(cfg.read_text(encoding="utf-8", errors="replace")).index() if cfg.is_file() else {}
+    if settings.get((None, "remap_save_on_exit"), "true").strip('"') == "false":
+        return False
+    try:
+        saved = IniDocument.parse((root / rel).read_text(encoding="utf-8")).index()
+    except (OSError, UnicodeDecodeError):
+        return False
+    if (None, "input_libretro_device_p1") not in saved:
+        return False
+    value = lambda v: v.strip().strip('"')
+    return all(key in written and value(written[key]) == value(v)
+               for key, v in saved.items() if key[0] is None and _REMAP_KEY.match(key[1]))

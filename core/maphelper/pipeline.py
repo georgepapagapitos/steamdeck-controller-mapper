@@ -88,11 +88,17 @@ def _retroarch():
     return RetroArchAdapter()
 
 
+def _retroarch_saved(config_root: Path, rel: str, written: dict) -> bool:
+    from .adapters.retroarch import saved_on_exit
+    return saved_on_exit(config_root, rel, written)
+
+
 @dataclass(frozen=True)
 class Emulator:
     adapter: Callable                         # () -> adapter
     render: Callable                          # (adapter, req, players, assigned, joysticks, current) -> Rendering
     config_root: Path                         # where EmuDeck's install keeps the config (docs/adapters/<id>.md)
+    rewritten: Optional[Callable] = None      # (config_root, rel, written) -> a created file it only saved over itself
 
 
 EMULATORS = {
@@ -100,7 +106,7 @@ EMULATORS = {
                         HOME / ".var/app/org.DolphinEmu.dolphin-emu/config/dolphin-emu"),   # Flatpak
     "pcsx2": Emulator(_pcsx2, _render_by_device, HOME / ".config/PCSX2"),                    # AppImage
     "retroarch": Emulator(_retroarch, _render_retroarch,
-                          HOME / ".var/app/org.libretro.RetroArch/config/retroarch"),         # Flatpak
+                          HOME / ".var/app/org.libretro.RetroArch/config/retroarch", _retroarch_saved),  # Flatpak
 }
 
 
@@ -148,7 +154,7 @@ def run(req: Request, log: Callable[[str], None], gate: Optional[Callable[[], bo
 
     rendering = emulator.render(adapter, req, players, assigned, joysticks, _reader(Path(req.config_root)))
     result = apply_patches(req.config_root, rendering.rendered.patches, rendering.managed, state_dir=req.state_dir,
-                           dry_run=not req.write, emulator=req.emulator, gate=gate)
+                           dry_run=not req.write, emulator=req.emulator, gate=gate, rewritten=emulator.rewritten)
     warnings = [w for p in players.values() for w in p.warnings] + rendering.rendered.warnings + rendering.checks
     return Outcome(result, warnings, len(players))
 
