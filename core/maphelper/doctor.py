@@ -60,9 +60,13 @@ class Finding:
 
 def run(steam_root: Path = STEAM_ROOT, retroarch_root: Path = RETROARCH_ROOT,
         emudeck_settings: Path = EMUDECK_SETTINGS, home: Path = HOME) -> list[Finding]:
+    from . import setup
+    from .writer import load_manifest
     settings = read_emudeck_settings(emudeck_settings)
+    tracked = load_manifest(setup.Places(home=home).state_dir).get("retroarch", {}).get("files", {})
     return (check_steam_input(steam_root) + check_emudeck_automap(emudeck_settings, settings)
-            + check_retroarch(retroarch_root, (settings or {}).get("controllerLayout"))
+            + check_retroarch(retroarch_root, (settings or {}).get("controllerLayout"),
+                              [rel for rel in sorted(tracked) if rel.endswith(".rmp")])
             + check_launch_hooks(home, steam_root))
 
 
@@ -288,13 +292,22 @@ def _srm_hooks(places, steam_root: Path, done: bool) -> list[Finding]:
 
 # -- RetroArch -------------------------------------------------------------------
 
-def check_retroarch(root: Path, controller_layout: Optional[str] = None) -> list[Finding]:
+def check_retroarch(root: Path, controller_layout: Optional[str] = None, managed: list[str] = ()) -> list[Finding]:
+    """managed: the .rmp files map-helper writes (from its manifest)."""
     root = Path(root)
     cfg_path = root / "retroarch.cfg"
     if not cfg_path.is_file():
         return [Finding("info", "retroarch", f"retroarch: no retroarch.cfg in {root}; RetroArch checks skipped")]
     cfg = _read_cfg(cfg_path)
     out = _settings(cfg, "retroarch.cfg")
+    if managed and cfg.get("remap_save_on_exit", "true") != "false":
+        # Default true (config.def.h DEFAULT_REMAP_SAVE_ON_EXIT): input_remapping_deinit saves the loaded remap from
+        # memory when content closes (docs/adapters/retroarch.md "doctor checks").
+        names = ", ".join(Path(rel).name for rel in managed)
+        out.append(Finding("warning", "retroarch-remap-save",
+                           f"retroarch: remap_save_on_exit is on, so when a game closes RetroArch saves its remaps "
+                           f"over map-helper's {names}; map-helper rewrites them at the next launch, so remap changes "
+                           "made in RetroArch's Quick Menu don't last"))
     if cfg.get("auto_overrides_enable", "true") != "false":
         overrides = root / "config"
         for path in sorted(overrides.glob("*/*.cfg")) if overrides.is_dir() else []:

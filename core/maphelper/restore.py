@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-from .writer import _atomic_write, file_hash, load_manifest, pristine_path, save_manifest
+from .writer import _atomic_write, file_hash, load_manifest, pristine_path, save_manifest, still_ours
 
 BACKUP_INFO = "backup.json"
 NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
@@ -67,7 +67,9 @@ def plan(state_dir: Path, emulator: Optional[str] = None, source: Optional[str] 
 
     A file that's in the manifest but not in the backup was untouched when the backup was taken, so it goes back to
     pristine. A file whose content isn't what map-helper last left there belongs to someone else now (EmuDeck, the
-    emulator's UI, the user) and is skipped unless force."""
+    emulator's UI, the user) and is skipped unless force, except a created file the emulator only saved over itself
+    (writer.still_ours)."""
+    from .pipeline import EMULATORS
     state_dir = Path(state_dir)
     manifest = load_manifest(state_dir)
     if source is not None:
@@ -80,6 +82,7 @@ def plan(state_dir: Path, emulator: Optional[str] = None, source: Optional[str] 
         if emulator and emu != emulator:
             continue
         root = Path(tracked["config_root"]).resolve()
+        rewritten = EMULATORS[emu].rewritten if emu in EMULATORS else None
         for rel, entry in sorted(tracked["files"].items()):
             path = root / rel
             act = lambda kind, reason, content=None: actions.append(Action(emu, rel, kind, reason, content))
@@ -102,7 +105,7 @@ def plan(state_dir: Path, emulator: Optional[str] = None, source: Optional[str] 
             have = path.read_bytes() if path.is_file() else None
             if have == want:
                 act("ok", f"already as in {where}")
-            elif file_hash(path) != entry["hash"] and not force:
+            elif file_hash(path) != entry["hash"] and not force and not still_ours(rewritten, root, rel, entry):
                 act("skip", ("someone else changed or replaced it since map-helper last wrote it (EmuDeck, the "
                              "emulator or a manual edit); --force restores it anyway"))
             elif want is None:

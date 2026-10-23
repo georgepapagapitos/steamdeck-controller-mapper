@@ -74,10 +74,11 @@ def _expand(patterns: list) -> list:
 
 def apply_patches(config_root: Path, patches: list, managed: dict, state_dir: Path | None = None,
                   dry_run: bool = False, emulator: str | None = None,
-                  gate: Optional[Callable[[], bool]] = None) -> ApplyResult:
+                  gate: Optional[Callable[[], bool]] = None,
+                  rewritten: Optional[Callable[[Path, str, dict], bool]] = None) -> ApplyResult:
     """With state_dir and emulator, every write is recorded in the manifest (MANIFEST) so `restore` can undo it.
     gate: called once every changed file is staged; False discards the staged files and writes nothing
-    (result.aborted)."""
+    (result.aborted). rewritten: the emulator's test for a created file it only saved over itself (see still_ours)."""
     result = ApplyResult()
     track = state_dir is not None and emulator is not None and not dry_run
     manifest = load_manifest(Path(state_dir)) if track else None
@@ -113,19 +114,25 @@ def apply_patches(config_root: Path, patches: list, managed: dict, state_dir: Pa
             before.splitlines(keepends=True), after.splitlines(keepends=True),
             fromfile=f"a/{rel}", tofile=f"b/{rel}")))
         result.changed_files.append(rel)
-        outputs.append((rel, path, after))
+        entry = tracked["files"].get(rel) if track else None
+        written = None
+        if track and (entry["created"] if entry else not path.exists()):   # only created files need it (still_ours)
+            written = sorted([s, k, v] for (s, k), v in IniDocument.parse(after).index().items()
+                             if is_managed(Patch(rel, s, k, v), managed))
+        outputs.append((rel, path, after, written))
     result.diff = "".join(diffs)
     if not dry_run and outputs:
+        ours = lambda rel, entry: still_ours(rewritten, Path(config_root), rel, entry)
         _commit(outputs, Path(state_dir) if state_dir is not None else None, emulator,
-                (manifest, tracked) if track else None, gate, result)
+                (manifest, tracked) if track else None, gate, result, ours)
     return result
 
 
 def _commit(outputs: list, state_dir: Optional[Path], emulator: Optional[str], track: Optional[tuple],
-            gate: Optional[Callable[[], bool]], result: ApplyResult) -> None:
+            gate: Optional[Callable[[], bool]], result: ApplyResult, ours: Callable[[str, dict], bool]) -> None:
     staged = []
     try:
-        for rel, path, after in outputs:
+        for rel, path, after, _ in outputs:
             staged.append((rel, path, _stage(path, after)))
         if gate is not None and not gate():
             result.aborted = True
@@ -134,15 +141,18 @@ def _commit(outputs: list, state_dir: Optional[Path], emulator: Optional[str], t
             # Snapshots and manifest entries first: if the renames below are cut short, restore still knows every
             # file (one whose hash no longer matches is skipped unless --force, never lost).
             for rel, path, _ in staged:
-                _snapshot_pristine(path, state_dir, rel, emulator, track[1]["files"] if track else None)
+                _snapshot_pristine(path, state_dir, rel, emulator, track[1]["files"] if track else None, ours)
             if track:
                 save_manifest(state_dir, track[0])
         for rel, path, tmp in staged:
             os.replace(tmp, path)
         staged = []
         if track:
-            for rel, path, _ in outputs:
-                track[1]["files"][rel]["hash"] = file_hash(path)
+            for rel, path, _, written in outputs:
+                entry = track[1]["files"][rel]
+                entry["hash"] = file_hash(path)
+                if entry["created"] and written is not None:
+                    entry["managed"] = written   # for still_ours: what the emulator's own save should keep
             save_manifest(state_dir, track[0])
     finally:
         for _, _, tmp in staged:
@@ -151,6 +161,18 @@ def _commit(outputs: list, state_dir: Optional[Path], emulator: Optional[str], t
 
 
 MANIFEST = "touched.json"   # in the state dir: {emulator: {"config_root": abs, "files": {rel: {"created", "hash"}}}}
+                            # created files also keep "managed": [[section, key, value], ...] as last written
+
+
+def still_ours(rewritten: Optional[Callable[[Path, str, dict], bool]], config_root: Path, rel: str,
+               entry: dict) -> bool:
+    """A file map-helper created whose hash changed may only have been saved over by the emulator itself (RetroArch
+    saves the loaded remap on quit). rewritten(config_root, rel, written), from the emulator's registry entry, says
+    so, given the managed values map-helper last wrote ((section, key) -> value). Manifests from before those values
+    were recorded can't tell, so the file counts as replaced."""
+    written = entry.get("managed")
+    return bool(rewritten and entry["created"] and written is not None
+                and rewritten(Path(config_root), rel, {(s, k): v for s, k, v in written}))
 
 
 def file_hash(path: Path) -> Optional[str]:
@@ -176,15 +198,17 @@ def pristine_path(state_dir: Path, emulator: Optional[str], rel: str) -> Path:
 
 
 def _snapshot_pristine(path: Path, state_dir: Path, rel: str, emulator: Optional[str] = None,
-                       files: Optional[dict] = None) -> None:
+                       files: Optional[dict] = None,
+                       ours: Callable[[str, dict], bool] = lambda rel, entry: False) -> None:
     """First touch only: keep the file as it was before map-helper ever changed it. files: the manifest's entries
-    for this emulator; a file that didn't exist is recorded as created, since there's nothing to snapshot."""
+    for this emulator; a file that didn't exist is recorded as created, since there's nothing to snapshot.
+    ours(rel, entry): a changed created file is still map-helper's (still_ours)."""
     target = pristine_path(state_dir, emulator, rel)
     if files is not None:
         entry = files.get(rel)
         if entry is None:
             files[rel] = {"created": not path.exists(), "hash": None}
-        elif entry["created"] and path.exists() and file_hash(path) != entry["hash"]:
+        elif entry["created"] and path.exists() and file_hash(path) != entry["hash"] and not ours(rel, entry):
             # Someone else replaced a file we created (EmuDeck's abxy toggle renames Snes9x.rmp.disabled over
             # Snes9x.rmp), so it's theirs now: its content becomes the pristine one and restore won't delete it.
             entry["created"] = False

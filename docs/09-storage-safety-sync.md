@@ -49,16 +49,23 @@ user by hand). Then:
 
 ```json
 {"retroarch": {"config_root": "/home/deck/.var/app/org.libretro.RetroArch/config/retroarch",
-               "files": {"config/remaps/Snes9x/Snes9x.rmp": {"created": true, "hash": "<sha256>"}}}}
+               "files": {"config/remaps/Snes9x/Snes9x.rmp": {"created": true, "hash": "<sha256>",
+                         "managed": [[null, "input_player1_btn_a", "\"0\""], [null, "input_player1_btn_b", "\"8\""]]}}}}
 ```
 
 - `created`: the file didn't exist before map-helper wrote it (EmuDeck ships only `Snes9x.rmp.disabled`), so its
   pristine state is "absent".
 - `hash`: the sha256 of what map-helper last left there (`null` when that is "absent"). A file whose hash no longer
   matches was changed by someone else since.
+- `managed` (created files only): `[section, key, value]` for every managed key, as map-helper last wrote it.
+  Manifests from before it was recorded still load; they just can't tell the emulator's own save apart (next item).
 - If a file we created turns up with other content at the next apply (EmuDeck's abxy toggle renames
   `.rmp.disabled` over our `.rmp`), it's theirs now: its content becomes the pristine snapshot and `created` is
-  cleared, so restore puts it back instead of deleting it.
+  cleared, so restore puts it back instead of deleting it. The exception is the emulator saving our file over
+  itself: RetroArch writes the loaded remap back on quit when `remap_save_on_exit` is on. The emulator's registry
+  entry (`rewritten` in `pipeline.EMULATORS`) decides from `managed`; for RetroArch the test and its sources are in
+  [adapters/retroarch.md](adapters/retroarch.md) ("Load precedence and save behaviour"). Then the file stays
+  `created`, apply writes over it, and restore deletes it, even when no apply ran since the save.
 - One config root per emulator per state dir; apply refuses a second one.
 
 Snapshots taken before the manifest existed sit at `backups/pristine/<relpath>` (no emulator directory) and are

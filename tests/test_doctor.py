@@ -1,6 +1,7 @@
 import contextlib
 import hashlib
 import io
+import json
 import os
 import shutil
 import struct
@@ -193,6 +194,23 @@ class RetroArchTest(unittest.TestCase):
         (self.root / SNES9X / "Snes9x.rmp.disabled").unlink()
         found = doctor.check_retroarch(self.root, "abxy")
         self.assertIn("likely EmuDeck's own", [f for f in found if f.severity == "warning"][0].message)
+
+    def test_remap_save_on_exit_with_managed_remaps(self):
+        rmp = f"{SNES9X}/Snes9x.rmp"
+        found = [(f.severity, f.check) for f in doctor.check_retroarch(self.root, managed=[rmp])]
+        self.assertEqual(found.count(("warning", "retroarch-remap-save")), 1)  # on in the capture
+        self.set_cfg("remap_save_on_exit", "false")
+        self.assertNotIn("retroarch-remap-save", [f.check for f in doctor.check_retroarch(self.root, managed=[rmp])])
+
+    def test_remap_save_on_exit_reads_the_manifest(self):
+        home = self.root.parent / "home"
+        state = home / ".local/state/map-helper"
+        state.mkdir(parents=True)
+        checks = lambda: [f.check for f in doctor.run(home / "Steam", self.root, home / "settings.sh", home)]
+        self.assertNotIn("retroarch-remap-save", checks())          # map-helper hasn't written a remap
+        (state / "touched.json").write_text(json.dumps({"retroarch": {"config_root": str(self.root), "files": {
+            f"{SNES9X}/Snes9x.rmp": {"created": True, "hash": None}}}}), encoding="utf-8")
+        self.assertIn("retroarch-remap-save", checks())
 
     def test_remap_dir_outside_root(self):
         self.set_cfg("input_remapping_directory", "/elsewhere/remaps")
