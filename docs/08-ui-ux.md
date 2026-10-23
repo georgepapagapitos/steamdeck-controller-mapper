@@ -182,6 +182,66 @@ Legend: · shipped defaults only   D device rule   M model   F family   B brand
 
 Select a cell to see the resolved bindings, each with where it came from, and actions: Edit / Override for game / Reset to defaults.
 
+## Flow 3b: Button map (what does each button do right now)
+
+The first screen to build (mock-up 2026-10-23, the owner's request): reachable in game from the QAM panel ("Now
+playing" → Show button map). One tab per player. The pad is drawn in its own shape (one drawing per `shape`:
+`playstation`, `xbox`, `nintendo`, `deck`, `generic`), each button labelled with the pad's own glyph and the console
+function it drives, coloured by where that came from (your rule / the emulator's config / EmuDeck). Back buttons and
+paddles (Deck L4/L5/R4/R5, an 8BitDo's or Edge's paddles) are listed under the drawing as "not seen by emulators: set
+in Steam Input": emulators get Steam's virtual Xbox 360 pad, which has none. Selecting a button shows the function, the
+source rule and a note; "Change button" (later) captures a press, then asks the scope (this game / all games of the
+system / only this pad).
+
+### The data: `map-helper show` and `$STATE/last-launch.json`
+
+One JSON shape (schema 1) serves both. `map-helper show --emulator E --system S [--core C] [--game G] [--rom R] --json`
+computes it for the pads connected now (the same probe, rules and adapters as `apply`; nothing written), and mh-run
+writes it to `$STATE/last-launch.json` (atomic replace) after every launch it handles, so the plugin shows what the
+running game got. `map-helper show --last --json` prints that file.
+
+```jsonc
+{
+  "schema": 1,
+  "launch": { "ts": "2026-10-23T10:55:49", "mode": "es-de", "emulator": "retroarch", "core": "mupen64plus_next",
+              "system": "n64", "system_name": "Nintendo 64", "game": "Legend of Zelda, The - Ocarina of Time (USA) (Rev 2)",
+              "ms": 159, "outcome": "changed", "detail": "" },   // changed | no-changes | skipped | error
+  "policy": { "name": "steam-order", "reason": "handheld: no external display connected" },
+  "players": [
+    {
+      "player": 1,
+      "pad": { "name": "DualSense Wireless Controller", "model": "sony.dualsense", "family": "sony.dualsense",
+               "style": "playstation", "shape": "playstation", "steam_slot": 0, "emulator_port": 1 },
+      "inputs": [                                      // every input the pad has, in a stable order
+        { "input": "face_south", "glyph": "✕", "name": "Cross",
+          "drives": [ { "target": "n64.standard.a", "label": "A",
+                        "source": { "kind": "emulator", "detail": "Mupen64Plus-Next default" } } ] },
+        { "input": "face_east", "glyph": "○", "name": "Circle",
+          "drives": [ { "target": "n64.standard.c_down", "label": "C▼",
+                        "source": { "kind": "rule", "rule_id": "user.any.n64.layout-live-faces",
+                                    "rule_label": "N64 layout 1: ...", "scope": "all N64 games, any pad" } } ] },
+        { "input": "select", "glyph": "Create", "name": "Create", "drives": [],
+          "note": "RetroArch's hotkey button (hold it with another button)" },
+        { "input": "paddle1", "glyph": "P1", "name": "Left paddle", "drives": [], "steam_only": true }
+      ],
+      "options": [
+        { "key": "pak", "value": "rumble", "label": "Rumble pak", "source": { "kind": "rule", "rule_id": "...", "rule_label": "...", "scope": "..." } },
+        { "key": "deadzones.ls", "value": 0.05, "label": "Stick deadzone", "source": { "kind": "rule", "rule_id": "..." } }
+      ]
+    }
+  ],
+  "warnings": []
+}
+```
+
+- `source.kind`: `rule` (a user or pack rule; `rule_id`, `rule_label`, `scope` in words), `emulator` (the emulator's
+  own default, or its config file as found; `detail` says which), `emudeck` (EmuDeck set it: hotkeys, AutoMap).
+- An input can drive several targets (a clash, also in `warnings`) or none (`drives: []`, optionally a `note`).
+  `steam_only: true` marks back buttons and paddles, which emulators never see.
+- `shape`, glyphs and names come from the pad's family and style (`data/controllers.json`) through `data/glyphs.json`;
+  an unknown pad gets `generic` and positional names (South, East, ...).
+- No device ids, MACs or serials ever appear in it: it may be shown, logged or shared.
+
 ## Flow 4: Rule list and editor
 
 - Filter chips: controller scope, content scope, source (mine/pack/shipped), enabled.
