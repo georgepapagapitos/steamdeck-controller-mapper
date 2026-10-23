@@ -3,6 +3,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import shutil
 import struct
 import tempfile
@@ -124,8 +125,8 @@ class AutoMapTest(unittest.TestCase):
         return [f.severity for f in doctor.check_emudeck_automap(path, doctor.read_emudeck_settings(path))]
 
     def test_values(self):
-        self.assertEqual(self.check("autoMapDolphin=true\n"), ["error"])
-        self.assertEqual(self.check("autoMapDolphin=null\n"), ["error"])   # jq's output for a missing key
+        self.assertEqual(self.check("autoMapDolphin=true\n"), ["warning"])
+        self.assertEqual(self.check("autoMapDolphin=null\n"), ["warning"])   # jq's output for a missing key
         self.assertEqual(self.check("autoMapDolphin=false\n"), [])
         self.assertEqual(self.check('autoMapDolphin="false"\n'), [])
         self.assertEqual(self.check("controllerLayout=baxy\n"), ["info"])
@@ -239,6 +240,17 @@ class CliTest(unittest.TestCase):
         self.assertEqual(tree_digest(tmp), before)
 
         settings.write_text("autoMapDolphin=true\n", encoding="utf-8")
+        before = tree_digest(tmp)
+        code, out = self.run_cli("--steam-root", str(tmp / "Steam"), "--retroarch-root", str(ra),
+                                 "--emudeck-settings", str(settings), "--json")
+        self.assertEqual(code, 0, out)                     # AutoMap on is a warning (the owner's call, 2026-10-23)
+        self.assertIn('"severity": "warning"', out)
+        self.assertEqual(tree_digest(tmp), before)
+
+        cfg = ra / "retroarch.cfg"
+        text = cfg.read_text(encoding="utf-8")
+        cfg.write_text(re.sub(r'(?m)^auto_remaps_enable = .*$', 'auto_remaps_enable = "false"', text)
+                       if "auto_remaps_enable" in text else text + 'auto_remaps_enable = "false"\n', encoding="utf-8")
         before = tree_digest(tmp)
         code, out = self.run_cli("--steam-root", str(tmp / "Steam"), "--retroarch-root", str(ra),
                                  "--emudeck-settings", str(settings), "--json")

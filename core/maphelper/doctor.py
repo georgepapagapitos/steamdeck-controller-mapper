@@ -202,7 +202,7 @@ def check_emudeck_automap(path: Path, settings: Optional[dict]) -> list[Finding]
                                    f"emudeck: {var} isn't set; EmuDeck skips AutoMap for {emulator} on a Steam Deck "
                                    "when it's unset, but runs it on other PCs"))
         elif managed:
-            out.append(Finding("error", "emudeck-automap",
+            out.append(Finding("warning", "emudeck-automap",
                                f"emudeck: AutoMap is on for {emulator} ({var}={value}). Every launch through EmuDeck's "
                                "launcher copies the stock GCPadNew.ini back and rewrites its devices, undoing "
                                f"map-helper's {emulator} bindings. Turn AutoMap off for {emulator} in the EmuDeck "

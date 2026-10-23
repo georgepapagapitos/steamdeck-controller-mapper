@@ -71,7 +71,7 @@ rm -rf "$savesPath/.gaming";
   autoMapCemu …`, `src/renderer/pages/AutoMapConfigPage.jsx` @ `b06bfcf`).
   Cemu (`emuDeckCemu.sh`) and Ryujinx (`emuDeckRyujinx.sh`, `autoMapSwitch`)
   use the same unset-on-a-Deck rule. `map-helper doctor` reports AutoMap on for
-  Dolphin as an error, and for Cemu and the Switch emulators (not managed yet)
+  Dolphin as a warning, and for Cemu and the Switch emulators (not managed yet)
   as info (`functions/jsonToBashVars.sh` L150–153,
   `functions/EmuScripts/emuDeckDolphin.sh` `Dolphin_setGamepads` L263–273 @
   `dddb302`). Both EmuDeck repos' heads were still `dddb302` and `b06bfcf` on
