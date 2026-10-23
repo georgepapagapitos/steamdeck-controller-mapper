@@ -331,21 +331,44 @@ hooks must therefore never point into `~/homebrew/plugins/map-helper/`.
 ```
 ~/.local/lib/map-helper/
 ├── versions/
-│   ├── 0.4.0/            mh_entry.py, maphelper/, maphelper/data/
-│   └── 0.4.1/
-├── current -> versions/0.4.1      (atomic symlink swap: symlink to tmp name, rename over)
-└── install.json          { version, installed_by: "decky"|"cli", ts, sha256 of tree }
+│   ├── 0.4.0+1c0ffee5/   mh_entry.py, maphelper/, data/
+│   └── 0.4.1+3f9c2a1b/
+├── current -> versions/0.4.1+3f9c2a1b   (atomic symlink swap: symlink to tmp name, rename over)
+└── install.json          { version, installed_by: "decky"|"cli", ts, sha256 of tree, previous }
 ~/.local/bin/
 ├── mh-run                POSIX sh shim, 0755, owned by deck
 └── map-helper            POSIX sh shim, 0755
 ```
 
+- **The tree mirrors the repo** without `core/`: `mh_entry.py` and `maphelper/`
+  next to `data/`. `maphelper.DATA` looks for `data/` next to the package
+  (installed) and then one level up (the repo, where the package is in
+  `core/`), so every module finds the shipped data the same way in both.
+- **Versions are content-addressed.** `<ver>` is `maphelper.__version__`
+  plus the first 8 hex digits of the tree's sha256 (every file's path and
+  bytes, bytecode caches left out). The same tree always lands in the same
+  directory, so installing it again changes nothing; any change, committed or
+  not, gets a new directory. That covers dev installs without git on the Deck.
 - **One installer.** `python3 -I <payload>/mh_entry.py self-install --from <payload>`
-  copies the tree to `versions/<ver>.tmp`, verifies it, renames it into place,
-  swaps `current`, writes the shims, and keeps the last two versions. Decky's
-  `_main` runs it (payload = `DECKY_PLUGIN_DIR/py_modules`) when
-  `VERSION` differs from `install.json`. The standalone CLI tarball runs the
-  same command.
+  copies the tree to `versions/<ver>.tmp`, checks the copy's hash and runs it
+  (`python3 -I` imports the launch path and every adapter, and must find its
+  data inside the new tree), renames it into place, swaps `current`, writes
+  `install.json`, and keeps this version and the previous one (the rollback
+  target). A version directory is complete before `current` can point at it,
+  and the one `current` pointed at stays, so a launch reading it mid-install
+  is safe. It refuses a `current` that isn't a symlink. Decky's `_main` runs
+  it (payload = `DECKY_PLUGIN_DIR/py_modules`) when `VERSION` differs from
+  `install.json`. The standalone CLI tarball runs the same command. From a
+  dev machine, `tools/deck.sh install` ships the payload to a temp dir on the
+  Deck, runs it there and removes the temp dir. **[VERIFY]** the symlink swap
+  (`rename` over a symlink) on the Deck's home filesystem.
+- **One writer of the shims: `map-helper setup`.** self-install only puts
+  the tree in place. setup writes both shims (`setup.shim_text`,
+  `setup.cli_shim_text`) and records them in `$STATE/setup.json` with the
+  hooks, so `uninstall` removes exactly what it wrote. On a fresh install the
+  `map-helper` shim doesn't exist yet: run setup once as
+  `/usr/bin/python3 -I ~/.local/lib/map-helper/current/mh_entry.py setup`.
+  Decky's `_main` does the same after self-install.
 - **`mh-run` fails open.** The shim runs the apply step, then the *shell*
   execs the original command, so no Python failure can stop the launch.
   `map-helper setup` writes it (`setup.shim_text`), with absolute paths:
@@ -382,6 +405,11 @@ hooks must therefore never point into `~/homebrew/plugins/map-helper/`.
   explicit: Settings → Uninstall, or `map-helper uninstall`. That restores
   configs, removes hooks, removes `~/.local/lib/map-helper` and the shims, and
   optionally `$DATA`. The plugin README and store description must say so.
+  Today's `uninstall` (a dry run without `--write`) undoes setup and then
+  removes `versions/`, `current` and `install.json`, and the directory if
+  that empties it; only when `install.json` is there (the evidence that
+  self-install made the tree) and nothing was refused. Restoring configs is
+  `map-helper restore`.
 - **CLI-only install** (no Decky): a release asset
   `map-helper-<ver>.tar.gz` containing the same payload plus `install.sh`
   (`exec /usr/bin/python3 -I ./mh_entry.py self-install --from .`). No root,

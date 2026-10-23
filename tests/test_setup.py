@@ -133,6 +133,14 @@ class SetupTest(Base):
         self.assertTrue(report.refused)
         self.assertEqual(self.srm.read_bytes(), before)
 
+    def test_uninstall_keeps_the_shim_while_srm_runs(self):
+        # The parsers stay wrapped while SRM runs, so their shortcuts still run the shim: it must stay too (fail open).
+        setup.setup(self.places, write=True)
+        self.run_process("/tmp/.mount_SteamRxyz/steam-rom-manager")
+        report = setup.uninstall(self.places, write=True)
+        self.assertTrue(report.refused)
+        self.assertTrue(self.places.shim.exists())
+
     def test_refuses_the_setting_while_es_de_runs(self):
         self.run_process("/tmp/.mount_ES-DE.abc/usr/bin/es-de")
         report = setup.setup(self.places, write=True)

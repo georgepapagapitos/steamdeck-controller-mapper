@@ -12,12 +12,13 @@ from collections import Counter
 from pathlib import Path
 from typing import Callable, Optional
 
+from .. import DATA as _DATA
 from ..resolve import Resolution
 from ..store import load_json
 from ..writer import Patch
 from .dolphin import Rendered
 
-DATA = Path(__file__).resolve().parents[3] / "data" / "adapters" / "retroarch"
+DATA = _DATA / "adapters" / "retroarch"
 REMAP_DIR = "config/remaps"   # input_remapping_directory's default under the config root; EmuDeck keeps it
 SUFFIXES = ("_btn", "_axis")
 _PORT_LINE = re.compile(r"^\s*input_player\d+_joypad_index\s*=", re.MULTILINE)

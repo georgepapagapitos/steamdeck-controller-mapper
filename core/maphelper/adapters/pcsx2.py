@@ -11,15 +11,15 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Callable, Optional
 
+from .. import DATA
 from ..devices import _VIRTUAL_SLOT, STEAM_VIRTUAL_PAD, Joystick
 from ..resolve import Resolution
 from ..store import load_json
 from ..writer import Patch
 
-TABLE = Path(__file__).resolve().parents[3] / "data" / "adapters" / "pcsx2.json"
+TABLE = DATA / "adapters" / "pcsx2.json"
 FILE = "inis/PCSX2.ini"
 AXES = ("ls_x", "ls_y", "rs_x", "rs_y")
 PORTS = 2                 # Pad1 = port 1, Pad2 = port 2; Pad3-8 need a multitap (sioConvertPadToPortAndSlot)
