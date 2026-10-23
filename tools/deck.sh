@@ -60,9 +60,11 @@ watch() {
   case "${1:-}" in
     start)
       ssh "$HOST" "mkdir -p $WATCH && cat > $WATCH/deck-watch.py" < tools/deck-watch.py
-      # setsid + nohup so the recorder outlives this ssh session; it writes its own PID for `stop`.
-      ssh "$HOST" "cd $WATCH && rm -f watch.log pid && (setsid nohup /usr/bin/python3 deck-watch.py --out watch.log \
-        --pid-file pid </dev/null >/dev/null 2>&1 &) && sleep 1 && echo \"recorder pid \$(cat pid)\"" ;;
+      # A transient user unit, so the recorder outlives this ssh session (setsid + nohup didn't: the session's
+      # processes are cleaned up when ssh exits). It writes its own PID for `stop`.
+      ssh "$HOST" "cd $WATCH && rm -f watch.log pid && systemd-run --user --quiet --collect --unit=map-helper-watch \
+        --working-directory=\$HOME/$WATCH /usr/bin/python3 deck-watch.py --out watch.log --pid-file pid && sleep 1 && \
+        echo \"recorder pid \$(cat pid)\"" ;;
     stop) ssh "$HOST" 'kill "$(cat .cache/map-helper-watch/pid)" && rm .cache/map-helper-watch/pid && echo stopped' ;;
     show)
       # The recorder, then Steam's seating and game lines and mh-run's log from the same window (local times).

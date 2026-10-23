@@ -174,8 +174,8 @@ event scripts* setting (`CustomEventScripts`, off by default; EmuDeck's
   `Scripting::fireEvent("game-start", ...)` (`es-app/src/FileData.cpp` L2174 @
   `a529a9d`) before it runs the launch command, and game-start scripts run
   blocking (`system()`, `es-core/src/utils/PlatformUtil.cpp` L130-131).
-  **[VERIFY]** on a Deck (an mh-run log line before the emulator's first
-  output). The setting survives EmuDeck's `ESDE_update`, which copies
+  Confirmed on a Deck (2026-10-23, [13](13-research-spikes.md) S1): the hook
+  rewrote Dolphin's GCPad1 and Dolphin started with it. The setting survives EmuDeck's `ESDE_update`, which copies
   `es_settings.xml` with `--ignore-existing`; `ESDE_init` (install or reset)
   overwrites it (`functions/ToolScripts/emuDeckESDE.sh` @ `dddb302`).
 
@@ -242,8 +242,8 @@ of `map-helper devices`.
    the deadline it says no, the temp files are removed and nothing is written. After a yes, all that's left is the
    pristine snapshots of first-touched files (copied through a temp file too), the manifest, and one `rename` per
    file. So a set of files is never half applied either, short of a crash between two renames, which leaves each
-   file whole and the manifest still listing it. Measured on a Mac: 70-140 ms for RetroArch with four pads.
-   **[VERIFY]** the time on a Deck.
+   file whole and the manifest still listing it. Measured on a Mac: 70-140 ms for RetroArch with four pads;
+   on a Deck (2026-10-23, ES-DE hook, three pads) 134 ms for RetroArch and 133 ms for Dolphin, as logged.
 5. **Fail open.** Any exception (a bad rule, an unreadable `/proc` file, bad arguments), a skip or the budget is
    logged; the command still runs. Nothing is printed: stdout and stderr are swallowed while mh-run works, because in
    wrap mode the emulator inherits them. Hook mode always exits 0. A command that can't be executed returns 127.

@@ -57,7 +57,7 @@ we put in front of the launcher. See [07](../07-launch-integration.md).
   starts the emulator, so nothing in map-helper can stop a launch (docs/07).
 - ➖ RetroArch games launched from their SRM Steam shortcuts aren't wrapped (doing so would change those shortcuts' app ids); only ES-DE launches of RetroArch get mappings applied.
 - ES-DE's `game-start` fires before the emulator starts and blocks until the
-  script ends, per ES-DE's source (docs/07 Option E). [VERIFY] on a Deck, with
-  the latency mh-run adds there, and that Steam runs
+  script ends, per ES-DE's source (docs/07 Option E), confirmed on a Deck
+  (2026-10-23: about 135 ms per launch). [VERIFY] that Steam runs
   `VAR=x <mh-run> --emulator <id> -- %command% <args>` launch options as
   expected.

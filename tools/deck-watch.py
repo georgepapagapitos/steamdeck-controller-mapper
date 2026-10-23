@@ -92,7 +92,7 @@ def main() -> None:
     def say(kind, text):
         log.write(f"{now()} {kind:5} {text}\n")
 
-    fds, labels = {}, {}
+    fds, labels, denied = {}, {}, {}
     slots_mtime, procs, last_scan = None, processes(), 0.0
     say("start", f"slots: {slot_order()}; running: {', '.join(sorted(set(procs.values()))) or 'none'}")
     end = time.monotonic() + args.seconds
@@ -104,7 +104,7 @@ def main() -> None:
                 os.close(fds.pop(path))
                 say("node", f"gone {labels.pop(path)}")
             for path, label in pads.items():
-                if path not in fds or labels[path] != label:
+                if (path not in fds or labels[path] != label) and denied.get(path) != label:
                     if path in fds:
                         os.close(fds.pop(path))
                     try:
@@ -112,6 +112,7 @@ def main() -> None:
                         labels[path] = label
                         say("node", f"open {label}")
                     except OSError as e:
+                        denied[path] = label                    # say it once (motion-sensor nodes aren't in the ACL)
                         say("node", f"can't open {label}: {e.strerror}")
             current = processes()
             for pid in current.keys() - procs.keys():

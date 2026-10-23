@@ -360,8 +360,8 @@ hooks must therefore never point into `~/homebrew/plugins/map-helper/`.
   it (payload = `DECKY_PLUGIN_DIR/py_modules`) when `VERSION` differs from
   `install.json`. The standalone CLI tarball runs the same command. From a
   dev machine, `tools/deck.sh install` ships the payload to a temp dir on the
-  Deck, runs it there and removes the temp dir. **[VERIFY]** the symlink swap
-  (`rename` over a symlink) on the Deck's home filesystem.
+  Deck, runs it there and removes the temp dir. The symlink swap (`rename` over a
+  symlink) works on the Deck's home filesystem (ext4; two installs in a row, 2026-10-23).
 - **One writer of the shims: `map-helper setup`.** self-install only puts
   the tree in place. setup writes both shims (`setup.shim_text`,
   `setup.cli_shim_text`) and records them in `$STATE/setup.json` with the
