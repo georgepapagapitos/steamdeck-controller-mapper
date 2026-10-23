@@ -175,12 +175,21 @@ def _esde_logo(system: str):
 
 class Plugin:
     async def get_last_launch(self) -> dict:
-        """What the last game launched through mh-run got: `map-helper show --last --json` (docs/08)."""
+        """The last game launched through mh-run as it would start now, with the pads connected now and the rules as
+        they are now (`map-helper show --now --json`); what that launch got (`show --last`) when that fails (docs/08)."""
         try:
             if not os.path.isfile(PYTHON):
                 return _fail("no-python", "This system has no /usr/bin/python3, which map-helper needs.")
             if not os.path.isfile(_entry()):
                 return _fail("not-installed", "map-helper isn't installed on this Deck yet.")
+            if os.path.isfile(_last_launch_file()):
+                now = await _run_core("show", "--now", "--json")
+                if now is not None and now[0] == 0:
+                    answer = _parse_show(now[1])
+                    if answer["ok"]:
+                        return answer
+                decky.logger.warning("show --now failed (%s); showing the last launch as recorded",
+                                     "timeout" if now is None else _last_line(now[2]) or f"exit {now[0]}")
             result = await _run_core("show", "--last", "--json")
             if result is None:
                 decky.logger.warning("show --last timed out after %.0f s", SHOW_TIMEOUT_S)

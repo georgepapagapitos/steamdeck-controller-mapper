@@ -63,9 +63,11 @@ function Header({ title, subtitle, logo, children, onMenu }: {
   );
 }
 
-function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
+function MapView({ data, sample, reload }: { data: LastLaunch; sample: boolean; reload: () => void }) {
   const players = data.players;
-  const [current, setCurrent] = useState(() => Math.min(takeRequestedPlayer(), Math.max(players.length - 1, 0)));
+  const [chosen, setCurrent] = useState(() => Math.min(takeRequestedPlayer(), Math.max(players.length - 1, 0)));
+  // A pad that disconnects can take the last player with it: stay on the last one there is.
+  const current = Math.min(chosen, Math.max(players.length - 1, 0));
   const player = players[current];
   const controls = useMemo(() => groupControls(player?.inputs ?? []), [player]);
   const backs = useMemo(() => steamOnlyInputs(player?.inputs ?? []), [player]);
@@ -113,6 +115,7 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
     onSaved: (delta: number) => {
       notePending(launch.ts, delta);
       setPending(pendingFor(launch.ts));
+      reload(); // the map shows the rules as they are now
     },
   } : null;
   const canDefault = (c: Control) => ruleDrives(c).length > 0;
@@ -191,7 +194,7 @@ export function ButtonMap() {
       </Focusable>
     );
   } else if (state.result.ok) {
-    body = <MapView data={state.result.data} sample={!!state.result.sample} />;
+    body = <MapView data={state.result.data} sample={!!state.result.sample} reload={reload} />;
   } else {
     const { title, body: text, expected } = failureText(state.result);
     body = (

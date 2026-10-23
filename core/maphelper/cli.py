@@ -63,6 +63,9 @@ def main(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("show", help="what each button of each connected pad does in an emulator (nothing written)")
     p.add_argument("--last", action="store_true", help="the last launch mh-run handled ($STATE/last-launch.json)")
+    p.add_argument("--now", action="store_true",
+                   help="the last launch's game as it would start now: the pads connected now, the rules as they are "
+                        "now (--rules, default the user's rules dir); nothing is written")
     p.add_argument("--emulator", choices=sorted(EMULATORS))
     p.add_argument("--core", help="RetroArch core (descriptor id or library name)")
     p.add_argument("--system")
@@ -332,11 +335,20 @@ def cmd_apply(args) -> int:
 def cmd_show(args) -> int:
     import time
     from . import pipeline, show
-    if args.last:
+    if args.last or args.now:
         doc = show.read_last(args.state_dir)
         if doc is None:
             print(f"No launch recorded yet: mh-run writes {args.state_dir / show.LAST} when it handles one.")
             return 0
+        if args.now:
+            from .rules import RULES_DIR, RuleError
+            try:
+                ctx = _last_context(args, (args.rules or [RULES_DIR])[0])
+            except RuleError as e:
+                print(f"error: {e}", file=sys.stderr)
+                return 2
+            # The launch block stays the last launch's (when it was, what it applied); the players are now's.
+            doc = {**show.assemble(doc["launch"], show.document(ctx)), "now": True}
     else:
         if not (args.emulator and args.system):
             print("error: show needs --emulator and --system (or --last)", file=sys.stderr)

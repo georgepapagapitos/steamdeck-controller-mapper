@@ -58,6 +58,36 @@ class RulesBase(Base):
         return {r["input"]: [d["label"] for d in r["drives"]] for r in doc["players"][player - 1]["inputs"]}
 
 
+class NowTest(RulesBase):
+    """show --now: the last launch's game with the pads connected now and the rules as they are now (the plugin's
+    button map, which follows pads connecting and changes saved since the launch)."""
+
+    def now(self, *extra) -> dict:
+        code, out = run_cli(["show", "--now", "--rules", str(self.on), *self.probe(), "--state-dir", str(self.state),
+                             "--config-root", str(FIXTURES / "retroarch" / "dualsense-bt"), "--json", *extra])
+        self.assertEqual(code, 0, out)
+        return json.loads(out)
+
+    def test_the_pads_connected_now_and_the_launch_it_was(self):
+        doc = self.now()
+        self.assertTrue(doc["now"])
+        self.assertEqual(doc["launch"]["game"], OCARINA)
+        self.assertEqual(doc["launch"]["mode"], "es-de")            # still the last launch's record
+        self.assertEqual([p["pad"]["model"] for p in doc["players"]],
+                         ["nintendo.switch-pro", "8bitdo.ultimate2", "sony.dualsense", "valve.steamdeck"])
+
+    def test_a_change_saved_since_shows_at_once(self):
+        self.on.mkdir()
+        self.edit([put("c_down", "face_north", scope=SYSTEM_ANY)])
+        self.assertEqual([d["label"] for d in row(self.now()["players"][2], "face_north")["drives"]], ["C▼"])
+
+    def test_no_launch_yet(self):
+        (self.state / show.LAST).unlink()
+        code, out = run_cli(["show", "--now", "--state-dir", str(self.state), "--json"])
+        self.assertEqual(code, 0)
+        self.assertIn("No launch recorded yet", out)
+
+
 SYSTEM_ANY = {"controller": {"level": "any"}, "content": {"level": "system", "system": "n64"}}
 
 
