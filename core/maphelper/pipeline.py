@@ -53,6 +53,22 @@ class Rendering:
     rendered: object
     managed: dict
     checks: list = field(default_factory=list)
+    describe: Optional[Callable] = None      # (player, after) -> show.Described: what that player's pad drives
+
+
+@dataclass
+class Context:
+    """What one run worked out, for `show` (docs/08 "The data"): handed over before anything is written."""
+    req: Request
+    db: ControllerDB
+    rules: list
+    layout: Optional[dict]
+    controllers: dict                         # player -> Controller
+    players: dict                             # player -> Resolution (set_by_rules)
+    assigned: dict                            # player -> Joystick, when probed
+    probe: object                             # cli.Probe, or None with --player
+    current: Callable
+    rendering: Rendering
 
 
 def _render_retroarch(adapter, req: Request, players: dict, assigned: dict, joysticks: list,
@@ -66,14 +82,16 @@ def _render_retroarch(adapter, req: Request, players: dict, assigned: dict, joys
     rendered = adapter.render(players, core, current=current, ports=ports, config_root=req.config_root,
                               game=req.game, folder=folder)
     return Rendering(rendered, adapter.managed_keys(core, rendered.patches),
-                     adapter.check(req.config_root, core, current, ports=bool(ports), game=req.game, folder=folder))
+                     adapter.check(req.config_root, core, current, ports=bool(ports), game=req.game, folder=folder),
+                     lambda n, after: adapter.describe(n, after, core, req.config_root, req.game, folder))
 
 
 def _render_by_device(adapter, req: Request, players: dict, assigned: dict, joysticks: list,
                       current: Callable) -> Rendering:
     """Dolphin and PCSX2: one device string per player (adapter.device_ref) and render(players, system, ...)."""
     devices = {n: adapter.device_ref(j, joysticks) for n, j in assigned.items()}
-    return Rendering(adapter.render(players, req.system, current=current, devices=devices), adapter.managed_keys)
+    return Rendering(adapter.render(players, req.system, current=current, devices=devices), adapter.managed_keys,
+                     describe=lambda n, after: adapter.describe(n, after, req.system))
 
 
 def _dolphin():
@@ -114,8 +132,9 @@ EMULATORS = {
 
 
 def run(req: Request, log: Callable[[str], None], gate: Optional[Callable[[], bool]] = None,
-        adapter=None) -> Outcome:
-    """gate: passed to the writer; called once the changed files are staged, False writes nothing."""
+        adapter=None, inspect: Optional[Callable[[Context], None]] = None) -> Outcome:
+    """gate: passed to the writer; called once the changed files are staged, False writes nothing.
+    inspect: called with the run's Context once the patches are rendered, before anything is written."""
     from .cli import Probe
     emulator = EMULATORS[req.emulator]
     adapter = adapter or emulator.adapter()
@@ -126,11 +145,11 @@ def run(req: Request, log: Callable[[str], None], gate: Optional[Callable[[], bo
     layouts = load_layouts(DATA / "layouts")
     target = Target(system=req.system, emulator=req.emulator, game_id=req.game)
 
-    players, assigned, joysticks, models = {}, {}, [], []
+    players, assigned, joysticks, models, controllers, probe = {}, {}, [], [], {}, None
     if req.players:
         for n, spec in enumerate(req.players, start=1):
             model, _, device_id = spec.partition("@")
-            controller = db.classify((device_id,) if device_id else (), claimed_model=model)
+            controller = controllers[n] = db.classify((device_id,) if device_id else (), claimed_model=model)
             players[n] = resolver.set_by_rules(resolver.resolve(report.rules, controller, target, layouts))
             models.append(controller.model or "unknown")
     else:
@@ -144,7 +163,7 @@ def run(req: Request, log: Callable[[str], None], gate: Optional[Callable[[], bo
         joysticks, order = probe.players(adapter.sdl_order)
         for n, joystick in enumerate(order, start=1):
             device_id, vid_pid, name = probe.identity(joystick)
-            controller = db.classify((device_id,) if device_id else (), vid_pid, name)
+            controller = controllers[n] = db.classify((device_id,) if device_id else (), vid_pid, name)
             if db.is_ambiguous(controller.model) or controller.model is None:
                 log(f"warning: player {n} ({name}) needs a model claim; resolving it as {controller.model or 'unknown'}"
                     f" (style {controller.style})")
@@ -157,7 +176,11 @@ def run(req: Request, log: Callable[[str], None], gate: Optional[Callable[[], bo
         if not order:
             log("warning: no controllers found; nothing to assign")
 
-    rendering = emulator.render(adapter, req, players, assigned, joysticks, _reader(Path(req.config_root)))
+    current = _reader(Path(req.config_root))
+    rendering = emulator.render(adapter, req, players, assigned, joysticks, current)
+    if inspect:
+        inspect(Context(req, db, report.rules, layouts.get(req.system), controllers, players, assigned, probe, current,
+                        rendering))
     result = apply_patches(req.config_root, rendering.rendered.patches, rendering.managed, state_dir=req.state_dir,
                            dry_run=not req.write, emulator=req.emulator, gate=gate, rewritten=emulator.rewritten,
                            seeds=getattr(rendering.rendered, "seeds", None))

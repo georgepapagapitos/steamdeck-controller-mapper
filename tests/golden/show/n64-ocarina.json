@@ -1,0 +1,1366 @@
+{
+  "schema": 1,
+  "launch": {
+    "ts": "2026-10-23T10:55:49",
+    "mode": "show",
+    "emulator": "retroarch",
+    "core": "mupen64plus_next",
+    "system": "n64",
+    "system_name": "Nintendo 64",
+    "game": "Legend of Zelda, The - Ocarina of Time (USA) (Rev 2)",
+    "ms": 0,
+    "outcome": "changed",
+    "detail": "config/Mupen64Plus-Next/Mupen64Plus-Next.opt, config/remaps/Mupen64Plus-Next/Mupen64Plus-Next.rmp"
+  },
+  "policy": {
+    "name": "steam-order",
+    "reason": "chosen with --policy"
+  },
+  "players": [
+    {
+      "player": 1,
+      "pad": {
+        "name": "Nintendo Switch Pro Controller",
+        "model": "nintendo.switch-pro",
+        "family": "nintendo.switch-pro",
+        "style": "nintendo",
+        "shape": "nintendo",
+        "steam_slot": 0,
+        "emulator_port": 1
+      },
+      "inputs": [
+        {
+          "input": "face_south",
+          "glyph": "B",
+          "name": "B",
+          "drives": [
+            {
+              "target": "n64.standard.a",
+              "label": "A",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "face_east",
+          "glyph": "A",
+          "name": "A",
+          "drives": [
+            {
+              "target": "n64.standard.c_down",
+              "label": "C▼",
+              "source": {
+                "kind": "rule",
+                "rule_id": "user.any.n64.layout-live-faces",
+                "rule_label": "N64 layout 1: the core's layout, with the dead face buttons on C-down and C-left",
+                "scope": "all Nintendo 64 games, any pad"
+              }
+            }
+          ]
+        },
+        {
+          "input": "face_west",
+          "glyph": "Y",
+          "name": "Y",
+          "drives": [
+            {
+              "target": "n64.standard.b",
+              "label": "B",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "face_north",
+          "glyph": "X",
+          "name": "X",
+          "drives": [
+            {
+              "target": "n64.standard.c_left",
+              "label": "C◀",
+              "source": {
+                "kind": "rule",
+                "rule_id": "user.any.n64.layout-live-faces",
+                "rule_label": "N64 layout 1: the core's layout, with the dead face buttons on C-down and C-left",
+                "scope": "all Nintendo 64 games, any pad"
+              }
+            }
+          ]
+        },
+        {
+          "input": "dpad_up",
+          "glyph": "↑",
+          "name": "D-pad up",
+          "drives": [
+            {
+              "target": "n64.standard.up",
+              "label": "D-pad up",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "dpad_down",
+          "glyph": "↓",
+          "name": "D-pad down",
+          "drives": [
+            {
+              "target": "n64.standard.down",
+              "label": "D-pad down",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "dpad_left",
+          "glyph": "←",
+          "name": "D-pad left",
+          "drives": [
+            {
+              "target": "n64.standard.left",
+              "label": "D-pad left",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "dpad_right",
+          "glyph": "→",
+          "name": "D-pad right",
+          "drives": [
+            {
+              "target": "n64.standard.right",
+              "label": "D-pad right",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "l1",
+          "glyph": "L",
+          "name": "L",
+          "drives": [
+            {
+              "target": "n64.standard.l",
+              "label": "L",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "r1",
+          "glyph": "R",
+          "name": "R",
+          "drives": [
+            {
+              "target": "n64.standard.r",
+              "label": "R",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "l2",
+          "glyph": "ZL",
+          "name": "ZL",
+          "drives": [
+            {
+              "target": "n64.standard.z",
+              "label": "Z",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "r2",
+          "glyph": "ZR",
+          "name": "ZR",
+          "drives": [],
+          "note": "Mupen64Plus-Next's C-button modifier: hold it and the face buttons give C buttons",
+          "note_source": {
+            "kind": "emulator",
+            "detail": "Mupen64Plus-Next default"
+          }
+        },
+        {
+          "input": "l3",
+          "glyph": "L3",
+          "name": "Left stick click",
+          "drives": []
+        },
+        {
+          "input": "r3",
+          "glyph": "R3",
+          "name": "Right stick click",
+          "drives": []
+        },
+        {
+          "input": "ls",
+          "glyph": "LS",
+          "name": "Left stick",
+          "drives": [
+            {
+              "target": "n64.standard.stick_x",
+              "label": "Stick X",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            },
+            {
+              "target": "n64.standard.stick_y",
+              "label": "Stick Y",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "rs",
+          "glyph": "RS",
+          "name": "Right stick",
+          "drives": [
+            {
+              "target": "n64.standard.c_right",
+              "label": "C▶",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            },
+            {
+              "target": "n64.standard.c_left",
+              "label": "C◀",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            },
+            {
+              "target": "n64.standard.c_down",
+              "label": "C▼",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            },
+            {
+              "target": "n64.standard.c_up",
+              "label": "C▲",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "select",
+          "glyph": "−",
+          "name": "Minus",
+          "drives": [],
+          "note": "RetroArch's hotkey button (hold it with another button)",
+          "note_source": {
+            "kind": "emudeck",
+            "detail": "EmuDeck's RetroArch hotkey button"
+          }
+        },
+        {
+          "input": "start",
+          "glyph": "+",
+          "name": "Plus",
+          "drives": [
+            {
+              "target": "n64.standard.start",
+              "label": "START",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "guide",
+          "glyph": "Home",
+          "name": "Home",
+          "drives": []
+        },
+        {
+          "input": "misc1",
+          "glyph": "Capture",
+          "name": "Capture",
+          "drives": [],
+          "steam_only": true
+        }
+      ],
+      "options": [
+        {
+          "key": "deadzones.ls",
+          "value": 0.05,
+          "label": "Stick deadzone",
+          "source": {
+            "kind": "rule",
+            "rule_id": "user.any.n64.stick-rumble",
+            "rule_label": "N64: smaller stick deadzone, a rumble pak for every player",
+            "scope": "all Nintendo 64 games, any pad"
+          }
+        },
+        {
+          "key": "pak",
+          "value": "rumble",
+          "label": "Rumble pak",
+          "source": {
+            "kind": "rule",
+            "rule_id": "user.any.n64.stick-rumble",
+            "rule_label": "N64: smaller stick deadzone, a rumble pak for every player",
+            "scope": "all Nintendo 64 games, any pad"
+          }
+        }
+      ]
+    },
+    {
+      "player": 2,
+      "pad": {
+        "name": "8Bitdo Ultimate 2 Wireless Controller",
+        "model": "8bitdo.ultimate2",
+        "family": "8bitdo.ultimate",
+        "style": "xbox",
+        "shape": "xbox",
+        "steam_slot": 1,
+        "emulator_port": 2
+      },
+      "inputs": [
+        {
+          "input": "face_south",
+          "glyph": "A",
+          "name": "A",
+          "drives": [
+            {
+              "target": "n64.standard.a",
+              "label": "A",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "face_east",
+          "glyph": "B",
+          "name": "B",
+          "drives": [
+            {
+              "target": "n64.standard.c_down",
+              "label": "C▼",
+              "source": {
+                "kind": "rule",
+                "rule_id": "user.any.n64.layout-live-faces",
+                "rule_label": "N64 layout 1: the core's layout, with the dead face buttons on C-down and C-left",
+                "scope": "all Nintendo 64 games, any pad"
+              }
+            }
+          ]
+        },
+        {
+          "input": "face_west",
+          "glyph": "X",
+          "name": "X",
+          "drives": [
+            {
+              "target": "n64.standard.b",
+              "label": "B",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "face_north",
+          "glyph": "Y",
+          "name": "Y",
+          "drives": [
+            {
+              "target": "n64.standard.c_left",
+              "label": "C◀",
+              "source": {
+                "kind": "rule",
+                "rule_id": "user.any.n64.layout-live-faces",
+                "rule_label": "N64 layout 1: the core's layout, with the dead face buttons on C-down and C-left",
+                "scope": "all Nintendo 64 games, any pad"
+              }
+            }
+          ]
+        },
+        {
+          "input": "dpad_up",
+          "glyph": "↑",
+          "name": "D-pad up",
+          "drives": [
+            {
+              "target": "n64.standard.up",
+              "label": "D-pad up",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "dpad_down",
+          "glyph": "↓",
+          "name": "D-pad down",
+          "drives": [
+            {
+              "target": "n64.standard.down",
+              "label": "D-pad down",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "dpad_left",
+          "glyph": "←",
+          "name": "D-pad left",
+          "drives": [
+            {
+              "target": "n64.standard.left",
+              "label": "D-pad left",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "dpad_right",
+          "glyph": "→",
+          "name": "D-pad right",
+          "drives": [
+            {
+              "target": "n64.standard.right",
+              "label": "D-pad right",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "l1",
+          "glyph": "LB",
+          "name": "Left bumper",
+          "drives": [
+            {
+              "target": "n64.standard.l",
+              "label": "L",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "r1",
+          "glyph": "RB",
+          "name": "Right bumper",
+          "drives": [
+            {
+              "target": "n64.standard.r",
+              "label": "R",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "l2",
+          "glyph": "LT",
+          "name": "Left trigger",
+          "drives": [
+            {
+              "target": "n64.standard.z",
+              "label": "Z",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "r2",
+          "glyph": "RT",
+          "name": "Right trigger",
+          "drives": [],
+          "note": "Mupen64Plus-Next's C-button modifier: hold it and the face buttons give C buttons",
+          "note_source": {
+            "kind": "emulator",
+            "detail": "Mupen64Plus-Next default"
+          }
+        },
+        {
+          "input": "l3",
+          "glyph": "L3",
+          "name": "Left stick click",
+          "drives": []
+        },
+        {
+          "input": "r3",
+          "glyph": "R3",
+          "name": "Right stick click",
+          "drives": []
+        },
+        {
+          "input": "ls",
+          "glyph": "LS",
+          "name": "Left stick",
+          "drives": [
+            {
+              "target": "n64.standard.stick_x",
+              "label": "Stick X",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            },
+            {
+              "target": "n64.standard.stick_y",
+              "label": "Stick Y",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "rs",
+          "glyph": "RS",
+          "name": "Right stick",
+          "drives": [
+            {
+              "target": "n64.standard.c_right",
+              "label": "C▶",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            },
+            {
+              "target": "n64.standard.c_left",
+              "label": "C◀",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            },
+            {
+              "target": "n64.standard.c_down",
+              "label": "C▼",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            },
+            {
+              "target": "n64.standard.c_up",
+              "label": "C▲",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "select",
+          "glyph": "View",
+          "name": "View",
+          "drives": []
+        },
+        {
+          "input": "start",
+          "glyph": "Menu",
+          "name": "Menu",
+          "drives": [
+            {
+              "target": "n64.standard.start",
+              "label": "START",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "guide",
+          "glyph": "Xbox",
+          "name": "Xbox button",
+          "drives": []
+        },
+        {
+          "input": "paddle1",
+          "glyph": "P1",
+          "name": "Paddle P1",
+          "drives": [],
+          "steam_only": true
+        },
+        {
+          "input": "paddle2",
+          "glyph": "P3",
+          "name": "Paddle P3",
+          "drives": [],
+          "steam_only": true
+        }
+      ],
+      "options": [
+        {
+          "key": "deadzones.ls",
+          "value": 0.05,
+          "label": "Stick deadzone",
+          "source": {
+            "kind": "rule",
+            "rule_id": "user.any.n64.stick-rumble",
+            "rule_label": "N64: smaller stick deadzone, a rumble pak for every player",
+            "scope": "all Nintendo 64 games, any pad"
+          }
+        },
+        {
+          "key": "pak",
+          "value": "rumble",
+          "label": "Rumble pak",
+          "source": {
+            "kind": "rule",
+            "rule_id": "user.any.n64.stick-rumble",
+            "rule_label": "N64: smaller stick deadzone, a rumble pak for every player",
+            "scope": "all Nintendo 64 games, any pad"
+          }
+        }
+      ]
+    },
+    {
+      "player": 3,
+      "pad": {
+        "name": "DualSense Wireless Controller",
+        "model": "sony.dualsense",
+        "family": "sony.dualsense",
+        "style": "playstation",
+        "shape": "playstation",
+        "steam_slot": 2,
+        "emulator_port": 3
+      },
+      "inputs": [
+        {
+          "input": "face_south",
+          "glyph": "✕",
+          "name": "Cross",
+          "drives": [
+            {
+              "target": "n64.standard.a",
+              "label": "A",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "face_east",
+          "glyph": "○",
+          "name": "Circle",
+          "drives": [
+            {
+              "target": "n64.standard.c_down",
+              "label": "C▼",
+              "source": {
+                "kind": "rule",
+                "rule_id": "user.any.n64.layout-live-faces",
+                "rule_label": "N64 layout 1: the core's layout, with the dead face buttons on C-down and C-left",
+                "scope": "all Nintendo 64 games, any pad"
+              }
+            }
+          ]
+        },
+        {
+          "input": "face_west",
+          "glyph": "□",
+          "name": "Square",
+          "drives": [
+            {
+              "target": "n64.standard.b",
+              "label": "B",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "face_north",
+          "glyph": "△",
+          "name": "Triangle",
+          "drives": [
+            {
+              "target": "n64.standard.c_left",
+              "label": "C◀",
+              "source": {
+                "kind": "rule",
+                "rule_id": "user.any.n64.layout-live-faces",
+                "rule_label": "N64 layout 1: the core's layout, with the dead face buttons on C-down and C-left",
+                "scope": "all Nintendo 64 games, any pad"
+              }
+            }
+          ]
+        },
+        {
+          "input": "dpad_up",
+          "glyph": "↑",
+          "name": "D-pad up",
+          "drives": [
+            {
+              "target": "n64.standard.up",
+              "label": "D-pad up",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "dpad_down",
+          "glyph": "↓",
+          "name": "D-pad down",
+          "drives": [
+            {
+              "target": "n64.standard.down",
+              "label": "D-pad down",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "dpad_left",
+          "glyph": "←",
+          "name": "D-pad left",
+          "drives": [
+            {
+              "target": "n64.standard.left",
+              "label": "D-pad left",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "dpad_right",
+          "glyph": "→",
+          "name": "D-pad right",
+          "drives": [
+            {
+              "target": "n64.standard.right",
+              "label": "D-pad right",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "l1",
+          "glyph": "L1",
+          "name": "Left bumper",
+          "drives": [
+            {
+              "target": "n64.standard.l",
+              "label": "L",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "r1",
+          "glyph": "R1",
+          "name": "Right bumper",
+          "drives": [
+            {
+              "target": "n64.standard.r",
+              "label": "R",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "l2",
+          "glyph": "L2",
+          "name": "Left trigger",
+          "drives": [
+            {
+              "target": "n64.standard.z",
+              "label": "Z",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "r2",
+          "glyph": "R2",
+          "name": "Right trigger",
+          "drives": [],
+          "note": "Mupen64Plus-Next's C-button modifier: hold it and the face buttons give C buttons",
+          "note_source": {
+            "kind": "emulator",
+            "detail": "Mupen64Plus-Next default"
+          }
+        },
+        {
+          "input": "l3",
+          "glyph": "L3",
+          "name": "Left stick click",
+          "drives": []
+        },
+        {
+          "input": "r3",
+          "glyph": "R3",
+          "name": "Right stick click",
+          "drives": []
+        },
+        {
+          "input": "ls",
+          "glyph": "LS",
+          "name": "Left stick",
+          "drives": [
+            {
+              "target": "n64.standard.stick_x",
+              "label": "Stick X",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            },
+            {
+              "target": "n64.standard.stick_y",
+              "label": "Stick Y",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "rs",
+          "glyph": "RS",
+          "name": "Right stick",
+          "drives": [
+            {
+              "target": "n64.standard.c_right",
+              "label": "C▶",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            },
+            {
+              "target": "n64.standard.c_left",
+              "label": "C◀",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            },
+            {
+              "target": "n64.standard.c_down",
+              "label": "C▼",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            },
+            {
+              "target": "n64.standard.c_up",
+              "label": "C▲",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "select",
+          "glyph": "Create",
+          "name": "Create",
+          "drives": []
+        },
+        {
+          "input": "start",
+          "glyph": "Options",
+          "name": "Options",
+          "drives": [
+            {
+              "target": "n64.standard.start",
+              "label": "START",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "guide",
+          "glyph": "PS",
+          "name": "PS button",
+          "drives": []
+        },
+        {
+          "input": "misc1",
+          "glyph": "Mic",
+          "name": "Mute button",
+          "drives": [],
+          "steam_only": true
+        },
+        {
+          "input": "touchpad_click",
+          "glyph": "Touchpad",
+          "name": "Touchpad click",
+          "drives": [],
+          "steam_only": true
+        }
+      ],
+      "options": [
+        {
+          "key": "deadzones.ls",
+          "value": 0.05,
+          "label": "Stick deadzone",
+          "source": {
+            "kind": "rule",
+            "rule_id": "user.any.n64.stick-rumble",
+            "rule_label": "N64: smaller stick deadzone, a rumble pak for every player",
+            "scope": "all Nintendo 64 games, any pad"
+          }
+        },
+        {
+          "key": "pak",
+          "value": "rumble",
+          "label": "Rumble pak",
+          "source": {
+            "kind": "rule",
+            "rule_id": "user.any.n64.stick-rumble",
+            "rule_label": "N64: smaller stick deadzone, a rumble pak for every player",
+            "scope": "all Nintendo 64 games, any pad"
+          }
+        }
+      ]
+    },
+    {
+      "player": 4,
+      "pad": {
+        "name": "Steam Deck (built-in)",
+        "model": "valve.steamdeck",
+        "family": "valve.steamdeck",
+        "style": "steamdeck",
+        "shape": "deck",
+        "steam_slot": 3,
+        "emulator_port": 4
+      },
+      "inputs": [
+        {
+          "input": "face_south",
+          "glyph": "A",
+          "name": "A",
+          "drives": [
+            {
+              "target": "n64.standard.a",
+              "label": "A",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "face_east",
+          "glyph": "B",
+          "name": "B",
+          "drives": [
+            {
+              "target": "n64.standard.c_down",
+              "label": "C▼",
+              "source": {
+                "kind": "rule",
+                "rule_id": "user.any.n64.layout-live-faces",
+                "rule_label": "N64 layout 1: the core's layout, with the dead face buttons on C-down and C-left",
+                "scope": "all Nintendo 64 games, any pad"
+              }
+            }
+          ]
+        },
+        {
+          "input": "face_west",
+          "glyph": "X",
+          "name": "X",
+          "drives": [
+            {
+              "target": "n64.standard.b",
+              "label": "B",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "face_north",
+          "glyph": "Y",
+          "name": "Y",
+          "drives": [
+            {
+              "target": "n64.standard.c_left",
+              "label": "C◀",
+              "source": {
+                "kind": "rule",
+                "rule_id": "user.any.n64.layout-live-faces",
+                "rule_label": "N64 layout 1: the core's layout, with the dead face buttons on C-down and C-left",
+                "scope": "all Nintendo 64 games, any pad"
+              }
+            }
+          ]
+        },
+        {
+          "input": "dpad_up",
+          "glyph": "↑",
+          "name": "D-pad up",
+          "drives": [
+            {
+              "target": "n64.standard.up",
+              "label": "D-pad up",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "dpad_down",
+          "glyph": "↓",
+          "name": "D-pad down",
+          "drives": [
+            {
+              "target": "n64.standard.down",
+              "label": "D-pad down",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "dpad_left",
+          "glyph": "←",
+          "name": "D-pad left",
+          "drives": [
+            {
+              "target": "n64.standard.left",
+              "label": "D-pad left",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "dpad_right",
+          "glyph": "→",
+          "name": "D-pad right",
+          "drives": [
+            {
+              "target": "n64.standard.right",
+              "label": "D-pad right",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "l1",
+          "glyph": "L1",
+          "name": "Left bumper",
+          "drives": [
+            {
+              "target": "n64.standard.l",
+              "label": "L",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "r1",
+          "glyph": "R1",
+          "name": "Right bumper",
+          "drives": [
+            {
+              "target": "n64.standard.r",
+              "label": "R",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "l2",
+          "glyph": "L2",
+          "name": "Left trigger",
+          "drives": [
+            {
+              "target": "n64.standard.z",
+              "label": "Z",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "r2",
+          "glyph": "R2",
+          "name": "Right trigger",
+          "drives": [],
+          "note": "Mupen64Plus-Next's C-button modifier: hold it and the face buttons give C buttons",
+          "note_source": {
+            "kind": "emulator",
+            "detail": "Mupen64Plus-Next default"
+          }
+        },
+        {
+          "input": "l3",
+          "glyph": "L3",
+          "name": "Left stick click",
+          "drives": []
+        },
+        {
+          "input": "r3",
+          "glyph": "R3",
+          "name": "Right stick click",
+          "drives": []
+        },
+        {
+          "input": "ls",
+          "glyph": "LS",
+          "name": "Left stick",
+          "drives": [
+            {
+              "target": "n64.standard.stick_x",
+              "label": "Stick X",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            },
+            {
+              "target": "n64.standard.stick_y",
+              "label": "Stick Y",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "rs",
+          "glyph": "RS",
+          "name": "Right stick",
+          "drives": [
+            {
+              "target": "n64.standard.c_right",
+              "label": "C▶",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            },
+            {
+              "target": "n64.standard.c_left",
+              "label": "C◀",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            },
+            {
+              "target": "n64.standard.c_down",
+              "label": "C▼",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            },
+            {
+              "target": "n64.standard.c_up",
+              "label": "C▲",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "select",
+          "glyph": "View",
+          "name": "View",
+          "drives": []
+        },
+        {
+          "input": "start",
+          "glyph": "Menu",
+          "name": "Menu",
+          "drives": [
+            {
+              "target": "n64.standard.start",
+              "label": "START",
+              "source": {
+                "kind": "emulator",
+                "detail": "Mupen64Plus-Next default"
+              }
+            }
+          ]
+        },
+        {
+          "input": "guide",
+          "glyph": "Steam",
+          "name": "Steam button",
+          "drives": []
+        },
+        {
+          "input": "paddle1",
+          "glyph": "R4",
+          "name": "R4",
+          "drives": [],
+          "steam_only": true
+        },
+        {
+          "input": "paddle2",
+          "glyph": "L4",
+          "name": "L4",
+          "drives": [],
+          "steam_only": true
+        },
+        {
+          "input": "paddle3",
+          "glyph": "R5",
+          "name": "R5",
+          "drives": [],
+          "steam_only": true
+        },
+        {
+          "input": "paddle4",
+          "glyph": "L5",
+          "name": "L5",
+          "drives": [],
+          "steam_only": true
+        }
+      ],
+      "options": [
+        {
+          "key": "deadzones.ls",
+          "value": 0.05,
+          "label": "Stick deadzone",
+          "source": {
+            "kind": "rule",
+            "rule_id": "user.any.n64.stick-rumble",
+            "rule_label": "N64: smaller stick deadzone, a rumble pak for every player",
+            "scope": "all Nintendo 64 games, any pad"
+          }
+        },
+        {
+          "key": "pak",
+          "value": "rumble",
+          "label": "Rumble pak",
+          "source": {
+            "kind": "rule",
+            "rule_id": "user.any.n64.stick-rumble",
+            "rule_label": "N64: smaller stick deadzone, a rumble pak for every player",
+            "scope": "all Nintendo 64 games, any pad"
+          }
+        }
+      ]
+    }
+  ],
+  "warnings": []
+}

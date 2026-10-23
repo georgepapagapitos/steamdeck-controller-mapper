@@ -14,6 +14,10 @@ and the deadline is checked again between steps. The writer stages every changed
 (writer.apply_patches' gate), and the gate is the last place the budget can stop us: past it nothing is written,
 before it only temp files exist (and are removed). After the gate the watchdog is off and only the renames are left,
 so a cut-off never leaves a half-written file or a half-applied set.
+
+After every launch it handles it also replaces $STATE/last-launch.json (docs/08 "The data"): what each button of each
+pad drives in the game that's starting. That document is built from what the pipeline already worked out, before the
+gate (under the watchdog), and only written at the end, next to the log line; a failure there is logged and dropped.
 """
 
 from __future__ import annotations
@@ -140,10 +144,23 @@ def main(argv: list[str], exec_fn: Callable = os.execvp, clock: Callable[[], flo
     finally:
         budget.disarm()
     entry["ms"] = round((clock() - start) * 1000)
+    last = None
+    try:
+        from .show import last_launch
+        last = last_launch(entry)
+    except BaseException as e:
+        entry["show_error"] = f"{type(e).__name__}: {e}"
     try:
         write_log(state_dir, entry)
     except BaseException:
         pass
+    if last is not None:
+        try:
+            from .show import write_last
+            write_last(state_dir, last)
+        except BaseException as e:
+            with contextlib.suppress(BaseException):
+                write_log(state_dir, {"mode": "last-launch", "error": f"{type(e).__name__}: {e}"})
     if hook or "--no-exec" in own or not command:
         return 0
     try:
@@ -211,10 +228,25 @@ def prepare(args, command: list[str], esde: Optional[list[str]], budget: Budget,
         req = pipeline.Request(emulator, system, root, args.rules or [USER_RULES], core=core,
                                game=args.game or info.game, rom=info.rom, probe_args=args, write=True,
                                state_dir=args.state_dir)
-        outcome = pipeline.run(req, log=lambda line: None, gate=budget.gate, adapter=adapter)
+        outcome = pipeline.run(req, log=lambda line: None, gate=budget.gate, adapter=adapter,
+                               inspect=lambda ctx: _show(ctx, entry))
     if outcome.result.aborted:
         raise BudgetExceeded("over the time budget before writing; nothing written")
     entry.update(players=outcome.players, order=",".join(outcome.order), changed=outcome.result.changed_files)
+
+
+def _show(ctx, entry: dict) -> None:
+    """Build last-launch.json's players (pipeline.run's inspect hook: before the gate, so the watchdog still runs).
+    It must never cost the launch its mappings: anything but the watchdog is kept for the log and dropped."""
+    from . import show
+    start = time.perf_counter()
+    try:
+        entry["show"] = show.document(ctx)
+    except BudgetExceeded:
+        raise
+    except Exception as e:
+        entry["show_error"] = f"{type(e).__name__}: {e}"
+    entry["show_ms"] = round((time.perf_counter() - start) * 1000, 1)
 
 
 def _age(path) -> Optional[float]:
@@ -262,7 +294,8 @@ def write_log(state_dir: Path, entry: dict) -> None:
     if log.is_file() and log.stat().st_size > LOG_MAX:
         os.replace(log, log.with_name("launch.log.1"))
     fields = [time.strftime("%Y-%m-%dT%H:%M:%S"), entry.get("mode", "?")]
-    for key in ("emulator", "system", "core", "game", "label", "players", "order", "slots_age"):
+    for key in ("emulator", "system", "core", "game", "label", "players", "order", "slots_age", "show_ms",
+                "show_error"):
         if entry.get(key) not in (None, ""):
             fields.append(f"{key}={entry[key]}")
     if "error" in entry:

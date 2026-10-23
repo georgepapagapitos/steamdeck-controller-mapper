@@ -38,6 +38,13 @@ python3 -m maphelper apply --emulator retroarch --system snes --config-root /tmp
     --proc-file ../tests/fixtures/devices/all-three-reordered/proc-bus-input-devices \
     --virtual-info ../tests/fixtures/devices/all-three-reordered/virtualgamepadinfo.txt
 
+# what each button does once apply has written: per player, every input, its N64 function and where that comes
+# from (a rule, the emulator's config or default, EmuDeck). Nothing written.
+python3 -m maphelper show --emulator retroarch --core mupen64plus_next --system n64 --config-root /tmp/retroarch-demo \
+    --game "Legend of Zelda, The - Ocarina of Time (USA) (Rev 2)" \
+    --proc-file ../tests/fixtures/devices/all-three-reordered/proc-bus-input-devices \
+    --virtual-info ../tests/fixtures/devices/all-three-reordered/virtualgamepadinfo.txt [--json]
+
 # the launch wrapper (docs/07): apply for the pads connected now, then run the command unchanged. It never prints;
 # each launch is one line in <state-dir>/logs/launch.log. On a Deck the defaults (EmuDeck's config dirs, /proc,
 # Steam's slot file) are right and only --emulator and the command are needed.
@@ -46,6 +53,8 @@ python3 -m maphelper mh-run --emulator retroarch --config-root /tmp/retroarch-de
     --virtual-info ../tests/fixtures/devices/all-three-reordered/virtualgamepadinfo.txt \
     -- echo retroarch.sh -L snes9x_libretro.so "/home/deck/Emulation/roms/snes/Super Metroid.sfc"
 cat /tmp/mh-state/logs/launch.log
+# what each button of each pad drives after that launch ($STATE/last-launch.json, docs/08 "The data")
+python3 -m maphelper show --last --state-dir /tmp/mh-state [--json]
 # ES-DE's game-start event (no command; always exits 0)
 python3 -m maphelper mh-run --hook --config-root /tmp/retroarch-demo --state-dir /tmp/mh-state \
     --proc-file ../tests/fixtures/devices/all-three-reordered/proc-bus-input-devices \
