@@ -46,7 +46,7 @@
   "families": {
     "sony.dualsense": { "select": ["Create", "Create"], "misc1": ["Mic", "Mute button"] },
     "8bitdo.ultimate": { "paddle1": ["PR", "Right paddle (PR)"], "paddle2": ["PL", "Left paddle (PL)"],
-                         "_source": "Printed PL/PR on the owner's Ultimate 2 Wireless (2026-10-23); paddle1 = right as on other two-paddle pads [VERIFY]" }
+                         "_source": "Printed PL/PR on the owner's Ultimate 2 Wireless (2026-10-23). paddle1 = PR, paddle2 = PL as SDL maps the 8BitDo Pro 2, whose driver reports the same raw order L4, R4, PL, PR (src/joystick/hidapi/SDL_hidapi_8bitdo.c L36-42, src/joystick/SDL_gamepad.c L1231-1232 @ libsdl-org/SDL a04d5cf); SDL's gamepad layer has no paddle mapping for the Ultimate 2 itself" }
   },
   "steam_only": ["paddle1", "paddle2", "paddle3", "paddle4", "misc1", "touchpad_click"],
   "_steam_only_notes": "Inputs Steam's virtual pad doesn't have: it is an Xbox 360 pad (28de:11ff, 'Microsoft X-Box 360 pad N', data/controllers.json virtual_devices), with no paddles, share/mic/capture button or touchpad, so an emulator behind Steam Input never sees them. Steam Input can still map them to buttons the virtual pad has."
