@@ -150,6 +150,18 @@ class N64Test(Base):
         self.assertIn("C▼", out)
 
 
+class MultiSystemCoreTest(Base):
+    def test_only_the_launched_systems_targets(self):
+        # Flycast's descriptor lists Dreamcast, Naomi and Atomiswave targets; a Dreamcast launch must show Dreamcast's
+        # only (seen on a Deck: every button "drove" three targets and the warnings filled the screen).
+        doc = self.show("--emulator", "retroarch", "--core", "flycast", "--system", "dreamcast",
+                        "--config-root", str(FIXTURES / "retroarch" / "dualsense-bt"), "--rules", str(self.tmp / "none"))
+        targets = {d["target"] for p in doc["players"] for i in p["inputs"] for d in i["drives"]}
+        self.assertTrue(targets)
+        self.assertTrue(all(t.startswith("dreamcast.") for t in targets), sorted(targets))
+        self.assertEqual(doc["warnings"], [])
+
+
 class DolphinTest(Base):
     def test_gc_pads_read_back_through_the_token_table(self):
         doc = self.show("--emulator", "dolphin", "--system", "gc",

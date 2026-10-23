@@ -83,7 +83,7 @@ def _render_retroarch(adapter, req: Request, players: dict, assigned: dict, joys
                               game=req.game, folder=folder)
     return Rendering(rendered, adapter.managed_keys(core, rendered.patches),
                      adapter.check(req.config_root, core, current, ports=bool(ports), game=req.game, folder=folder),
-                     lambda n, after: adapter.describe(n, after, core, req.config_root, req.game, folder))
+                     lambda n, after: adapter.describe(n, after, core, req.config_root, req.game, folder, req.system))
 
 
 def _render_by_device(adapter, req: Request, players: dict, assigned: dict, joysticks: list,

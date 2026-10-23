@@ -325,10 +325,11 @@ class RetroArchAdapter:
     # -- show ------------------------------------------------------------------
 
     def describe(self, user: int, after: Callable, desc: dict, config_root: Optional[Path] = None,
-                 game: Optional[str] = None, folder: Optional[str] = None):
+                 game: Optional[str] = None, folder: Optional[str] = None, system: Optional[str] = None):
         """What user's pad drives once the patches are written (after: as current, after the write). Each physical
         input sends its RetroPad id unless the remap moves it (an absent key is identity, -1 unmapped); the core
-        reads the ids its descriptor's targets name. Player 1 also gets the hotkey enable button noted."""
+        reads the ids its descriptor's targets name. Player 1 also gets the hotkey enable button noted. A core that
+        runs several systems (Flycast: Dreamcast, Naomi, Atomiswave) lists targets for each; only system's count."""
         from ..show import Described
         out, file = Described(port=user), self.remap_file(desc)
         names = {v: k for k, v in self.ids.items()}
@@ -342,6 +343,8 @@ class RetroArchAdapter:
             core_input = names.get(self.ids[source] if raw is None else int(raw.strip('"')))
             src = default if raw is None else ("emulator", f"remap {Path(file).name}", after.patched(file, None, key))
             for target, wanted in desc["targets"].items():
+                if system and not target.startswith(f"{system}."):
+                    continue
                 if core_input and wanted in (core_input, core_input.rstrip("+-")):
                     out.drives.append((physical, target, src))
             if hold and core_input == hold:
