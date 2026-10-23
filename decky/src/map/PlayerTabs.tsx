@@ -1,4 +1,3 @@
-import { Focusable } from "@decky/ui";
 import type { Player } from "../data";
 import { shortPadName } from "../format";
 import { Icon, padIcon } from "../glyphs";
@@ -11,31 +10,31 @@ interface Props {
 }
 
 // One tab per player: the pad's icon and the player number, and on the current tab the pad's name too (four
-// names don't fit beside the title at 854 px). L1/R1 also switch tabs (handled by the route).
+// names don't fit beside the title at 854 px). L1/R1 switch them (handled by the route); a tap does too. They
+// don't take focus: on a controller only the button list does.
 export function PlayerTabs({ players, current, onPick }: Props) {
   if (players.length < 2) return null;
   return (
-    <Focusable className="mh-tabs" flow-children="row" role="tablist" aria-label={t.map.playerTabs}>
+    <div className="mh-tabs" role="tablist" aria-label={t.map.playerTabs}>
+      <span className="mh-bumper" aria-hidden="true">L1</span>
       {players.map((player, index) => {
         const on = index === current;
         return (
-          <Focusable
+          <div
             key={player.player}
             className={`mh-tab${on ? " mh-tab-on" : ""}`}
             role="tab"
             aria-selected={on}
             aria-label={`${t.playerLong(player.player)}, ${player.pad.name}`}
-            focusClassName="mh-focus"
-            noFocusRing
-            onActivate={() => onPick(index)}
             onClick={() => onPick(index)}
           >
             {padIcon(player.pad) && <Icon name={padIcon(player.pad)!} size={22} />}
             <span style={{ fontWeight: 700 }}>{t.playerShort(player.player)}</span>
             {on && <span>{shortPadName(player.pad.name)}</span>}
-          </Focusable>
+          </div>
         );
       })}
-    </Focusable>
+      <span className="mh-bumper" aria-hidden="true">R1</span>
+    </div>
   );
 }

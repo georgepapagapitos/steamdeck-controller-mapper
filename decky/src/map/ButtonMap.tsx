@@ -1,11 +1,12 @@
 import { DialogButton, Focusable, GamepadButton, type GamepadEvent, Navigation } from "@decky/ui";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { FaChevronLeft, FaEllipsisH } from "react-icons/fa";
+import { FaBars, FaChevronLeft } from "react-icons/fa";
 import { useLastLaunch } from "../backend";
 import type { LastLaunch } from "../data";
 import { launchLine, programName, shortGameTitle, systemPrefix, warningText } from "../format";
 import { takeRequestedPlayer } from "../navigation";
 import { getSystemLogo, notePending, pendingFor } from "../rules";
+import { undoLast, useUndo } from "../undo";
 import { Loading, Message, SampleBanner, failureText } from "../States";
 import { t } from "../strings";
 import { Styles } from "../styles";
@@ -20,35 +21,13 @@ import { PlayerTabs } from "./PlayerTabs";
 
 const goBack = () => Navigation.NavigateBack();
 
-function BackButton() {
+// The header's back and ≡ buttons are for touch: on a controller, B goes back and ≡ opens the menu (Steam's footer
+// says so), and only the button list takes focus, so the D-pad just moves up and down it.
+function TouchButton({ label, onClick, children }: { label: string; onClick: () => void; children: ReactNode }) {
   return (
-    <Focusable
-      className="mh-icon-button"
-      role="button"
-      aria-label={t.map.back}
-      focusClassName="mh-focus"
-      noFocusRing
-      onActivate={goBack}
-      onClick={goBack}
-    >
-      <FaChevronLeft aria-hidden="true" />
-    </Focusable>
-  );
-}
-
-function MenuButton({ onMenu }: { onMenu: (anchor?: EventTarget) => void }) {
-  return (
-    <Focusable
-      className="mh-icon-button"
-      role="button"
-      aria-label={t.edit.menu}
-      focusClassName="mh-focus"
-      noFocusRing
-      onActivate={(evt) => onMenu(evt?.currentTarget ?? undefined)}
-      onClick={(evt) => onMenu(evt.currentTarget)}
-    >
-      <FaEllipsisH aria-hidden="true" />
-    </Focusable>
+    <div className="mh-icon-button" role="button" aria-label={label} onClick={onClick}>
+      {children}
+    </div>
   );
 }
 
@@ -68,18 +47,18 @@ function Header({ title, subtitle, logo, children, onMenu }: {
   subtitle?: string;
   logo?: string | null;
   children?: ReactNode;
-  onMenu?: (anchor?: EventTarget) => void;
+  onMenu?: () => void;
 }) {
   return (
     <div className="mh-header">
-      <BackButton />
+      <TouchButton label={t.map.back} onClick={goBack}><FaChevronLeft aria-hidden="true" /></TouchButton>
       {logo && <img className="mh-logo" src={logo} alt="" />}
       <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
         <div className="mh-title">{title}</div>
         {subtitle && <div className="mh-subtitle">{subtitle}</div>}
       </div>
       {children}
-      {onMenu && <MenuButton onMenu={onMenu} />}
+      {onMenu && <TouchButton label={t.edit.menu} onClick={onMenu}><FaBars aria-hidden="true" /></TouchButton>}
     </div>
   );
 }
@@ -125,6 +104,8 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
     },
   } : null;
   const canDefault = (c: Control) => ruleDrives(c).length > 0;
+  const undo = useUndo();
+  const menu = ctx ? () => openMenu(ctx, undo?.label ?? null) : undefined;
 
   return (
     <Focusable
@@ -132,11 +113,12 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
       onButtonDown={onButtonDown}
       onCancelButton={goBack}
       onCancelActionDescription={t.map.goBack}
-      onMenuButton={ctx ? () => openMenu(ctx) : undefined}
-      onMenuActionDescription={ctx ? t.edit.menu : undefined}
+      onMenuButton={menu}
+      onMenuActionDescription={menu ? t.edit.menu : undefined}
+      onOptionsButton={undo ? () => undoLast() : undefined}
+      onOptionsActionDescription={undo ? t.edit.undo : undefined}
     >
-      <Header title={shortGameTitle(launch)} subtitle={subtitle} logo={logo}
-        onMenu={ctx ? (anchor) => openMenu(ctx, anchor) : undefined}>
+      <Header title={shortGameTitle(launch)} subtitle={subtitle} logo={logo} onMenu={menu}>
         <PlayerTabs players={players} current={current} onPick={pick} />
       </Header>
       {!player ? (
@@ -153,9 +135,7 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
               <Message title={player.pad.name} body={t.map.noInputs} />
             )}
             <Legend />
-            <DetailCard pad={player.pad} prefix={prefix} control={control} steamOnly={steamOnly} isDeck={isDeck}
-              onChange={ctx && control ? () => openEdit(ctx, control) : undefined}
-              onDefault={ctx && control && canDefault(control) ? () => backToDefault(ctx, control) : undefined} />
+            <DetailCard pad={player.pad} prefix={prefix} control={control} steamOnly={steamOnly} isDeck={isDeck} />
           </div>
           <div className="mh-right">
             {pending > 0 && <div className="mh-pending" role="status">{t.edit.pending(pending)}</div>}

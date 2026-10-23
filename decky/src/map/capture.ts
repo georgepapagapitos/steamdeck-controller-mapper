@@ -100,7 +100,7 @@ export interface Capture {
 
 // Calls onPress once with the first input pressed after `armMs` that fits `want` (inputs already held when the
 // capture starts must be let go first), or with a non-fitting input so the caller can say why it can't be used.
-export function capture(want: Want, onPress: (input: string, fits: boolean) => void, armMs = 250): Capture {
+export function capture(want: Want, onPress: (input: string, fits: boolean) => void, armMs = 400): Capture {
   const start = Date.now();
   const before = new Map<number, Set<string>>();
   let done = false;
@@ -117,14 +117,19 @@ export function capture(want: Want, onPress: (input: string, fits: boolean) => v
   };
 
   let registration: { unregister: () => void } | null = null;
+  const down = new Set<string>();
   const input = SteamClient.Input as unknown as Record<string, unknown>;
   try {
     if (typeof input.RegisterForControllerInputMessages === "function") {
       registration = (input.RegisterForControllerInputMessages as (
         cb: (index: number, button: number, pressed: boolean) => void) => { unregister: () => void })(
-        (_index, button, pressed) => {
-          const name = MESSAGE[button];
-          if (pressed && name && name !== "guide" && Date.now() - start >= armMs) finish(name, "messages", button);
+        (index, button, pressed) => {
+          // A button seen held before the capture armed (the A that opened it, and its repeats) only counts again
+          // after it's released.
+          const key = `${index}:${button}`;
+          if (!pressed) down.delete(key);
+          else if (Date.now() - start < armMs) down.add(key);
+          else if (!down.has(key) && MESSAGE[button] && MESSAGE[button] !== "guide") finish(MESSAGE[button], "messages", button);
         });
     } else registration = SteamClient.Input.RegisterForControllerStateChanges((changes: State[]) => {
       for (const change of changes as (State & { unControllerIndex: number })[]) {

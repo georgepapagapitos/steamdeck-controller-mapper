@@ -1,9 +1,8 @@
-import { DialogButton, Focusable } from "@decky/ui";
 import type { Pad, PadInput } from "../data";
 import { sourceWords } from "../format";
 import { Glyph } from "../glyphs";
 import { t } from "../strings";
-import { type Control, controlTargets } from "./controls";
+import type { Control } from "./controls";
 
 interface Props {
   pad: Pad;
@@ -11,8 +10,6 @@ interface Props {
   control?: Control;
   steamOnly?: PadInput;
   isDeck: boolean;
-  onChange?: () => void;
-  onDefault?: () => void; // only when one of the user's rules sets something on this control
 }
 
 function InputDrives({ input, prefix, showInput }: { input: PadInput; prefix: string; showInput: boolean }) {
@@ -43,8 +40,8 @@ function InputDrives({ input, prefix, showInput }: { input: PadInput; prefix: st
 }
 
 // The selected control: its glyph and name, what each of its inputs drives, where that came from, and any note,
-// with "Change button" (or "Assign" when it does nothing) and "Back to default" for what a rule set.
-export function DetailCard({ pad, prefix, control, steamOnly, isDeck, onChange, onDefault }: Props) {
+// The list row it follows has the actions (A Change button, X Back to default); Steam's footer names them.
+export function DetailCard({ pad, prefix, control, steamOnly, isDeck }: Props) {
   if (steamOnly) {
     return (
       <section className="mh-card" aria-live="polite">
@@ -82,18 +79,6 @@ export function DetailCard({ pad, prefix, control, steamOnly, isDeck, onChange, 
           <InputDrives key={input.input} input={input} prefix={prefix} showInput={several} />
         ))}
       </div>
-      {onChange && (
-        <Focusable className="mh-card-actions" flow-children="row">
-          <DialogButton className="mh-card-button" onClick={onChange}>
-            {controlTargets(control).length ? t.map.changeButton : t.edit.assign}
-          </DialogButton>
-          {onDefault && (
-            <DialogButton className="mh-card-button" onClick={onDefault}>
-              {t.edit.backToDefault}
-            </DialogButton>
-          )}
-        </Focusable>
-      )}
     </section>
   );
 }

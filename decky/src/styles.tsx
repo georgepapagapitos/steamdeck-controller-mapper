@@ -118,7 +118,7 @@ const css = `
 .mh-dot[data-kind="none"] { background: transparent; border: 1px dashed ${colors.none}; box-sizing: border-box; }
 
 .mh-card {
-  padding: 10px 12px; border-radius: 10px; background: ${colors.surface}; border: 1px solid ${colors.selected};
+  padding: 10px 12px; border-radius: 10px; background: ${colors.surface}; border: 1px solid ${colors.border};
   display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; overflow: hidden;
 }
 .mh-card-head { display: flex; align-items: center; gap: 10px; }
@@ -144,7 +144,8 @@ const css = `
   border: 1px solid transparent; background: ${colors.surfaceLow}; font-size: 13px; box-sizing: border-box;
   width: 100%;
 }
-.mh-row.mh-on { border-color: ${colors.selected}; background: #2a2015; }
+/* One highlight: the row the D-pad is on (white ring, lighter fill); the drawing and the card follow it. */
+.mh-row.mh-on { background: #233040; }
 .mh-row-glyph { width: 52px; flex: none; display: flex; align-items: center; font-weight: 700; font-size: 13px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mh-row-name { width: 96px; flex: none; font-size: 11px; color: ${colors.muted};
@@ -186,6 +187,18 @@ const css = `
 .mh-capture {
   display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 8px 4px; text-align: center;
 }
+.mh-decide { display: flex; align-items: center; gap: 14px; }
+.mh-decide-arrow { font-size: 22px; color: ${colors.muted}; }
+.mh-decide-what { font-size: 22px; font-weight: 700; color: ${colors.rule}; }
+.mh-swap { display: flex; gap: 8px; flex-wrap: wrap; }
+.mh-swap .DialogButton.mh-chip-button { width: auto; min-width: 0; min-height: 32px; padding: 4px 12px; font-size: 13px;
+  display: inline-flex; align-items: center; gap: 6px; }
+.mh-swap .mh-chip-on { background: ${colors.accent} !important; color: ${colors.onAccent} !important; }
+.mh-save-row .DialogButton.mh-primary { min-height: 40px; font-weight: 600; background: #1d4d78 !important;
+  color: ${colors.text} !important; }
+.mh-save-row .DialogButton.mh-primary.gpfocus { background: ${colors.accent} !important; color: ${colors.onAccent} !important; }
+.mh-bumper { font-size: 10px; font-weight: 700; color: ${colors.muted}; border: 1px solid ${colors.border};
+  border-radius: 4px; padding: 1px 4px; align-self: center; }
 .mh-capture-pads { display: flex; gap: 16px; width: 100%; justify-content: center; }
 .mh-capture-pane { flex: 1 1 0; max-width: 300px; min-width: 0; }
 .mh-console { width: 100%; height: auto; display: block; }
@@ -197,7 +210,19 @@ const css = `
   border: 3px solid ${colors.accent}; color: ${colors.text}; animation: mh-pulse 1.4s ease-in-out infinite;
 }
 @keyframes mh-pulse { 0%, 100% { box-shadow: 0 0 0 0 ${colors.focusGlow}; } 50% { box-shadow: 0 0 0 12px rgba(26,159,255,0); } }
-@media (prefers-reduced-motion: reduce) { .mh-capture-pads { display: flex; gap: 16px; width: 100%; justify-content: center; }
+@media (prefers-reduced-motion: reduce) { .mh-decide { display: flex; align-items: center; gap: 14px; }
+.mh-decide-arrow { font-size: 22px; color: ${colors.muted}; }
+.mh-decide-what { font-size: 22px; font-weight: 700; color: ${colors.rule}; }
+.mh-swap { display: flex; gap: 8px; flex-wrap: wrap; }
+.mh-swap .DialogButton.mh-chip-button { width: auto; min-width: 0; min-height: 32px; padding: 4px 12px; font-size: 13px;
+  display: inline-flex; align-items: center; gap: 6px; }
+.mh-swap .mh-chip-on { background: ${colors.accent} !important; color: ${colors.onAccent} !important; }
+.mh-save-row .DialogButton.mh-primary { min-height: 40px; font-weight: 600; background: #1d4d78 !important;
+  color: ${colors.text} !important; }
+.mh-save-row .DialogButton.mh-primary.gpfocus { background: ${colors.accent} !important; color: ${colors.onAccent} !important; }
+.mh-bumper { font-size: 10px; font-weight: 700; color: ${colors.muted}; border: 1px solid ${colors.border};
+  border-radius: 4px; padding: 1px 4px; align-self: center; }
+.mh-capture-pads { display: flex; gap: 16px; width: 100%; justify-content: center; }
 .mh-capture-pane { flex: 1 1 0; max-width: 300px; min-width: 0; }
 .mh-console { width: 100%; height: auto; display: block; }
 .mh-capture .mh-modal-title { align-self: stretch; }
