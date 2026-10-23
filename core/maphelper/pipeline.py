@@ -33,6 +33,7 @@ class Request:
     rules: list                              # user rule directories (shipped defaults are always loaded)
     core: Optional[str] = None               # RetroArch only
     game: Optional[str] = None
+    rom: Optional[Path] = None               # RetroArch: its folder's name picks folder options files
     players: Optional[list] = None           # MODEL[@DEVICE_ID] per player; None: probe the connected pads
     probe_args: object = None                # the add_probe_arguments() namespace, when players is None
     write: bool = False
@@ -61,8 +62,11 @@ def _render_retroarch(adapter, req: Request, players: dict, assigned: dict, joys
     except ValueError as e:
         raise ApplyError(str(e)) from None
     ports = {n: j.index for n, j in assigned.items()}
-    return Rendering(adapter.render(players, core, current=current, ports=ports), adapter.managed_keys(core),
-                     adapter.check(req.config_root, core, current, ports=bool(ports)))
+    folder = Path(req.rom).parent.name if req.rom else None    # fill_pathname_parent_dir_name (validate_folder_options)
+    rendered = adapter.render(players, core, current=current, ports=ports, config_root=req.config_root,
+                              game=req.game, folder=folder)
+    return Rendering(rendered, adapter.managed_keys(core, rendered.patches),
+                     adapter.check(req.config_root, core, current, ports=bool(ports), game=req.game, folder=folder))
 
 
 def _render_by_device(adapter, req: Request, players: dict, assigned: dict, joysticks: list,
@@ -155,7 +159,8 @@ def run(req: Request, log: Callable[[str], None], gate: Optional[Callable[[], bo
 
     rendering = emulator.render(adapter, req, players, assigned, joysticks, _reader(Path(req.config_root)))
     result = apply_patches(req.config_root, rendering.rendered.patches, rendering.managed, state_dir=req.state_dir,
-                           dry_run=not req.write, emulator=req.emulator, gate=gate, rewritten=emulator.rewritten)
+                           dry_run=not req.write, emulator=req.emulator, gate=gate, rewritten=emulator.rewritten,
+                           seeds=getattr(rendering.rendered, "seeds", None))
     warnings = [w for p in players.values() for w in p.warnings] + rendering.rendered.warnings + rendering.checks
     return Outcome(result, warnings, len(players), models)
 

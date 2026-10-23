@@ -75,10 +75,14 @@ def _expand(patterns: list) -> list:
 def apply_patches(config_root: Path, patches: list, managed: dict, state_dir: Path | None = None,
                   dry_run: bool = False, emulator: str | None = None,
                   gate: Optional[Callable[[], bool]] = None,
-                  rewritten: Optional[Callable[[Path, str, dict], bool]] = None) -> ApplyResult:
+                  rewritten: Optional[Callable[[Path, str, dict], bool]] = None,
+                  seeds: Optional[dict] = None) -> ApplyResult:
     """With state_dir and emulator, every write is recorded in the manifest (MANIFEST) so `restore` can undo it.
     gate: called once every changed file is staged; False discards the staged files and writes nothing
-    (result.aborted). rewritten: the emulator's test for a created file it only saved over itself (see still_ours)."""
+    (result.aborted). rewritten: the emulator's test for a created file it only saved over itself (see still_ours).
+    seeds: {rel: seed_rel}, both under config_root. A file in it that doesn't exist yet starts as a copy of seed_rel
+    (empty when that's missing too): the copy is its "before", so only managed keys may differ from the seed. It's
+    still a created file, and restore deletes it."""
     result = ApplyResult()
     track = state_dir is not None and emulator is not None and not dry_run
     manifest = load_manifest(Path(state_dir)) if track else None
@@ -97,7 +101,9 @@ def apply_patches(config_root: Path, patches: list, managed: dict, state_dir: Pa
     diffs, outputs = [], []
     for rel, file_patches in sorted(by_file.items()):
         path = Path(config_root) / rel
-        before = path.read_text(encoding="utf-8", errors="surrogateescape") if path.exists() else ""
+        seed = None if path.exists() else (seeds or {}).get(rel)
+        source = path if seed is None else Path(config_root) / seed
+        before = source.read_text(encoding="utf-8", errors="surrogateescape") if source.is_file() else ""
         doc = IniDocument.parse(before)
         for p in file_patches:
             doc.set(p.section, p.key, p.value)
@@ -112,7 +118,7 @@ def apply_patches(config_root: Path, patches: list, managed: dict, state_dir: Pa
             raise RuntimeError(f"{rel}: the edit would change lines outside managed keys; nothing written")
         diffs.append("".join(difflib.unified_diff(
             before.splitlines(keepends=True), after.splitlines(keepends=True),
-            fromfile=f"a/{rel}", tofile=f"b/{rel}")))
+            fromfile=f"a/{seed or rel}", tofile=f"b/{rel}")))
         result.changed_files.append(rel)
         entry = tracked["files"].get(rel) if track else None
         written = None

@@ -190,5 +190,71 @@ class RestoreTest(unittest.TestCase):
         self.assertEqual(self.cli("restore"), (0, "Nothing to restore: map-helper hasn't written any file.\n"))
 
 
+
+MK64 = "config/Mupen64Plus-Next/Mario Kart 64 (USA).opt"
+MK64_RULE = {"schema_version": 1, "id": "user.n64.mk64.pak", "options": {"pak": "rumble"},
+             "applies_to": {"controller": {"level": "any"},
+                            "content": {"level": "game", "system": "n64", "game_id": "Mario Kart 64 (USA)"}}}
+
+
+def retroarch_flush(path: Path, edit: dict = None):
+    """What RetroArch's flush on content close leaves in the options file it loaded (runloop_deinit_core_options,
+    runloop.c @ v1.22.2): every option of the core set from memory, the file's other keys kept, all written sorted
+    as `key = "value"`. `edit` is an option changed in the Quick Menu, which is what makes it write at all."""
+    keys = dict(ln.split(" = ", 1) for ln in path.read_text(encoding="utf-8").splitlines())
+    keys |= {"mupen64plus-aspect": '"16:9"'} | (edit or {})
+    path.write_text("".join(f"{k} = {v}\n" for k, v in sorted(keys.items(), key=lambda kv: kv[0].lower())),
+                    encoding="utf-8")
+
+
+class CoreOptionsRestoreTest(unittest.TestCase):
+    cli = RestoreTest.cli
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp)
+        self.ra, self.state, self.rules = self.tmp / "retroarch", self.tmp / "state", self.tmp / "rules"
+        shutil.copytree(RETROARCH, self.ra)
+        self.rules.mkdir()
+        (self.rules / "mk64.json").write_text(json.dumps(MK64_RULE), encoding="utf-8")
+
+    def apply_n64(self):
+        code, out = self.cli("apply", "--emulator", "retroarch", "--core", "Mupen64Plus-Next", "--system", "n64",
+                             "--game", "Mario Kart 64 (USA)", "--rom", "/roms/n64/Mario Kart 64 (USA).7z",
+                             "--config-root", str(self.ra), "--player", "sony.dualsense", "--rules", str(self.rules),
+                             "--write")
+        self.assertEqual(code, 0, out)
+
+    def entry(self):
+        return json.loads((self.state / MANIFEST).read_text(encoding="utf-8"))["retroarch"]["files"][MK64]
+
+    def test_a_created_game_file_starts_from_the_core_file(self):
+        self.apply_n64()
+        core = (self.ra / "config/Mupen64Plus-Next/Mupen64Plus-Next.opt").read_text(encoding="utf-8")
+        self.assertEqual((self.ra / MK64).read_text(encoding="utf-8"),
+                         core.replace('mupen64plus-pak1 = "memory"', 'mupen64plus-pak1 = "rumble"'))
+        self.assertEqual((self.entry()["created"], self.entry()["managed"]),
+                         (True, [[None, "mupen64plus-pak1", '"rumble"']]))
+        self.cli("restore", "--emulator", "retroarch")
+        self.assertEqual(tree(self.ra), tree(RETROARCH))
+
+    def test_retroarchs_flush_is_still_ours(self):
+        self.apply_n64()
+        retroarch_flush(self.ra / MK64)
+        self.apply_n64()                                    # the next launch: nothing of ours changed
+        self.assertTrue(self.entry()["created"])
+        code, out = self.cli("restore", "--emulator", "retroarch")
+        self.assertEqual(code, 0, out)
+        self.assertEqual(tree(self.ra), tree(RETROARCH))
+
+    def test_a_quick_menu_change_to_ours_makes_it_theirs(self):
+        self.apply_n64()
+        retroarch_flush(self.ra / MK64, edit={"mupen64plus-pak1": '"memory"'})
+        theirs = (self.ra / MK64).read_bytes()
+        self.apply_n64()                                    # takes the file over again, but it's theirs now
+        self.assertFalse(self.entry()["created"])
+        self.assertEqual(self.cli("restore", "--emulator", "retroarch")[0], 0)
+        self.assertEqual((self.ra / MK64).read_bytes(), theirs)
+
 if __name__ == "__main__":
     unittest.main()

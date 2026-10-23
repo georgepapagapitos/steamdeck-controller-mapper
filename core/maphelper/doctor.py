@@ -66,7 +66,8 @@ def run(steam_root: Path = STEAM_ROOT, retroarch_root: Path = RETROARCH_ROOT,
     tracked = load_manifest(setup.Places(home=home).state_dir).get("retroarch", {}).get("files", {})
     return (check_steam_input(steam_root) + check_emudeck_automap(emudeck_settings, settings)
             + check_retroarch(retroarch_root, (settings or {}).get("controllerLayout"),
-                              [rel for rel in sorted(tracked) if rel.endswith(".rmp")])
+                              [rel for rel in sorted(tracked) if rel.endswith(".rmp")],
+                              [rel for rel in sorted(tracked) if rel.endswith(".opt")])
             + check_launch_hooks(home, steam_root))
 
 
@@ -292,8 +293,9 @@ def _srm_hooks(places, steam_root: Path, done: bool) -> list[Finding]:
 
 # -- RetroArch -------------------------------------------------------------------
 
-def check_retroarch(root: Path, controller_layout: Optional[str] = None, managed: list[str] = ()) -> list[Finding]:
-    """managed: the .rmp files map-helper writes (from its manifest)."""
+def check_retroarch(root: Path, controller_layout: Optional[str] = None, managed: list[str] = (),
+                    options: list[str] = ()) -> list[Finding]:
+    """managed: the .rmp files map-helper writes; options: the core options (.opt) files (both from its manifest)."""
     root = Path(root)
     cfg_path = root / "retroarch.cfg"
     if not cfg_path.is_file():
@@ -319,6 +321,42 @@ def check_retroarch(root: Path, controller_layout: Optional[str] = None, managed
                            f"{root}; remap files not checked"))
     elif remaps.is_dir() and cfg.get("input_remap_sort_by_controller_enable") != "true":
         out += _remap_files(root, remaps, controller_layout)
+    return out + _option_files(root, cfg, options)
+
+
+def _option_files(root: Path, cfg: dict, managed: list[str]) -> list[Finding]:
+    """Core options files: RetroArch loads one per launch, the game's, else the folder's, else the core's, with no
+    layering, and only with game_specific_options on; global_core_options on uses retroarch-core-options.cfg
+    instead (docs/adapters/retroarch.md "Core options")."""
+    from .adapters.retroarch import OPTIONS_DIR, RetroArchAdapter
+    out = []
+    if cfg.get("global_core_options") == "true":
+        out.append(Finding("warning", "retroarch-options",
+                           "retroarch: global_core_options is on, so every core's options live in "
+                           "retroarch-core-options.cfg, which map-helper doesn't write; rules' core options (N64 "
+                           "pak, deadzone) are not applied"))
+    elif cfg.get("game_specific_options") == "false":
+        games = [rel for rel in managed if Path(rel).stem != Path(rel).parent.name]
+        if games:
+            out.append(Finding("warning", "retroarch-options",
+                               f"retroarch: game_specific_options is off, so RetroArch ignores game and folder "
+                               f"options files, including map-helper's {', '.join(Path(r).name for r in games)}"))
+    for desc in RetroArchAdapter().cores.values():
+        folder = root / OPTIONS_DIR / desc["core"]
+        files = sorted(folder.glob("*.opt")) if folder.is_dir() else []
+        for path in files:
+            rel = path.relative_to(root).as_posix()
+            if path.stem != desc["core"] and rel not in managed:
+                out.append(Finding("info", "retroarch-options",
+                                   f"retroarch: {rel} is a game or folder options file; when it matches, RetroArch "
+                                   f"loads it instead of {desc['core']}.opt, with no layering"))
+            opts = _read_cfg(path) if desc.get("core_option_variants") else {}
+            for variant in desc.get("core_option_variants", {}):
+                key, _, value = variant.partition("=")
+                if opts.get(key) == value:
+                    out.append(Finding("warning", "retroarch-options",
+                                       f"retroarch: {rel} sets {key} = \"{value}\"; map-helper's {desc['core']} "
+                                       "remaps assume the core's default layout, so buttons land elsewhere"))
     return out
 
 

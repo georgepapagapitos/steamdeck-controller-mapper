@@ -334,7 +334,7 @@ Full tables are in the descriptors. These are the ones that matter most:
 | Core (`library_name`) | Mapping highlights |
 |-----------------------|--------------------|
 | Genesis Plus GX, PicoDrive | Genesis A=`Y`, B=`B`, C=`A`, X=`L`, Y=`X`, Z=`R`, Mode=`SELECT`, Start=`START`. SMS button 1=`B`, 2=`A`. GPGX pad type via `input_libretro_device_pN` (3B=257, 6B=513, MS 2B=769, 1 = auto). PicoDrive pad type via core option `picodrive_input1` (`3 button pad` default / `6 button pad`) |
-| Mupen64Plus-Next | A=`B`, B=`Y`, Z=`L2`, L=`L`, R=`R`, Start. **C buttons = right stick** (digital, threshold 0x4000). Holding `R2` turns `A/Y/B/X` into C-right/left/down/up (options `mupen64plus-{r,l,d,u}-cbutton`, default C1..C4 = A, Y, B, X). `mupen64plus-alt-map=True`: C = `X`(up) `A`(down) `L`(left) `R`(right), L=`SELECT`, R=`R2`. Pak: core option `mupen64plus-pak1` (default `memory`) |
+| Mupen64Plus-Next | A=`B`, B=`Y`, Z=`L2`, L=`L`, R=`R`, Start. **C buttons = right stick** (digital, threshold 0x4000). Holding `R2` turns `A/Y/B/X` into C-right/left/down/up (options `mupen64plus-{r,l,d,u}-cbutton`, default C1..C4 = A, Y, B, X). `mupen64plus-alt-map=True`: C = `X`(up) `A`(down) `L`(left) `R`(right), L=`SELECT`, R=`R2`. Paks: core options `mupen64plus-pak1..4` (defaults `memory`, `none`, `none`, `none`), written from the `pak` option. Stick deadzone: `mupen64plus-astick-deadzone`, one for all ports, from `deadzones.ls` |
 | ParaLLEl N64 | Same default table and descriptors as Mupen64Plus-Next; option `parallel-n64-alt-map`. Holding `SELECT` toggles built-in per-game layouts (Killer Instinct Gold, ClayFighter, ISS, Ridge Racer…). The R2 chord's C-button ids are never assigned in source (all read RetroPad B) **[VERIFY]** on device |
 | Beetle Saturn | A=`B`, B=`A`, C=`R`, X=`Y`, Y=`X`, Z=`L`, L=`L2`, R=`R2`. 3D Pad = device 261 (`SELECT` = mode switch) |
 | Beetle PSX HW, SwanStation | Cross=`B`, Circle=`A`, Square=`Y`, Triangle=`X`, L1/R1=`L`/`R`, L2/R2=`L2`/`R2`. Digital = device 1; DualShock = 517 (Beetle) / 261 (SwanStation) |
@@ -360,6 +360,9 @@ Full tables are in the descriptors. These are the ones that matter most:
   `input`), so they are rendered from player 1's resolution.
 - In `retroarch.cfg`, also `input_playerN_joypad_index` for the players
   `apply` assigns (see "Which pad is which player"). Nothing else there.
+- In the core options file RetroArch loads for the launch
+  (`config/<core>/*.opt`, see "Core options"): exactly the option keys
+  written, from the core descriptor's `options`. Nothing else there.
 - We never touch autoconfig files EmuDeck ships. We may *add* a generated
   autoconfig for native-mode devices with no profile.
 
@@ -409,6 +412,9 @@ the trace and offer import.
 Native per-game is possible: we could write the game-level file ourselves
 for game-scope rules. Because it fully replaces the core file, it must contain
 the complete merged result, not just the game-specific keys.
+
+Core options already work this way: a game-scoped option goes into a game
+`.opt` created as a copy of the file it replaces (see "Core options").
 
 ## Game id
 
@@ -501,6 +507,110 @@ reaches RetroArch at all (Steam keeps it).
 Select+R2 (the canonical fast-forward is always the toggle);
 `hotkey.fast_forward_hold` is `hold_fast_forward`.
 
+## Core options
+
+Core options are what a core reads through `RETRO_ENVIRONMENT_GET_VARIABLE`.
+A core descriptor's `options` maps canonical rule options to them, and the
+adapter writes those at every launch. Only Mupen64Plus-Next has any so far:
+
+| Canonical option | Core option | Values |
+|------------------|-------------|--------|
+| `deadzones.ls` (0..1) | `mupen64plus-astick-deadzone` | `0`, `5`, ... `30` (percent), default `15`. One for all ports, taken from player 1's resolution, like hotkeys |
+| `pak` | `mupen64plus-pakN` | `none`, `memory`, `rumble`, `transfer`; defaults `memory` for player 1, `none` for 2-4. Player N's `pak` sets `pakN`; a player whose rules set no pak leaves `pakN` alone |
+
+RetroArch keeps an option's value only if the core lists it; anything else
+silently becomes the default (`core_option_manager.c` L1031-1053). So a
+deadzone snaps to the nearest listed percent (8% is written as `10`), with a
+warning when it's outside 0-30%. `mupen64plus-astick-sensitivity` (50-150 in
+steps of 5, default 100) has no canonical option yet. Sources:
+`libretro/libretro_core_options.h` L1534-1584 and L1649-1727, parsed in
+`libretro/libretro.c` `update_controllers` L760-841, at mupen64plus-libretro-nx
+`12edd2c` (the same at master `15bada8`).
+
+### Files and precedence
+
+Options files sit in RetroArch's config directory (`config/` under the config
+root; EmuDeck sets `rgui_config_directory` there), in a folder named after the
+core's `library_name` (`validate_per_core_options`, runloop.c L1083-1114):
+
+- game: `config/Mupen64Plus-Next/<game id>.opt`, the game id being the content
+  name without its extension (see "Game id");
+- folder: `config/Mupen64Plus-Next/<ROM folder name>.opt`
+  (`validate_folder_options`, L1116-1131), e.g. `n64.opt` for EmuDeck's
+  `roms/n64/`;
+- core: `config/Mupen64Plus-Next/Mupen64Plus-Next.opt`;
+- with `global_core_options` on, `retroarch-core-options.cfg` instead, for
+  every core (`runloop_init_core_options_path` is called with
+  `!global_core_options`, L1500-1504; `file_path_special.c` L196-207).
+
+RetroArch loads **one** of them (`runloop_init_core_options_path`,
+L1147-1236): with `game_specific_options` on (the default, and EmuDeck's), the
+game file if it exists, else the folder file if it exists, else the core file;
+with it off, the core file. Files don't layer: an option the loaded file lacks
+takes the core's default, not the core file's value. When no core file exists
+yet, the initial values come from `retroarch-core-options.cfg`.
+
+On the owner's Deck `game_specific_options` is on, `global_core_options` off,
+and `config/Mupen64Plus-Next/` holds `Mupen64Plus-Next.opt` with every option,
+and `n64.cfg` (a folder *override*, not options), with no game or folder
+`.opt`.
+
+### Which file map-helper writes
+
+The one RetroArch will load for this launch, so the values hold:
+
+1. `global_core_options` on: nothing. `apply` warns that core options were
+   not written.
+2. The game file, if `game_specific_options` is on and it exists.
+3. The game file, created, if a game-scoped rule set any of the options for
+   this launch (and `game_specific_options` is on). With it off, a game file
+   would be ignored and the core file is shared by every game, so options from
+   game rules are left out, with a warning.
+4. The folder file, if `game_specific_options` is on and it exists.
+5. The core file.
+
+A game file map-helper creates starts as a copy of the file RetroArch would
+otherwise load (the folder file, else the core file, else empty), then gets
+the managed keys. Without that seed every option no rule sets would fall back
+to the core default for that game. The copy is made by the writer's `seeds`
+(docs/09), so the outside-managed-keys check compares against the seed, and
+the file is recorded `created`: restore deletes it. Once the game file
+exists, RetroArch loads it for that game, so every later launch of the game
+writes all its options there, game rule or not.
+
+`apply` and mh-run need the game id and the ROM's folder for this: mh-run
+takes both from the launch (`--rom` and `--game` on `apply`).
+
+### RetroArch's flush, and restore
+
+When content closes, `runloop_deinit_core_options` (runloop.c L1033-1080)
+reads the options file it loaded, sets every option of the core in it
+(`core_option_manager_flush`, core_option_manager.c L1890-1903) and writes it
+back sorted as `key = "value"` lines, keeping keys it doesn't know, and only
+if a value changed (`config_file_write`, libretro-common/file/config_file.c
+L1401-1468). A Quick Menu change is such a change.
+
+So a game file map-helper created can come back rewritten by RetroArch. The
+writer asks `retroarch.options_flushed` (the `rewritten` hook,
+`retroarch.saved_on_exit`, for `.opt` files): if every option map-helper last
+wrote is still there with its value, it's RetroArch's flush and the file stays
+map-helper's (`created`), so restore still deletes it. A Quick Menu change to
+one of those options makes the file the user's: the next apply takes it as the
+pristine copy and restore puts it back. A Quick Menu change to an option
+map-helper doesn't write doesn't: restore deletes the game file with it.
+
+`apply` warns when a folder file is loaded instead of the core file, and when
+the loaded file has `mupen64plus-alt-map = "True"` (the descriptor's
+`core_option_variants`): map-helper's N64 remaps assume the default layout.
+
+Sources: RetroArch `v1.22.2` (`69a4f0ea1e8aaf442ae4858f2e7f2b31a1776576`):
+`runloop.c` L1033-1080, L1083-1131, L1147-1236, L1500-1504;
+`core_option_manager.c` L1031-1053, L1890-1903;
+`libretro-common/file/config_file.c` L1401-1468; `file_path_special.c`
+L196-207; `config.def.h` `DEFAULT_GAME_SPECIFIC_OPTIONS` and
+`DEFAULT_GLOBAL_CORE_OPTIONS` (L910-914). Not yet seen on a Deck: a game file
+map-helper created being loaded and flushed **[VERIFY]**.
+
 ## Known pitfalls
 
 - **`remap_save_on_exit` is on by default.** RetroArch rewrites the loaded
@@ -520,7 +630,8 @@ Select+R2 (the canonical fast-forward is always the toggle);
   for each core.
 - Device type ids (`input_libretro_device_pN`) are per core. Some cores pick the
   pad type with core options instead (PicoDrive pad, N64 paks), which live in
-  `retroarch-core-options.cfg` / per-game `.opt` files, not in remaps.
+  `.opt` files (or `retroarch-core-options.cfg`), not in remaps. map-helper
+  writes Mupen64Plus-Next's (see "Core options").
 - `input_playerN` is the RetroArch user, not the core port. With
   `input_assign_ports_on_button_press` on (master), port assignment is dynamic
   and `input_remap_port_pN` is not saved for those users.
@@ -557,6 +668,10 @@ Paths in its output are relative to the config root. EmuDeck's
 | `<core>.rmp` alone for one of EmuDeck's 10 toggled cores | warning | the switch to BAYX renames it to `.rmp.disabled` (with `controllerLayout=abxy` it's likely EmuDeck's own file) |
 | cores with only `.rmp.disabled` | info | EmuDeck's ABXY remaps are parked (normal under `baxy`) |
 | `remap_save_on_exit` not `false`, and map-helper's manifest lists a `.rmp` | warning | RetroArch saves its remaps over ours when a game closes; mh-run rewrites them at the next launch, so Quick Menu remap edits don't last |
+| `global_core_options = true` | warning | every core's options are in `retroarch-core-options.cfg`, which map-helper doesn't write, so rules' core options aren't applied |
+| `game_specific_options = false`, and the manifest lists a game `.opt` | warning | RetroArch ignores game and folder options files |
+| a game or folder `.opt` map-helper didn't write, next to `<core>.opt` | info | when it matches, RetroArch loads it instead of the core file, with no layering |
+| an `.opt` with `mupen64plus-alt-map = "True"` (a descriptor's `core_option_variants`) | warning | map-helper's remaps for the core assume its default layout |
 
 "AutoMap" is EmuDeck's, and it doesn't touch RetroArch (only Dolphin, Cemu
 and the Switch emulators, [07](../07-launch-integration.md)). RetroArch's own

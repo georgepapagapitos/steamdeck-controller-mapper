@@ -22,6 +22,8 @@ descriptor's `sources` point at those lines.
   "sources": ["https://github.com/..."],
   "device_types": {"genesis.6button": 513}, // optional: value for input_libretro_device_pN
   "core_options": {...},                    // optional: core options that change the pad type
+  "options": {"pak": {"key": "mupen64plus-pak{N}", "values": [...], "per_player": true, "players": 4}},
+                                            // optional: canonical option -> core option map-helper writes
   "targets": {"genesis.6button.x": "L"},   // canonical target -> RetroPad input the core reads
   "core_option_variants": {...},           // optional: target tables under non-default core options
   "c_button_chord": {...},                 // optional (N64 cores): chorded alternative bindings
@@ -41,6 +43,13 @@ FBNeo, whose types are layout styles (`classic`, `modern`, `6panel`). Values are
 libretro device ids: `RETRO_DEVICE_SUBCLASS(base, i) = ((i + 1) << 8) | base`,
 with `JOYPAD = 1` and `ANALOG = 5`. The ids are **per core**: DualShock is 517
 in Beetle PSX and 261 in SwanStation.
+
+`options` keys are flattened canonical options (`deadzones.ls`, `pak`, see
+`schema/rule.schema.json`). `key` is the core option, with `{N}` for the
+player when `per_player` is set (then `players` says how many it has).
+`values` lists what the core accepts, written as is; `percent_values` lists
+the percents a 0..1 value snaps to (RetroArch falls back to the default for a
+value the core doesn't list). `default` is the core's own, for reference.
 
 ## Cores
 
