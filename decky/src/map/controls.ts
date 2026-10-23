@@ -91,3 +91,10 @@ export function controlTargets(control: Control): string[] {
   }
   return labels;
 }
+
+// A few words for a list row whose control drives nothing but carries a note: "Hold for C buttons" on
+// Mupen64Plus-Next's R2. Older show data has no note_short; then the note itself, the row ellipsizes it.
+export function controlNote(control: Control): string | null {
+  const noted = control.inputs.find((i) => i.note);
+  return noted ? noted.note_short || noted.note || null : null;
+}

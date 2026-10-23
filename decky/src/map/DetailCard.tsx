@@ -1,14 +1,18 @@
-import { DialogButton } from "@decky/ui";
-import type { PadInput } from "../data";
+import { DialogButton, Focusable } from "@decky/ui";
+import type { Pad, PadInput } from "../data";
 import { sourceWords } from "../format";
+import { Glyph } from "../glyphs";
 import { t } from "../strings";
-import type { Control } from "./controls";
+import { type Control, controlTargets } from "./controls";
 
 interface Props {
+  pad: Pad;
   prefix: string;
   control?: Control;
   steamOnly?: PadInput;
   isDeck: boolean;
+  onChange?: () => void;
+  onDefault?: () => void; // only when one of the user's rules sets something on this control
 }
 
 function InputDrives({ input, prefix, showInput }: { input: PadInput; prefix: string; showInput: boolean }) {
@@ -38,14 +42,14 @@ function InputDrives({ input, prefix, showInput }: { input: PadInput; prefix: st
   );
 }
 
-// The selected control: its glyph and name, what each of its inputs drives, where that came from, and any note.
-// "Change button" is shown so the layout is final, but editing isn't built yet.
-export function DetailCard({ prefix, control, steamOnly, isDeck }: Props) {
+// The selected control: its glyph and name, what each of its inputs drives, where that came from, and any note,
+// with "Change button" (or "Give it a job" when it does nothing) and "Back to default" for what a rule set.
+export function DetailCard({ pad, prefix, control, steamOnly, isDeck, onChange, onDefault }: Props) {
   if (steamOnly) {
     return (
       <section className="mh-card" aria-live="polite">
         <div className="mh-card-head">
-          <span className="mh-card-glyph">{steamOnly.glyph}</span>
+          <Glyph pad={pad} label={steamOnly.glyph} size={26} className="mh-card-glyph" />
           <span className="mh-card-name">{steamOnly.name}</span>
         </div>
         <div className="mh-card-target">{t.map.steamOnly}</div>
@@ -70,18 +74,26 @@ export function DetailCard({ prefix, control, steamOnly, isDeck }: Props) {
   return (
     <section className="mh-card" aria-live="polite">
       <div className="mh-card-head">
-        <span className="mh-card-glyph">{control.glyph}</span>
+        <Glyph pad={pad} label={control.glyph} size={26} className="mh-card-glyph" />
         <span className="mh-card-name">{control.name}</span>
       </div>
-      {control.inputs.map((input) => (
-        <InputDrives key={input.input} input={input} prefix={prefix} showInput={several} />
-      ))}
-      <div className="mh-card-actions">
-        <DialogButton disabled focusable={false} style={{ width: "auto", minWidth: 0, minHeight: 30, padding: "0 12px", fontSize: 12 }}>
-          {t.map.changeButton}
-        </DialogButton>
-        <span className="mh-soon">{t.map.comingSoon}</span>
+      <div className="mh-card-body">
+        {control.inputs.map((input) => (
+          <InputDrives key={input.input} input={input} prefix={prefix} showInput={several} />
+        ))}
       </div>
+      {onChange && (
+        <Focusable className="mh-card-actions" flow-children="row">
+          <DialogButton className="mh-card-button" onClick={onChange}>
+            {controlTargets(control).length ? t.map.changeButton : t.edit.giveJob}
+          </DialogButton>
+          {onDefault && (
+            <DialogButton className="mh-card-button" onClick={onDefault}>
+              {t.edit.backToDefault}
+            </DialogButton>
+          )}
+        </Focusable>
+      )}
     </section>
   );
 }

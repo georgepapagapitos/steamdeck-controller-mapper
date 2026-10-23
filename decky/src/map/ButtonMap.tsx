@@ -1,16 +1,18 @@
 import { DialogButton, Focusable, GamepadButton, type GamepadEvent, Navigation } from "@decky/ui";
-import { type ReactNode, useMemo, useState } from "react";
-import { FaChevronLeft } from "react-icons/fa";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { FaChevronLeft, FaEllipsisH } from "react-icons/fa";
 import { useLastLaunch } from "../backend";
 import type { LastLaunch } from "../data";
 import { launchLine, programName, shortGameTitle, systemPrefix, warningText } from "../format";
 import { takeRequestedPlayer } from "../navigation";
+import { getSystemLogo, notePending, pendingFor } from "../rules";
 import { Loading, Message, SampleBanner, failureText } from "../States";
 import { t } from "../strings";
 import { Styles } from "../styles";
 import { steamKey } from "./BackStrip";
 import { ControlList } from "./ControlList";
-import { groupControls, steamOnlyInputs } from "./controls";
+import { type Control, groupControls, steamOnlyInputs } from "./controls";
+import { type MapContext, backToDefault, openEdit, openMenu, ruleDrives } from "./actions";
 import { DetailCard } from "./DetailCard";
 import { Legend, OptionChips } from "./OptionChips";
 import { PadDrawing } from "./PadDrawing";
@@ -34,15 +36,50 @@ function BackButton() {
   );
 }
 
-function Header({ title, subtitle, children }: { title: string; subtitle?: string; children?: ReactNode }) {
+function MenuButton({ onMenu }: { onMenu: (anchor?: EventTarget) => void }) {
+  return (
+    <Focusable
+      className="mh-icon-button"
+      role="button"
+      aria-label={t.edit.menu}
+      focusClassName="mh-focus"
+      noFocusRing
+      onActivate={(evt) => onMenu(evt?.currentTarget ?? undefined)}
+      onClick={(evt) => onMenu(evt.currentTarget)}
+    >
+      <FaEllipsisH aria-hidden="true" />
+    </Focusable>
+  );
+}
+
+// The system's logo from the user's active ES-DE theme (never shipped with the plugin); null when the theme has
+// none for it, and then the header names the system in words.
+function useSystemLogo(system: string | undefined): string | null {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    setUrl(null);
+    if (system) getSystemLogo(system).then((answer) => answer.ok && setUrl(answer.data.url));
+  }, [system]);
+  return url;
+}
+
+function Header({ title, subtitle, logo, children, onMenu }: {
+  title: string;
+  subtitle?: string;
+  logo?: string | null;
+  children?: ReactNode;
+  onMenu?: (anchor?: EventTarget) => void;
+}) {
   return (
     <div className="mh-header">
       <BackButton />
+      {logo && <img className="mh-logo" src={logo} alt="" />}
       <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
         <div className="mh-title">{title}</div>
         {subtitle && <div className="mh-subtitle">{subtitle}</div>}
       </div>
       {children}
+      {onMenu && <MenuButton onMenu={onMenu} />}
     </div>
   );
 }
@@ -70,13 +107,24 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
 
   const launch = data.launch;
   const prefix = systemPrefix(launch);
-  const subtitle = [launch.system_name || launch.system.toUpperCase(), programName(launch.core || launch.emulator), t.map.asApplied]
+  const logo = useSystemLogo(launch.system);
+  const subtitle = [logo ? "" : launch.system_name || launch.system.toUpperCase(),
+    programName(launch.core || launch.emulator), t.map.asApplied]
     .filter(Boolean)
     .join(" · ");
   const isDeck = player?.pad.shape === "deck";
   const control = controls.find((c) => c.key === selected);
   const steamOnly = backs.find((b) => steamKey(b) === selected);
   const warnings = data.warnings ?? [];
+  const [pending, setPending] = useState(() => pendingFor(launch.ts));
+  const ctx: MapContext | null = player ? {
+    launch, player, players, prefix,
+    onSaved: (delta: number) => {
+      notePending(launch.ts, delta);
+      setPending(pendingFor(launch.ts));
+    },
+  } : null;
+  const canDefault = (c: Control) => ruleDrives(c).length > 0;
 
   return (
     <Focusable
@@ -84,8 +132,11 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
       onButtonDown={onButtonDown}
       onCancelButton={goBack}
       onCancelActionDescription={t.map.goBack}
+      onMenuButton={ctx ? () => openMenu(ctx) : undefined}
+      onMenuActionDescription={ctx ? t.edit.menu : undefined}
     >
-      <Header title={shortGameTitle(launch)} subtitle={subtitle}>
+      <Header title={shortGameTitle(launch)} subtitle={subtitle} logo={logo}
+        onMenu={ctx ? (anchor) => openMenu(ctx, anchor) : undefined}>
         <PlayerTabs players={players} current={current} onPick={pick} />
       </Header>
       {!player ? (
@@ -97,14 +148,17 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
           <div className="mh-left">
             {sample && <SampleBanner result={{ ok: true, data, sample }} />}
             {controls.length ? (
-              <PadDrawing padName={player.pad.name} shape={player.pad.shape} controls={controls} selected={selected} />
+              <PadDrawing pad={player.pad} controls={controls} selected={selected} />
             ) : (
               <Message title={player.pad.name} body={t.map.noInputs} />
             )}
             <Legend />
-            <DetailCard prefix={prefix} control={control} steamOnly={steamOnly} isDeck={isDeck} />
+            <DetailCard pad={player.pad} prefix={prefix} control={control} steamOnly={steamOnly} isDeck={isDeck}
+              onChange={ctx && control ? () => openEdit(ctx, control) : undefined}
+              onDefault={ctx && control && canDefault(control) ? () => backToDefault(ctx, control) : undefined} />
           </div>
           <div className="mh-right">
+            {pending > 0 && <div className="mh-pending" role="status">{t.edit.pending(pending)}</div>}
             <OptionChips player={player} />
             {warnings.length > 0 && (
               <div className="mh-warnings" role="note" aria-label={t.map.warnings}>
@@ -113,8 +167,9 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
                 ))}
               </div>
             )}
-            <ControlList controls={controls} steamOnly={backs} isDeck={isDeck} selected={selected} prefix={prefix}
-              onSelect={setSelected} />
+            <ControlList pad={player.pad} controls={controls} steamOnly={backs} isDeck={isDeck} selected={selected}
+              prefix={prefix} onSelect={setSelected} onChange={ctx ? (c) => openEdit(ctx, c) : undefined}
+              onDefault={ctx ? (c) => backToDefault(ctx, c) : undefined} canDefault={canDefault} />
           </div>
         </div>
       )}

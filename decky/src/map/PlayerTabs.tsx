@@ -1,6 +1,7 @@
 import { Focusable } from "@decky/ui";
 import type { Player } from "../data";
 import { shortPadName } from "../format";
+import { Icon, padIcon } from "../glyphs";
 import { t } from "../strings";
 
 interface Props {
@@ -9,7 +10,8 @@ interface Props {
   onPick: (index: number) => void;
 }
 
-// One tab per player. L1/R1 also switch tabs (handled by the route).
+// One tab per player: the pad's icon and the player number, and on the current tab the pad's name too (four
+// names don't fit beside the title at 854 px). L1/R1 also switch tabs (handled by the route).
 export function PlayerTabs({ players, current, onPick }: Props) {
   if (players.length < 2) return null;
   return (
@@ -28,8 +30,9 @@ export function PlayerTabs({ players, current, onPick }: Props) {
             onActivate={() => onPick(index)}
             onClick={() => onPick(index)}
           >
+            {padIcon(player.pad) && <Icon name={padIcon(player.pad)!} size={22} />}
             <span style={{ fontWeight: 700 }}>{t.playerShort(player.player)}</span>
-            <span>{shortPadName(player.pad.name)}</span>
+            {on && <span>{shortPadName(player.pad.name)}</span>}
           </Focusable>
         );
       })}

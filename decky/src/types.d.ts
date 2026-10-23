@@ -3,3 +3,9 @@ declare module "mh:fixture" {
   const response: import("./data").LastLaunchResult | null;
   export default response;
 }
+
+declare module "mh:kenney" {
+  // Kenney's Input Prompts SVGs in assets/kenney/, by file name without .svg (see rollup.config.js).
+  const icons: Record<string, string>;
+  export default icons;
+}

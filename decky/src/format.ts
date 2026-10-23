@@ -141,3 +141,20 @@ export function shortPadName(name: string): string {
     .trim();
   return short || name;
 }
+
+// A canonical physical input (docs/03) in positional words, for a rule that applies to any pad.
+const POSITIONS: Record<string, string> = {
+  face_south: "the bottom face button", face_east: "the right face button", face_west: "the left face button",
+  face_north: "the top face button", dpad_up: "D-pad up", dpad_down: "D-pad down", dpad_left: "D-pad left",
+  dpad_right: "D-pad right", l1: "the left bumper", r1: "the right bumper", l2: "the left trigger",
+  r2: "the right trigger", l3: "the left stick click", r3: "the right stick click", ls_x: "the left stick",
+  ls_y: "the left stick", rs_x: "the right stick", rs_y: "the right stick", select: "Select", start: "Start",
+  guide: "the guide button", misc1: "the extra button", touchpad_click: "the touchpad click", none: "nothing",
+};
+
+export function positionWords(input: string): string {
+  const half = input.match(/^(ls|rs)_(up|down|left|right)$/);
+  if (half) return `on the ${half[1] === "ls" ? "left" : "right"} stick ${half[2]}`;
+  const words = POSITIONS[input];
+  return words ? (input === "none" ? "off" : `on ${words}`) : `on ${input.replace(/\+/g, " + ")}`;
+}

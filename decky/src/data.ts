@@ -23,6 +23,7 @@ export interface PadInput {
   name: string;
   drives: Drive[]; // none (does nothing) or several (a clash, also in warnings)
   note?: string;
+  note_short?: string; // a few words for a list row: "Hold for C buttons"
   note_source?: Source; // where the note's fact comes from (EmuDeck's hotkey button, the core's modifier)
   steam_only?: boolean; // back buttons and paddles: emulators never see them
 }

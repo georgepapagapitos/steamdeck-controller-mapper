@@ -5,7 +5,7 @@ import { FaCheck, FaChevronRight, FaExclamationTriangle } from "react-icons/fa";
 import { useLastLaunch } from "../backend";
 import type { LastLaunch, Player } from "../data";
 import { gameTitle, launchLine, launchTime, modeName, optionText, outcomeText, policyText } from "../format";
-import { openButtonMap } from "../navigation";
+import { openButtonMap, openRulesPage } from "../navigation";
 import { Loading, Message, SampleBanner, failureText } from "../States";
 import { t } from "../strings";
 import { Styles } from "../styles";
@@ -86,6 +86,11 @@ function Players({ data }: { data: LastLaunch }) {
           </ButtonItem>
         </PanelSectionRow>
       )}
+      <PanelSectionRow>
+        <ButtonItem layout="below" onClick={openRulesPage}>
+          {t.rules.open}
+        </ButtonItem>
+      </PanelSectionRow>
     </PanelSection>
   );
 }
@@ -154,6 +159,7 @@ export function Panel() {
     return (
       <PanelSection spinner={reloading}>
         <Styles />
+        <div className="mh-qam">
         <PanelSectionRow>
           <SampleBanner result={result} />
         </PanelSectionRow>
@@ -165,12 +171,20 @@ export function Panel() {
             {expected ? t.refresh : t.retry}
           </ButtonItem>
         </PanelSectionRow>
+        {result.code === "no-launch" && (
+          <PanelSectionRow>
+            <ButtonItem layout="below" onClick={openRulesPage}>
+              {t.rules.open}
+            </ButtonItem>
+          </PanelSectionRow>
+        )}
+        </div>
       </PanelSection>
     );
   }
 
   return (
-    <>
+    <div className="mh-qam">
       <Styles />
       {result.sample && (
         <PanelSection>
@@ -183,6 +197,6 @@ export function Panel() {
       <Players data={result.data} />
       <WhoIsPlayerOne data={result.data} />
       <Footer data={result.data} />
-    </>
+    </div>
   );
 }

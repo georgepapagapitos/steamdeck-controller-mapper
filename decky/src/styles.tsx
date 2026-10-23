@@ -17,6 +17,8 @@ export const colors = {
   emulator: "#c7d1db",
   emudeck: "#ffcf8a",
   none: "#5b6b7c",
+  focus: "#ffffff",
+  focusGlow: "rgba(26, 159, 255, 0.45)",
 };
 
 const css = `
@@ -42,6 +44,7 @@ const css = `
   box-sizing: border-box;
 }
 .mh-tab-on { background: ${colors.accent}; color: ${colors.onAccent}; border-color: ${colors.accent}; }
+.mh-tabs .mh-tab { gap: 6px; }
 .mh-body { flex: 1; display: flex; gap: 16px; padding: 10px 16px 46px; min-height: 0; }
 .mh-left { flex: 0 0 300px; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
 .mh-right { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
@@ -58,7 +61,21 @@ const css = `
 .mh-spot[data-kind="emudeck"] { border-color: ${colors.emudeck}; }
 .mh-spot[data-kind="none"] { border-style: dashed; border-color: ${colors.none}; color: ${colors.muted}; }
 .mh-spot.mh-on { border-color: ${colors.selected}; border-style: solid; background: #3a2a14; color: ${colors.text}; }
-.mh-focus { outline: 3px solid #ffffff; outline-offset: 2px; }
+/* A spot drawn as its Kenney glyph: the glyph takes the source's colour, the selected one an orange halo. */
+.mh-spot-icon { border: none; background: transparent; color: ${colors.emulator}; border-radius: 50%; }
+.mh-spot-icon[data-kind="rule"] { color: ${colors.rule}; }
+.mh-spot-icon[data-kind="emudeck"] { color: ${colors.emudeck}; }
+.mh-spot-icon[data-kind="none"] { color: ${colors.none}; }
+.mh-spot-icon.mh-on { background: transparent; color: ${colors.selected}; box-shadow: 0 0 0 3px #3a2a14, 0 0 10px 3px ${colors.selected}; }
+
+/* The focus ring: Steam marks whatever the D-pad is on with .gpfocus (our Focusables add .mh-focus too). Every focusable
+   thing on our screens, ours or Steam's (DialogButton, Field, menu items), gets the same clear white ring. */
+.mh-route .gpfocus, .mh-modal .gpfocus, .mh-focus {
+  outline: 2px solid ${colors.focus}; outline-offset: 2px; box-shadow: 0 0 0 6px ${colors.focusGlow};
+}
+.mh-route.gpfocus, .mh-route .mh-capture.gpfocus { outline: none; box-shadow: none; }
+/* In the Quick Access panel rows sit edge to edge and the panel clips outside them: the ring goes inside. */
+.mh-qam .gpfocus { outline: 2px solid ${colors.focus}; outline-offset: -2px; box-shadow: none; border-radius: 4px; }
 
 .mh-strip {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px;
@@ -97,8 +114,9 @@ const css = `
   padding: 10px 12px; border-radius: 10px; background: ${colors.surface}; border: 1px solid ${colors.selected};
   display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; overflow: hidden;
 }
-.mh-card-head { display: flex; align-items: baseline; gap: 10px; }
+.mh-card-head { display: flex; align-items: center; gap: 10px; }
 .mh-card-glyph { font-size: 18px; font-weight: 700; }
+.mh-card-body { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 6px; }
 .mh-card-name { font-size: 12px; color: ${colors.muted}; }
 .mh-card-drive { display: flex; flex-direction: column; gap: 6px; }
 .mh-card-target { font-size: 15px; font-weight: 600; }
@@ -109,8 +127,8 @@ const css = `
 .mh-card-note[data-kind="emulator"] { color: ${colors.emulator}; }
 .mh-card-note-source { opacity: 0.8; }
 .mh-card-warn { font-size: 13px; color: ${colors.warn}; line-height: 1.45; }
-.mh-card-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.mh-soon { font-size: 12px; color: ${colors.muted}; }
+.mh-card-actions { display: flex; gap: 8px; align-items: center; flex: none; }
+.mh-card-actions .mh-card-button { width: auto; min-width: 0; min-height: 32px; padding: 0 12px; font-size: 12px; }
 
 .mh-list-wrap { flex: 1; min-height: 0; overflow-y: auto; }
 .mh-list { display: flex; flex-direction: column; gap: 3px; padding: 3px 4px 3px 2px; }
@@ -120,7 +138,8 @@ const css = `
   width: 100%;
 }
 .mh-row.mh-on { border-color: ${colors.selected}; background: #2a2015; }
-.mh-row-glyph { width: 52px; flex: none; font-weight: 700; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mh-row-glyph { width: 52px; flex: none; display: flex; align-items: center; font-weight: 700; font-size: 13px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mh-row-name { width: 96px; flex: none; font-size: 11px; color: ${colors.muted};
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mh-row-target { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -128,6 +147,78 @@ const css = `
   font-weight: 600; color: ${colors.muted}; text-transform: uppercase; letter-spacing: 0.8px; }
 .mh-list-heading-note { text-transform: none; letter-spacing: 0; font-weight: 400; }
 .mh-row-none { color: ${colors.muted}; }
+.mh-row-note { color: ${colors.emulator}; font-size: 12px; }
+.mh-row-note[data-kind="emudeck"] { color: ${colors.emudeck}; }
+.mh-row-note[data-kind="rule"] { color: ${colors.rule}; }
+
+.mh-logo { height: 30px; max-width: 120px; object-fit: contain; flex: none; }
+.mh-pending {
+  font-size: 12px; color: ${colors.onAccent}; background: ${colors.rule}; padding: 6px 10px; border-radius: 6px;
+}
+
+/* Modals: the edit flow, results, resets. Steam's ModalRoot gives the frame; this is what's inside. */
+.mh-modal { display: flex; flex-direction: column; gap: 12px; min-width: 460px; max-width: 640px; color: ${colors.text}; }
+.mh-modal-title { font-size: 18px; font-weight: 700; line-height: 1.3; }
+.mh-modal-note { font-size: 13px; color: ${colors.muted}; line-height: 1.45; }
+.mh-modal-warn { font-size: 13px; color: ${colors.warn}; line-height: 1.45; }
+.mh-modal-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.mh-modal-buttons .mh-modal-button { width: auto; min-width: 120px; flex: 1 1 auto; }
+.mh-modal-list { display: flex; flex-direction: column; gap: 6px; }
+.mh-job { display: flex !important; align-items: center; gap: 12px; text-align: left; }
+.mh-job-what { margin-left: auto; color: ${colors.muted}; font-size: 13px; }
+.mh-glyph-name { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; }
+.mh-glyph { font-weight: 700; }
+.mh-target-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.mh-target-grid .mh-target { width: auto; min-width: 0; padding: 0 8px; }
+.mh-pressed { font-size: 18px; }
+.mh-rule-names { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.6; }
+
+.mh-capture {
+  display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 8px 4px; text-align: center;
+}
+.mh-capture-ring {
+  width: 84px; height: 84px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  border: 3px solid ${colors.accent}; color: ${colors.text}; animation: mh-pulse 1.4s ease-in-out infinite;
+}
+@keyframes mh-pulse { 0%, 100% { box-shadow: 0 0 0 0 ${colors.focusGlow}; } 50% { box-shadow: 0 0 0 12px rgba(26,159,255,0); } }
+@media (prefers-reduced-motion: reduce) { .mh-capture-ring { animation: none; } }
+.mh-capture-bar { width: 100%; height: 4px; border-radius: 2px; background: ${colors.surfaceLow}; overflow: hidden; }
+.mh-capture-bar > div { height: 100%; background: ${colors.accent}; transition: width 100ms linear; }
+
+.mh-choice { display: flex; flex-direction: column; gap: 6px; }
+.mh-choice-label { font-size: 11px; font-weight: 600; color: ${colors.muted}; text-transform: uppercase; letter-spacing: 0.8px; }
+.mh-choice-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.mh-choice-row .mh-chip-button { width: auto; min-width: 0; min-height: 34px; padding: 0 14px; font-size: 13px;
+  display: inline-flex; align-items: center; gap: 6px; }
+.mh-choice-row .mh-chip-on { background: ${colors.accent} !important; color: ${colors.onAccent} !important; }
+.mh-preview { max-height: 150px; overflow-y: auto; padding: 8px 10px; border-radius: 8px; background: ${colors.surfaceLow}; }
+.mh-changes { display: flex; flex-direction: column; gap: 8px; }
+.mh-change-group { display: flex; flex-direction: column; gap: 4px; }
+.mh-change-player { font-size: 11px; font-weight: 600; color: ${colors.muted}; }
+.mh-change { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.mh-change-was { color: ${colors.muted}; text-decoration: line-through; }
+.mh-change-now { color: ${colors.rule}; font-weight: 600; }
+
+/* The rules list. */
+.mh-rules-body { padding-bottom: 46px; }
+.mh-rules-wrap { max-width: 760px; margin: 0 auto; width: 100%; }
+.mh-rules { display: flex; flex-direction: column; gap: 4px; padding: 4px 6px; }
+.mh-rules-group { display: flex; flex-direction: column; gap: 6px; }
+.mh-rule {
+  display: flex; align-items: center; gap: 14px; padding: 10px 12px; border-radius: 8px; background: ${colors.surfaceLow};
+}
+.mh-rule-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.mh-rule-label { font-size: 14px; font-weight: 600; }
+.mh-rule-scope { font-size: 12px; color: ${colors.muted}; }
+.mh-rule-made { color: ${colors.rule}; }
+.mh-rule-what { font-size: 12px; color: ${colors.emulator}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mh-rule-clash { font-size: 12px; color: ${colors.warn}; display: flex; gap: 6px; align-items: baseline; }
+.mh-switch { width: 40px; height: 22px; border-radius: 11px; background: #3d4b5a; position: relative; flex: none;
+  transition: background 120ms; }
+.mh-switch-knob { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 8px;
+  background: ${colors.text}; transition: left 120ms; }
+.mh-switch-on { background: ${colors.accent}; }
+.mh-switch-on .mh-switch-knob { left: 21px; }
 
 .mh-state { display: flex; flex-direction: column; gap: 8px; padding: 4px 0; }
 .mh-state-title { font-size: 15px; font-weight: 600; }

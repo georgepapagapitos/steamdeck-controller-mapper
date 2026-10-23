@@ -8,7 +8,16 @@ drawn in its own shape, every button labelled with the pad's glyph and coloured
 by where its mapping comes from (your rule, the emulator's default, EmuDeck),
 what each one does in the game, and the buttons only Steam sees (back buttons,
 paddles, touchpad click). Everything works with the D-pad and A/B; L1/R1 switch
-players on the button map. Editing ("Change button") is not built yet.
+players on the button map.
+
+Changing a mapping starts on the button map: select a button and press A (**Change button**, or **Give it a
+job** for one that does nothing), press the button you want, then say where it applies: this game or all the
+system's games, any controller, every pad of that kind, or only that one pad. The plugin shows what changes for
+the pads connected now, saves a rule in `~/.local/share/map-helper/rules`, and the change applies the next time a
+game starts. **Undo** is offered right after; X on a button a rule changed is **Back to default**; the ≡ button
+(or ⋯ in the header) has the resets for this game and for the whole system, which turn rules off rather than
+delete them. **Your rules** lists every rule with an on/off switch, including the ones parked in
+`~/.local/share/map-helper/rules-off`.
 
 The data is `map-helper show --last --json`, which prints
 `~/.local/state/map-helper/last-launch.json`, written by `mh-run` at every
@@ -28,11 +37,15 @@ decky/
 │   ├── index.tsx      definePlugin: QAM panel + the /map-helper/map route
 │   ├── panel/         Quick Access panel
 │   ├── map/           button map: drawing, shapes, list, detail card, strip, chips
-│   ├── backend.ts     the one backend call, and the dev fixture switch
+│   ├── rulesPage/     the rules list (/map-helper/rules)
+│   ├── backend.ts     the last-launch call, and the dev fixture switch
+│   ├── rules.ts       the rule calls: list, targets, edit (with preview), on/off, delete, reset, system logo
+│   ├── glyphs.tsx     Kenney glyphs per pad style, controller icons
 │   ├── data.ts        the show JSON (schema 1) and the backend's answer, typed
 │   ├── format.ts      game titles, program names, source words, times
 │   ├── strings.ts     every user-visible string
 │   └── styles.tsx     colours and CSS
+├── assets/kenney/     the Kenney Input Prompts SVGs the plugin uses, and their License.txt (CC0)
 ├── dev/               fixture data for development (never shipped)
 ├── TEMPLATE-LICENSE   decky-plugin-template's BSD-3-Clause notice
 └── package.sh         build + out/map-helper.zip
@@ -52,6 +65,27 @@ with a 5 s timeout and a minimal environment, and returns either
 `not-installed`, `no-launch`, `no-python`, `timeout`, `bad-output` or `failed`.
 It never raises into the frontend; problems go to the plugin log
 (`~/homebrew/logs/map-helper/`).
+
+The rule calls run `map-helper rules ... --json` the same way (the core checks every op and every rule it writes,
+and writes only in `rules/` and `rules-off/`): `get_rules()`, `get_targets(system)`, `edit_rules(ops, dry_run)`
+(20 s: it previews by running the launch pipeline before and after), `set_rules_on(ids, on)`, `delete_rules(ids)`
+and `reset_rules(system, game, dry_run)`. A refused change comes back as `code: "refused"` with the core's reason.
+`get_system_logo(system)` reads the active theme's name from `~/ES-DE/settings/es_settings.xml` and returns
+`~/ES-DE/themes/<theme>/_inc/systems/logos/<system>.svg` (or `.png`) as a data URL; with no such file the header
+names the system instead. No logo ships with the plugin.
+
+## Developing against the Deck
+
+From the repo root, with developer mode on and the plugin installed once from the zip:
+
+```sh
+tools/deck.sh plugin                    # build, copy dist/index.js and main.py over, reload backend + frontend
+tools/deck.sh ui nav /map-helper/map    # open a route
+tools/deck.sh shot out.png              # screenshot Big Picture (854x534 CSS px; Steam's UI is at 1.5x)
+tools/deck.sh ui eval 'JS'              # evaluate in SharedJSContext (window.DFL, DeckyPluginLoader, ...)
+```
+
+`tools/cdp.py` is the client: stdlib Python, run on the Deck, where Steam's CEF debugger listens on localhost.
 
 ## Build
 

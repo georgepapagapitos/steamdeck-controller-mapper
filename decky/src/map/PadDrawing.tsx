@@ -1,11 +1,12 @@
 import type { CSSProperties } from "react";
+import type { Pad } from "../data";
+import { Icon, glyphIcon } from "../glyphs";
 import { t } from "../strings";
 import { type Control, controlKind, controlTargets } from "./controls";
 import { BOX, type Spot, shapeDef } from "./shapes";
 
 interface Props {
-  padName: string;
-  shape: string;
+  pad: Pad;
   controls: Control[];
   selected: string | null;
 }
@@ -36,25 +37,31 @@ export function spotLabel(control: Control, prefix: string): string {
 // The pad in its own shape, each control labelled with the pad's glyph and coloured by where its mapping comes
 // from. It's a picture, not something to navigate: Steam's D-pad focus can't move reliably between freely placed
 // buttons, so the list beside it takes focus and the drawing lights up whichever control the list is on.
-export function PadDrawing({ padName, shape, controls, selected }: Props) {
-  const def = shapeDef(shape);
+// A control with a Kenney glyph is drawn as that glyph, tinted with its source's colour; any other keeps its label
+// in a bordered pill, the border in that colour.
+export function PadDrawing({ pad, controls, selected }: Props) {
+  const def = shapeDef(pad.shape);
   const placed = controls.filter((c) => def.spots[c.key]);
   return (
-    <div className="mh-pad" role="img" aria-label={t.map.drawing(padName)}>
+    <div className="mh-pad" role="img" aria-label={t.map.drawing(pad.name)}>
       <svg viewBox={`0 0 ${BOX.width} ${BOX.height}`} aria-hidden="true">
         {def.outline}
       </svg>
-      {placed.map((control) => (
-        <div
-          key={control.key}
-          className={`mh-spot${control.key === selected ? " mh-on" : ""}`}
-          data-kind={controlKind(control)}
-          style={spotStyle(def.spots[control.key], control.glyph)}
-          aria-hidden="true"
-        >
-          {control.glyph}
-        </div>
-      ))}
+      {placed.map((control) => {
+        const icon = glyphIcon(pad, control.glyph);
+        const spot = def.spots[control.key];
+        return (
+          <div
+            key={control.key}
+            className={`mh-spot${icon ? " mh-spot-icon" : ""}${control.key === selected ? " mh-on" : ""}`}
+            data-kind={controlKind(control)}
+            style={spotStyle(spot, control.glyph)}
+            aria-hidden="true"
+          >
+            {icon ? <Icon name={icon} size="100%" /> : control.glyph}
+          </div>
+        );
+      })}
     </div>
   );
 }

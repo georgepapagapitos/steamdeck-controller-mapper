@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Builds the plugin and packs it as out/map-helper.zip, laid out as Decky expects (docs/14 §1):
-#   map-helper/{dist/index.js, package.json, plugin.json, main.py, LICENSE, README.md}
+#   map-helper/{dist/index.js, package.json, plugin.json, main.py, LICENSE, README.md, assets/kenney/License.txt}
 # No py_modules/ yet: the core is installed separately (tools/deck.sh install).
 # Runs on macOS (bash 3.2) and Git Bash on Windows; needs node with corepack, and python3 for the zip.
 set -euo pipefail
@@ -25,11 +25,16 @@ out = root / "out"
 out.mkdir(exist_ok=True)
 target = out / "map-helper.zip"
 
-# Our licence on top, the plugin template's BSD-3-Clause notice below it (store rule, docs/14 §9).
+# Our licence on top, the plugin template's BSD-3-Clause notice below it (store rule, docs/14 §9), then the credit
+# for the pad glyphs, which are bundled into dist/index.js (their licence file ships too).
+rule = "\n\n" + "-" * 78 + "\n\n"
 license_text = (root.parent / "LICENSE").read_text(encoding="utf-8").rstrip("\n")
-license_text += "\n\n" + "-" * 78 + "\n\n" + (root / "TEMPLATE-LICENSE").read_text(encoding="utf-8")
+license_text += rule + (root / "TEMPLATE-LICENSE").read_text(encoding="utf-8").rstrip("\n")
+license_text += rule + ("Pad glyphs and controller icons: Input Prompts 1.5A by Kenney (www.kenney.nl), CC0 1.0.\n"
+                        "Only the SVGs the plugin uses are included; see assets/kenney/License.txt.\n")
 
-files = {name: (root / name).read_bytes() for name in ("package.json", "plugin.json", "main.py", "README.md")}
+files = {name: (root / name).read_bytes()
+         for name in ("package.json", "plugin.json", "main.py", "README.md", "assets/kenney/License.txt")}
 files["LICENSE"] = license_text.encode("utf-8")
 for path in sorted((root / "dist").rglob("*")):
     if path.is_file():
