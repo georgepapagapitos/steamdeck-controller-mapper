@@ -518,6 +518,9 @@ adapter writes those at every launch. Only Mupen64Plus-Next has any so far:
 | `deadzones.ls` (0..1) | `mupen64plus-astick-deadzone` | `0`, `5`, ... `30` (percent), default `15`. One for all ports, taken from player 1's resolution, like hotkeys |
 | `pak` | `mupen64plus-pakN` | `none`, `memory`, `rumble`, `transfer`; defaults `memory` for player 1, `none` for 2-4. Player N's `pak` sets `pakN`; a player whose rules set no pak leaves `pakN` alone |
 
+On a Deck (2026-10-23, Ocarina of Time from ES-DE, `pak1 = rumble`): the DualSense rumbled through Steam Input's
+virtual pad, so the core's rumble pak reaches a real pad that way.
+
 RetroArch keeps an option's value only if the core lists it; anything else
 silently becomes the default (`core_option_manager.c` L1031-1053). So a
 deadzone snaps to the nearest listed percent (8% is written as `10`), with a
