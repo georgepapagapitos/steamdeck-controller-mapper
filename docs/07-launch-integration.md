@@ -262,13 +262,22 @@ game, and the emulator replaces the shell, so Steam keeps the PID it started. Wi
 Run without the shim (`python3 -I mh_entry.py mh-run ...` without `--no-exec`), mh-run execs the command itself
 (`os.execvp`); `mh_entry.py` does the same when it can't even import map-helper.
 
+The install the shim points at is put there by `map-helper self-install` ([14](14-packaging-permissions.md) §6;
+from a dev machine, `tools/deck.sh install`), which only installs the tree; the shims are setup's. Until there's
+an install, the shim just runs the command.
+
 ### `map-helper setup` and `uninstall`
 
 Dry runs unless `--write`; both idempotent. setup records what it changed in `$STATE/setup.json`, and uninstall
 undoes exactly that: a file or value someone changed since is left alone (an SRM parser whose args changed but still
 carry our prefix loses just the prefix).
 
-- **Shim**: writes `~/.local/bin/mh-run` (0755). It refuses to overwrite a file that isn't its own.
+- **Shims**: writes `~/.local/bin/mh-run` and the `~/.local/bin/map-helper` CLI shim (both 0755, both running
+  `~/.local/lib/map-helper/current/mh_entry.py` unless `--entry` says otherwise). setup is the only writer of
+  both; it refuses to overwrite a file that isn't its own.
+- **The install**: uninstall also removes what `self-install` put in `~/.local/lib/map-helper` (`versions/`,
+  `current`, `install.json`), only when `install.json` is there and nothing was refused. A tree without it isn't
+  map-helper's and is left alone.
 - **SRM parsers** (`~/.config/steam-rom-manager/userData/userConfigurations.json`): every parser with
   `appendArgsToExecutable: false` whose executable is `${retroarchpath}` with a core map-helper has a descriptor
   for, `.../dolphin-emu.sh` or `.../pcsx2-qt.sh` gets

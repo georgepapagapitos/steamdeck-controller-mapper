@@ -79,7 +79,17 @@ Then, from the Mac or Git Bash on Windows, run `ssh-copy-id deck@steamdeck` (or 
 export DECK_HOST=deck@192.168.0.50     # only if deck@steamdeck doesn't resolve
 tools/deck.sh run devices               # copy the core over and list the controllers the Deck sees
 tools/deck.sh capture ds4-bt-steam-input  # dump devices + emulator configs into tests/fixtures/*/ds4-bt-steam-input/
+tools/deck.sh install                   # install this tree in ~/.local/lib/map-helper (what mh-run's shim runs)
 tools/deck.sh ssh
+```
+
+`push` and `run` replace `~/map-helper-dev` wholesale, so don't point hooks at it. `install` is the real install
+(docs/14 §6): a version per tree, `current` swapped atomically, the previous version kept. Then, on the Deck, put
+mh-run in the launch paths with the installed copy (a dry run; add `--write`, and afterwards `map-helper` is on
+`~/.local/bin`):
+
+```bash
+/usr/bin/python3 -I ~/.local/lib/map-helper/current/mh_entry.py setup
 ```
 
 `capture` is read-only on the Deck. It redacts MACs and blanks emulator credentials before anything leaves the

@@ -19,9 +19,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+from . import DATA
 from .store import load_json
-
-DATA = Path(__file__).resolve().parents[2] / "data"
 
 
 @dataclass

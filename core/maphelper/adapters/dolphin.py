@@ -8,15 +8,15 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Callable, Optional
 
+from .. import DATA
 from ..devices import Joystick
 from ..resolve import Resolution
 from ..store import load_json
 from ..writer import Patch
 
-TABLE = Path(__file__).resolve().parents[3] / "data" / "adapters" / "dolphin.json"
+TABLE = DATA / "adapters" / "dolphin.json"
 _LETTERS_ONLY = re.compile(r"^[A-Za-z]+$")
 AXES = ("ls_x", "ls_y", "rs_x", "rs_y")
 GC_PORTS = 4

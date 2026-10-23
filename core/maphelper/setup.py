@@ -2,13 +2,15 @@
 
 setup does three things, each recorded in $STATE/setup.json so uninstall reverses exactly that and nothing else:
 
-1. Installs the `mh-run` POSIX sh shim in ~/.local/bin (docs/14 §6).
+1. Installs the `mh-run` and `map-helper` POSIX sh shims in ~/.local/bin (docs/14 §6). setup is their only writer;
+   self-install (install.py) only puts the code under ~/.local/lib/map-helper.
 2. Edits Steam ROM Manager's parsers (~/.config/steam-rom-manager/userData/userConfigurations.json) so each parser
    for an emulator map-helper manages runs `mh-run --emulator <id> -- %command% ...`. Steam only sees it after the
    user's next "Save to Steam" in SRM. shortcuts.vdf is never written.
 3. Installs the ES-DE game-start event script and turns on ES-DE's CustomEventScripts setting.
 
 Both are dry runs unless write=True, and both are idempotent. A file someone changed after setup is left alone.
+uninstall also removes what self-install put in ~/.local/lib/map-helper, when its install.json is there.
 """
 
 from __future__ import annotations
@@ -42,12 +44,20 @@ class Places:
 
     def __post_init__(self):
         self.home = Path(self.home)
-        self.entry = Path(self.entry) if self.entry else self.home / ".local/lib/map-helper/current/mh_entry.py"
+        self.entry = Path(self.entry) if self.entry else self.lib / "current" / "mh_entry.py"
         self.state_dir = Path(self.state_dir) if self.state_dir else self.home / ".local/state/map-helper"
+
+    @property
+    def lib(self) -> Path:
+        return self.home / ".local/lib/map-helper"          # self-install's tree (install.py)
 
     @property
     def shim(self) -> Path:
         return self.home / ".local/bin/mh-run"
+
+    @property
+    def cli_shim(self) -> Path:
+        return self.home / ".local/bin/map-helper"
 
     @property
     def srm_config(self) -> Path:
@@ -72,7 +82,7 @@ class Places:
 
 @dataclass
 class Change:
-    part: str                 # shim | srm | es-de script | es-de setting | automap
+    part: str                 # shim | cli shim | srm | es-de script | es-de setting | automap | install
     action: str               # install | update | ok | remove | leave | refuse | report
     message: str
 
@@ -111,6 +121,13 @@ while [ "$#" -gt 0 ] && [ "$1" != "--" ]; do shift; done
 [ "$#" -gt 0 ] && shift
 [ "$#" -gt 0 ] && exec "$@"
 exit 0
+"""
+
+
+def cli_shim_text(entry: Path, python: str) -> str:
+    return f"""#!/bin/sh
+# map-helper command line (managed file: `map-helper setup` wrote it, `map-helper uninstall` removes it).
+exec {_sh_quote(python)} -I {_sh_quote(str(entry))} "$@"
 """
 
 
@@ -538,9 +555,11 @@ def _automap(report: Report, places: Places) -> None:
 def setup(places: Places, write: bool = False) -> Report:
     report, record = Report(), load_record(places.state_dir)
     _install_file(report, record, "shim", "shim", places.shim, shim_text(places.entry, places.python), write)
+    _install_file(report, record, "cli shim", "cli_shim", places.cli_shim, cli_shim_text(places.entry, places.python),
+                  write)
     if not places.entry.is_file():
-        report.add("shim", "report", f"{places.entry} isn't there yet: until map-helper is installed there, the "
-                                     "shim just runs the command")
+        report.add("shim", "report", f"{places.entry} isn't there yet: until map-helper is installed there "
+                                     "(`self-install`), the shim just runs the command")
     _srm_setup(report, record, places, write)
     if places.esde_root.is_dir():
         _install_file(report, record, "es-de script", "esde_script", places.esde_script,
@@ -558,13 +577,21 @@ def uninstall(places: Places, write: bool = False) -> Report:
     report, record = Report(), load_record(places.state_dir)
     if not record:
         report.add("setup", "ok", "setup hasn't changed anything; nothing to undo")
-        return report
-    _srm_uninstall(report, record, places, write)
-    _esde_setting_uninstall(report, record, places, write)
-    _remove_file(report, record, "es-de script", "esde_script", write)
-    _remove_file(report, record, "shim", "shim", write)
-    if write:
-        save_record(places.state_dir, record)
+    else:
+        _srm_uninstall(report, record, places, write)
+        _esde_setting_uninstall(report, record, places, write)
+        _remove_file(report, record, "es-de script", "esde_script", write)
+        _remove_file(report, record, "shim", "shim", write)
+        _remove_file(report, record, "cli shim", "cli_shim", write)
+        if write:
+            save_record(places.state_dir, record)
+    # Last, and only with nothing refused: this may be the tree uninstall itself runs from (its imports are done).
+    from .install import remove
+    if not report.refused:
+        version = remove(places.lib, write)
+        if version:
+            report.add("install", "remove", f"{'would remove' if not write else 'removed'} map-helper {version} "
+                                            f"from {places.lib}")
     return report
 
 

@@ -12,14 +12,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 
-from . import resolve as resolver
+from . import DATA, resolve as resolver
 from .devices import ControllerDB
 from .model import Target
 from .store import load_json, load_layouts, load_sources
 from .writer import ApplyResult, apply_patches
 
-REPO = Path(__file__).resolve().parents[2]
-DATA = REPO / "data"
 HOME = Path.home()
 
 

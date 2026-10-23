@@ -8,7 +8,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import resolve as resolver
+from . import DATA, resolve as resolver
 from .devices import (STEAM_VIRTUAL_PAD, ControllerDB, is_gamepad, parse_ignore_devices, parse_proc_input_devices,
                       parse_virtual_gamepad_info, physical_ids, sdl_joysticks, stable_id, steam_slots, with_usb_serials,
                       POLICY_EXTERNAL_FIRST, POLICY_STEAM_ORDER, docked, parse_drm_status,
@@ -17,8 +17,7 @@ from .model import Target
 from .store import load_json, load_layouts, load_sources
 from .validate import validate_rule
 
-REPO = Path(__file__).resolve().parents[2]
-DATA = REPO / "data"
+EXAMPLES = DATA.parent / "examples"      # the repo's example rules: the dev default for --rules
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -96,6 +95,12 @@ def main(argv: list[str] | None = None) -> int:
                                                       "(default: ~/.local/lib/map-helper/current/mh_entry.py)")
             p.add_argument("--python", default="/usr/bin/python3", help="the Python the shim runs it with")
 
+    p = sub.add_parser("self-install", help="install this payload in ~/.local/lib/map-helper (docs/14 §6)")
+    p.add_argument("--from", dest="source", type=Path,
+                   help="the payload: mh_entry.py, maphelper/, data/ (default: the one this runs from)")
+    p.add_argument("--installed-by", choices=["cli", "decky"], default="cli", help=argparse.SUPPRESS)
+    p.add_argument("--home", type=Path, default=Path.home(), help=argparse.SUPPRESS)
+
     if argv is None:
         argv = sys.argv[1:]
     if argv[:1] == ["mh-run"]:                     # the launch wrapper takes its own arguments (see mhrun.py)
@@ -104,7 +109,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     return {"validate": cmd_validate, "devices": cmd_devices, "explain": cmd_explain,
             "apply": cmd_apply, "backup": cmd_backup, "restore": cmd_restore,
-            "doctor": cmd_doctor, "setup": cmd_setup, "uninstall": cmd_setup}[args.command](args)
+            "doctor": cmd_doctor, "setup": cmd_setup, "uninstall": cmd_setup,
+            "self-install": cmd_self_install}[args.command](args)
 
 
 def add_probe_arguments(p) -> None:
@@ -259,7 +265,7 @@ def cmd_explain(args) -> int:
         controller = db.classify(tuple(args.device_id), name=args.name, claimed_model=args.model)
     else:
         controller = db.classify(tuple(args.device_id), args.vid_pid, args.name)
-    sources = [(DATA / "defaults", "shipped")] + [(d, "user") for d in (args.rules or [REPO / "examples"])]
+    sources = [(DATA / "defaults", "shipped")] + [(d, "user") for d in (args.rules or [EXAMPLES])]
     report = load_sources(sources)
     for path, problem in report.problems:
         print(f"warning: {path}: {problem}", file=sys.stderr)
@@ -288,7 +294,7 @@ if __name__ == "__main__":
 
 def cmd_apply(args) -> int:
     from . import pipeline
-    req = pipeline.Request(args.emulator, args.system, args.config_root, args.rules or [REPO / "examples"],
+    req = pipeline.Request(args.emulator, args.system, args.config_root, args.rules or [EXAMPLES],
                            core=args.core, game=args.game, players=args.player, probe_args=args,
                            write=args.write, state_dir=args.state_dir)
     try:
@@ -360,3 +366,18 @@ def cmd_setup(args) -> int:
     if not args.write and any(c.action in ("install", "update", "remove") for c in report.changes):
         print("Dry run: nothing changed. Add --write to make these changes.")
     return 1 if report.refused else 0
+
+
+def cmd_self_install(args) -> int:
+    import subprocess
+    from . import install, setup
+    places = setup.Places(home=args.home)
+    try:
+        version, changed = install.install(args.source, places.lib, args.installed_by)
+    except (install.InstallError, OSError, subprocess.SubprocessError) as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
+    print(f"{'installed' if changed else 'already installed:'} map-helper {version} in "
+          f"{places.lib / 'versions' / version}\n{places.lib / 'current'} -> versions/{version}")
+    print(f"Next, to put mh-run in the launch paths (dry run; add --write): /usr/bin/python3 -I {places.entry} setup")
+    return 0
