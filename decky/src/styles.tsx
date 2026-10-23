@@ -155,6 +155,10 @@ const css = `
   font-weight: 600; color: ${colors.muted}; text-transform: uppercase; letter-spacing: 0.8px; }
 .mh-list-heading-note { text-transform: none; letter-spacing: 0; font-weight: 400; }
 .mh-row-none { color: ${colors.muted}; }
+/* Console inputs as small icons drawn from the console's drawing (consoles.tsx). */
+.mh-console-icons { display: inline-flex; gap: 4px; align-items: center; vertical-align: middle; }
+.mh-console-icon { flex: none; display: block; }
+.mh-with-icon { display: flex; align-items: center; gap: 8px; }
 .mh-row-defaults { color: ${colors.rule}; font-weight: 600; }
 .mh-row-defaults-note { flex: none; font-size: 11px; color: ${colors.muted}; white-space: nowrap; }
 .mh-row-note { color: ${colors.emulator}; font-size: 12px; }

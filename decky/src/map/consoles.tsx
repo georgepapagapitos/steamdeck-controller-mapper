@@ -162,3 +162,37 @@ export function ConsolePad({ system, lit, label }: { system: string; lit: string
     </svg>
   );
 }
+
+// One console input as a small icon, drawn from its spot on the console's drawing (same colour and label), for the
+// list rows, the card and the decide screen. null when the system has no drawing or the input no spot.
+export function ConsoleIcon({ system, target, size = 22 }: { system: string; target: string; size?: number }) {
+  const def = CONSOLES[system];
+  const s = def?.spots[spotOf(target, def)];
+  if (!s) return null;
+  const v = s.r + 3;
+  return (
+    <svg className="mh-console-icon" width={size} height={size} viewBox={`${-v} ${-v} ${2 * v} ${2 * v}`} aria-hidden="true">
+      <circle r={s.r} fill="#121820" stroke={s.tint ?? colors.border} strokeWidth={2.5} />
+      <text textAnchor="middle" dominantBaseline="central" fontWeight={700}
+        fontSize={s.label.length > 1 ? s.r * 0.8 : s.r * 1.05} fill={s.tint ?? colors.text}>
+        {s.label}
+      </text>
+    </svg>
+  );
+}
+
+// Icons for a list of console targets, one per spot (a stick's two axes are one icon), when every target has one;
+// else null, and the caller writes the labels in words.
+export function consoleIcons(system: string, targets: string[], size?: number): ReactNode | null {
+  const def = CONSOLES[system];
+  if (!def || !targets.length) return null;
+  const spots = [...new Set(targets.map((t) => spotOf(t, def)))];
+  if (!spots.every((name) => name in def.spots)) return null;
+  const first = new Map(targets.map((t) => [spotOf(t, def), t] as const));
+  return (
+    <span className="mh-console-icons">
+      {spots.map((name) => <ConsoleIcon key={name} system={system} target={first.get(name)!} size={size} />)}
+    </span>
+  );
+}
+

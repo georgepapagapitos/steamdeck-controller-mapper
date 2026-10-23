@@ -5,7 +5,8 @@ import type { Pad, PadInput } from "../data";
 import { Glyph } from "../glyphs";
 import { t } from "../strings";
 import { steamKey, steamOnlyTitle } from "./BackStrip";
-import { type Control, controlKind, controlNote, controlTargets, summarizeTargets } from "./controls";
+import { consoleIcons } from "./consoles";
+import { type Control, controlDrives, controlKind, controlNote, controlTargets, summarizeTargets } from "./controls";
 import { spotLabel } from "./PadDrawing";
 
 // The key the "Back to emulator defaults" row selects: no control has it.
@@ -18,6 +19,7 @@ interface Props {
   isDeck: boolean;
   selected: string | null;
   prefix: string;
+  system: string; // draws the console inputs as icons where it has a drawing
   onSelect: (key: string) => void;
   onChange?: (control: Control) => void; // A on a row
   onDefault?: (control: Control) => void; // X on a row, where canDefault says one of the user's rules sets something
@@ -80,7 +82,7 @@ function Row({ id, on, label, onSelect, onActivate, onSecondary, okText, seconda
 // row selects it, so the drawing and the detail card follow focus. Inputs only Steam sees (back buttons,
 // paddles, a touchpad click) come last, under their own heading.
 export function ControlList(props: Props) {
-  const { pad, controls, steamOnly, isDeck, selected, prefix, onSelect, onChange, onDefault, canDefault, defaults } = props;
+  const { pad, controls, steamOnly, isDeck, selected, prefix, system, onSelect, onChange, onDefault, canDefault, defaults } = props;
   return (
     <div className="mh-list-wrap">
         <Focusable className="mh-list" flow-children="column" role="list" aria-label={t.map.inputs} {...keepFocusIn}>
@@ -105,7 +107,10 @@ export function ControlList(props: Props) {
                 <span className="mh-row-glyph"><Glyph pad={pad} label={control.glyph} size={22} /></span>
                 <span className="mh-row-name">{control.name !== control.glyph ? control.name : ""}</span>
                 {targets.length ? (
-                  <span className="mh-row-target">{[prefix, summarizeTargets(targets)].filter(Boolean).join(" ")}</span>
+                  <span className="mh-row-target">
+                    {consoleIcons(system, controlDrives(control).map((d) => d.target))
+                      ?? [prefix, summarizeTargets(targets)].filter(Boolean).join(" ")}
+                  </span>
                 ) : note ? (
                   <span className="mh-row-target mh-row-note" data-kind={controlKind(control)}>{note}</span>
                 ) : (

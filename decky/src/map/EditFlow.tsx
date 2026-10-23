@@ -8,7 +8,7 @@ import { type Change, type EditResult, type Op, type Scope, type Target, editRul
 import { t } from "../strings";
 import { Styles } from "../styles";
 import { type Capture, type Want, asSource, capture, padIndices, steamPadName } from "./capture";
-import { ConsolePad, hasConsolePad } from "./consoles";
+import { ConsolePad, consoleIcons, hasConsolePad } from "./consoles";
 import { type Control, groupControls } from "./controls";
 import { PadDrawing } from "./PadDrawing";
 
@@ -324,6 +324,7 @@ function DecideView({ launch, player, players, prefix, step, onSaved, onAgain, o
       <div className="mh-decide">
         <Glyph pad={player.pad} label={words.glyph} size={32} className="mh-glyph" />
         <span className="mh-decide-arrow" aria-hidden="true">→</span>
+        {consoleIcons(launch.system, binds.map((b) => b.target), 34)}
         <span className="mh-decide-what">{what}</span>
       </div>
       <div className="mh-modal-note">

@@ -2,11 +2,13 @@ import type { Pad, PadInput } from "../data";
 import { sourceWords } from "../format";
 import { Glyph } from "../glyphs";
 import { t } from "../strings";
+import { consoleIcons } from "./consoles";
 import type { Control } from "./controls";
 
 interface Props {
   pad: Pad;
   prefix: string;
+  system: string;
   control?: Control;
   steamOnly?: PadInput;
   isDeck: boolean;
@@ -14,7 +16,12 @@ interface Props {
   systemName?: string;
 }
 
-function InputDrives({ input, prefix, showInput }: { input: PadInput; prefix: string; showInput: boolean }) {
+function InputDrives({ input, prefix, system, showInput }: {
+  input: PadInput;
+  prefix: string;
+  system: string;
+  showInput: boolean;
+}) {
   const label = (l: string) => (prefix ? `${prefix} ${l}` : l);
   return (
     <div className="mh-card-drive">
@@ -24,7 +31,7 @@ function InputDrives({ input, prefix, showInput }: { input: PadInput; prefix: st
       )}
       {input.drives.map((drive, i) => (
         <div key={`${drive.target}-${i}`} className="mh-card-drive">
-          <div className="mh-card-target">{label(drive.label)}</div>
+          <div className="mh-card-target mh-with-icon">{consoleIcons(system, [drive.target], 26)}{label(drive.label)}</div>
           <div>
             <span className="mh-badge" data-kind={drive.source?.kind}>
               {sourceWords(drive.source)}
@@ -45,7 +52,7 @@ function InputDrives({ input, prefix, showInput }: { input: PadInput; prefix: st
 
 // The selected control: its glyph and name, what each of its inputs drives, where that came from, and any note,
 // The list row it follows has the actions (A Change button, X Back to default); Steam's footer names them.
-export function DetailCard({ pad, prefix, control, steamOnly, isDeck, defaults, systemName }: Props) {
+export function DetailCard({ pad, prefix, system, control, steamOnly, isDeck, defaults, systemName }: Props) {
   if (defaults) {
     return (
       <section className="mh-card" aria-live="polite">
@@ -88,7 +95,7 @@ export function DetailCard({ pad, prefix, control, steamOnly, isDeck, defaults, 
       </div>
       <div className="mh-card-body">
         {control.inputs.map((input) => (
-          <InputDrives key={input.input} input={input} prefix={prefix} showInput={several} />
+          <InputDrives key={input.input} input={input} prefix={prefix} system={system} showInput={several} />
         ))}
       </div>
     </section>

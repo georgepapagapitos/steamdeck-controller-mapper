@@ -157,7 +157,7 @@ function MapView({ data, sample, reload }: { data: LastLaunch; sample: boolean; 
               <Message title={player.pad.name} body={t.map.noInputs} />
             )}
             <Legend />
-            <DetailCard pad={player.pad} prefix={prefix} control={control} steamOnly={steamOnly} isDeck={isDeck}
+            <DetailCard pad={player.pad} prefix={prefix} system={launch.system} control={control} steamOnly={steamOnly} isDeck={isDeck}
               defaults={selected === DEFAULTS_KEY} systemName={launch.system_name || launch.system.toUpperCase()} />
           </div>
           <div className="mh-right" ref={right}>
@@ -171,7 +171,7 @@ function MapView({ data, sample, reload }: { data: LastLaunch; sample: boolean; 
               </div>
             )}
             <ControlList pad={player.pad} controls={controls} steamOnly={backs} isDeck={isDeck} selected={selected}
-              prefix={prefix} onSelect={setSelected} onChange={ctx ? (c) => openEdit(ctx, c) : undefined}
+              prefix={prefix} system={launch.system} onSelect={setSelected} onChange={ctx ? (c) => openEdit(ctx, c) : undefined}
               onDefault={ctx ? (c) => backToDefault(ctx, c) : undefined} canDefault={canDefault} defaults={defaults} />
           </div>
         </div>
