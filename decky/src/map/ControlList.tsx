@@ -1,4 +1,4 @@
-import { Focusable, GamepadButton, type GamepadEvent } from "@decky/ui";
+import { Focusable, type GamepadEvent } from "@decky/ui";
 import type { ReactNode } from "react";
 import type { Pad, PadInput } from "../data";
 import { Glyph } from "../glyphs";
@@ -24,20 +24,7 @@ interface Props {
 // around the whole list, footer "Select") when a modal closes, instead of the row you were on.
 const reveal = (evt: GamepadEvent) => (evt.target as HTMLElement | null)?.scrollIntoView?.({ block: "nearest" });
 
-// Focus stays in the list: up on the first row, down on the last and left/right anywhere would otherwise go to
-// whatever Steam finds outside the page (an invisible element: focus seemed to vanish).
-function keepIn(evt: GamepadEvent, first: boolean, last: boolean) {
-  const b = evt.detail.button;
-  if ((b === GamepadButton.DIR_UP && first) || (b === GamepadButton.DIR_DOWN && last)
-      || b === GamepadButton.DIR_LEFT || b === GamepadButton.DIR_RIGHT) {
-    evt.preventDefault?.();
-    evt.stopPropagation?.();
-  }
-}
-
-function Row({ id, on, label, onSelect, onActivate, onSecondary, okText, secondaryText, first, last, children }: {
-  first?: boolean;
-  last?: boolean;
+function Row({ id, on, label, onSelect, onActivate, onSecondary, okText, secondaryText, children }: {
   id: string;
   on: boolean;
   label: string;
@@ -66,7 +53,6 @@ function Row({ id, on, label, onSelect, onActivate, onSecondary, okText, seconda
       }}
       onOKActionDescription={okText ?? t.map.select}
       onSecondaryButton={onSecondary}
-      onGamepadDirection={(evt) => keepIn(evt, !!first, !!last)}
       onSecondaryActionDescription={onSecondary ? secondaryText : undefined}
     >
       {children}
@@ -82,12 +68,11 @@ export function ControlList(props: Props) {
   return (
     <div className="mh-list-wrap">
         <Focusable className="mh-list" flow-children="column" role="list" aria-label={t.map.inputs}>
-          {controls.map((control, i) => {
+          {controls.map((control) => {
             const targets = controlTargets(control);
             const note = controlNote(control);
             return (
               <Row key={control.key} id={control.key} on={control.key === selected}
-                first={i === 0} last={i === controls.length - 1 && steamOnly.length === 0}
                 label={spotLabel(control, prefix)} onSelect={onSelect}
                 onActivate={onChange && (() => onChange(control))}
                 okText={targets.length ? t.map.changeButton : t.edit.assign}
@@ -112,9 +97,8 @@ export function ControlList(props: Props) {
               <span className="mh-list-heading-note">{isDeck ? t.map.steamOnlyNoteDeck : t.map.steamOnlyNote}</span>
             </div>
           )}
-          {steamOnly.map((input, i) => (
+          {steamOnly.map((input) => (
             <Row key={input.input} id={steamKey(input)} on={steamKey(input) === selected}
-              last={i === steamOnly.length - 1}
               label={`${input.glyph}, ${input.name}: ${t.map.steamOnly}`} onSelect={onSelect}>
               <span className="mh-row-glyph"><Glyph pad={pad} label={input.glyph} size={22} /></span>
               <span className="mh-row-name">{input.name}</span>
