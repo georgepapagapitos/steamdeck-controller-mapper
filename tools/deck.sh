@@ -112,7 +112,8 @@ case "${1:-}" in
   leak-check)
     # Every commit's message and full patch, binary files as text too (a fixture can be binary). Not through rtk.
     ssh "$HOST" "mkdir -p .cache && cat > .cache/map-helper-leak-scan.py" < tools/leak-scan.py
-    git log -p --text --no-ext-diff --no-color --format='commit %H%n%an <%ae>%n%B' "${2:-@{u\}..HEAD}" |
+    range=${2:-}; [ -n "$range" ] || range='@{u}..HEAD'
+    git log -p --text --no-ext-diff --no-color --format='commit %H%n%an <%ae>%n%B' "$range" |
       ssh "$HOST" "/usr/bin/python3 -I .cache/map-helper-leak-scan.py" ;;
   install) install ;;
   run) shift; push; ssh "$HOST" "cd $DIR/core && /usr/bin/python3 -m maphelper $(printf '%q ' "$@")" ;;
