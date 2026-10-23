@@ -77,34 +77,8 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
     setSelected(groupControls(players[index].inputs)[0]?.key ?? null);
   };
 
-  // Development aid, temporary (remove before pushing): focus moves within this page and the buttons that reached
-  // it, in window.mhFocusLog (Steam's debugger, SharedJSContext). Watches only this page's own elements, so the
-  // text it notes is our own labels, never Steam's UI.
-  const root = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const page = root.current;
-    const doc = page?.ownerDocument;
-    if (!page || !doc) return;
-    const log = ((window as unknown as Record<string, unknown>).mhFocusLog ??= []) as unknown[];
-    const note = (what: string) => log.length < 400 && log.push(`${Date.now() % 100000} ${what}`);
-    const describe = (el: Element) => `${el.className.toString().split(" ").filter((c) => c.startsWith("mh-") || c === "DialogButton")
-      .join(".")}|${(el.textContent ?? "").trim().slice(0, 24)}`;
-    const focused = page.querySelector(".gpfocus");
-    note(`open ${focused ? describe(focused) : "(no focus on this page)"}`);
-    const observer = new MutationObserver((records) => {
-      for (const r of records) {
-        const el = r.target as Element;
-        if (el.classList?.contains("gpfocus") && !(r.oldValue ?? "").includes("gpfocus")) note(`focus ${describe(el)}`);
-      }
-    });
-    observer.observe(page, { subtree: true, attributes: true, attributeFilter: ["class"], attributeOldValue: true });
-    return () => observer.disconnect();
-  }, []);
-
   // L1/R1 switch players, like tabs elsewhere in Steam.
   const onButtonDown = (evt: GamepadEvent) => {
-    const log = (window as unknown as Record<string, unknown[]>).mhFocusLog;
-    if (log && log.length < 400) log.push(`${Date.now() % 100000} button ${evt.detail.button}`);
     const button = evt.detail.button;
     if (button === GamepadButton.BUMPER_LEFT && current > 0) pick(current - 1);
     if (button === GamepadButton.BUMPER_RIGHT && current < players.length - 1) pick(current + 1);
@@ -139,7 +113,6 @@ function MapView({ data, sample }: { data: LastLaunch; sample: boolean }) {
 
   return (
     <Focusable
-      ref={root}
       className="mh-route"
       onButtonDown={onButtonDown}
       onCancelButton={goBack}
