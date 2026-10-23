@@ -25,7 +25,7 @@
         "content": { "level": "game", "system": "n64", "game_id": "Mario Kart 64 (USA)" }
       },
       "options": { "pak": "memory" },
-      "notes": "The core's ROM database marks it Mempak=Yes (custom/mupen64plus-core/main/mupen64plus.ini.h L9357-9362 @ 12edd2c). The game id is RetroArch's content name [VERIFY] for a .7z."
+      "notes": "The core's ROM database marks it Mempak=Yes (custom/mupen64plus-core/main/mupen64plus.ini.h L9357-9362 @ 12edd2c). The game id is RetroArch's content name, the archive's for a .7z (the owner's N64 saves are named so, e.g. Mario Kart 64 (USA).srm)."
     },
     {
       "$schema": "../schema/rule.schema.json",
