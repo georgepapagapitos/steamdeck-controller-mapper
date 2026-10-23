@@ -16,6 +16,7 @@ class Choice:
     shadowed: list = field(default_factory=list)   # rule ids that also set this key, lower score
     via_meta: Optional[str] = None                 # "meta.confirm" when expanded from a meta-binding
     source: str = "user"                           # the winning rule's source: shipped, pack or user
+    content: str = "global"                        # the winning rule's content level: game, emulator, system, global
 
 
 @dataclass
@@ -40,7 +41,7 @@ def resolve(rules: list, controller: Controller, target: Target, layouts: dict) 
         result.warnings.append(f"no layout for system {target.system!r}")
     prefix = f"{target.system}."
 
-    # key -> list of (score, rule_id, value, via_meta, rule source)
+    # key -> list of (score, rule_id, value, via_meta, rule source, rule content level)
     candidates: dict[str, list] = {}
     option_candidates: dict[str, list] = {}
 
@@ -68,10 +69,11 @@ def resolve(rules: list, controller: Controller, target: Target, layouts: dict) 
                 if problem:
                     result.warnings.append(f"{rule.id}: {k} skipped, {problem}")
                     continue
-                candidates.setdefault(k, []).append((s, rule.id, source, via, rule.source))
+                candidates.setdefault(k, []).append((s, rule.id, source, via, rule.source, rule.content.level))
 
         for key, value in flatten_options(rule.options).items():
-            option_candidates.setdefault(key, []).append((score(rule), rule.id, value, None, rule.source))
+            option_candidates.setdefault(key, []).append((score(rule), rule.id, value, None, rule.source,
+                                                          rule.content.level))
 
     result.bindings = {k: _pick(v) for k, v in sorted(candidates.items())}
     result.options = {k: _pick(v) for k, v in sorted(option_candidates.items())}
@@ -81,8 +83,9 @@ def resolve(rules: list, controller: Controller, target: Target, layouts: dict) 
 
 def _pick(entries: list) -> Choice:
     entries.sort(key=lambda e: e[0], reverse=True)
-    _, rule_id, value, via, source = entries[0]
-    return Choice(value=value, rule_id=rule_id, shadowed=[e[1] for e in entries[1:]], via_meta=via, source=source)
+    _, rule_id, value, via, source, content = entries[0]
+    return Choice(value=value, rule_id=rule_id, shadowed=[e[1] for e in entries[1:]], via_meta=via, source=source,
+                  content=content)
 
 
 def set_by_rules(resolution: Resolution) -> Resolution:

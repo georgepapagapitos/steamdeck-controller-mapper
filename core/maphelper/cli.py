@@ -50,6 +50,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--core", help="RetroArch core (descriptor id or library name); needed when several run the system")
     p.add_argument("--system", required=True)
     p.add_argument("--game")
+    p.add_argument("--rom", type=Path, help="RetroArch: the ROM, whose folder name picks a folder options file")
     p.add_argument("--config-root", type=Path, required=True, help="the emulator's config directory")
     p.add_argument("--player", action="append", metavar="MODEL[@DEVICE_ID]",
                    help="controller model per player, in order (repeatable), e.g. sony.ds4.v2@mac:aa:bb:..; "
@@ -295,7 +296,7 @@ if __name__ == "__main__":
 def cmd_apply(args) -> int:
     from . import pipeline
     req = pipeline.Request(args.emulator, args.system, args.config_root, args.rules or [EXAMPLES],
-                           core=args.core, game=args.game, players=args.player, probe_args=args,
+                           core=args.core, game=args.game, rom=args.rom, players=args.player, probe_args=args,
                            write=args.write, state_dir=args.state_dir)
     try:
         outcome = pipeline.run(req, log=lambda line: print(line, file=sys.stderr))

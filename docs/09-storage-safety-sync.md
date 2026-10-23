@@ -22,7 +22,10 @@ and safe to delete, though deleting it loses backups.
 1. **Pristine snapshot.** The first time we touch a file, copy it to
    `$STATE/backups/pristine/<emulator>/<relpath>`, and record the file in `$STATE/touched.json` (below). A file that
    doesn't exist yet has nothing to snapshot, so it's recorded as `created`. We never overwrite the snapshot unless
-   the user re-baselines or an EmuDeck reset is detected.
+   the user re-baselines or an EmuDeck reset is detected. An adapter can ask for a new file to start as a copy of
+   another (the writer's `seeds`, `{file: seed file}`): RetroArch's game options file starts from the file RetroArch
+   would otherwise load ([adapters/retroarch.md](adapters/retroarch.md) "Core options"). The copy is the new file's
+   "before", so only managed keys may differ from it, and the file is still `created`.
 2. **Lock.** `flock $STATE/locks/<emulator>.lock`, non-blocking: mh-run skips the apply if it's held (implemented in mh-run).
 3. **Is the emulator running?** If so, abort (the emulator would overwrite us
    on exit anyway). Check `/proc/*/exe` / cmdline for known binaries, including Flatpak `bwrap` children. **[VERIFY]**
@@ -62,9 +65,10 @@ user by hand). Then:
 - If a file we created turns up with other content at the next apply (EmuDeck's abxy toggle renames
   `.rmp.disabled` over our `.rmp`), it's theirs now: its content becomes the pristine snapshot and `created` is
   cleared, so restore puts it back instead of deleting it. The exception is the emulator saving our file over
-  itself: RetroArch writes the loaded remap back on quit when `remap_save_on_exit` is on. The emulator's registry
+  itself: RetroArch writes the loaded remap back on quit when `remap_save_on_exit` is on, and flushes the loaded
+  core options file when content closes. The emulator's registry
   entry (`rewritten` in `pipeline.EMULATORS`) decides from `managed`; for RetroArch the test and its sources are in
-  [adapters/retroarch.md](adapters/retroarch.md) ("Load precedence and save behaviour"). Then the file stays
+  [adapters/retroarch.md](adapters/retroarch.md) ("Load precedence and save behaviour", "Core options"). Then the file stays
   `created`, apply writes over it, and restore deletes it, even when no apply ran since the save.
 - One config root per emulator per state dir; apply refuses a second one.
 

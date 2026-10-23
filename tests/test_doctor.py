@@ -196,6 +196,25 @@ class RetroArchTest(unittest.TestCase):
         found = doctor.check_retroarch(self.root, "abxy")
         self.assertIn("likely EmuDeck's own", [f for f in found if f.severity == "warning"][0].message)
 
+    def test_core_options_files(self):
+        n64 = self.root / "config" / "Mupen64Plus-Next"
+        (n64 / "n64.opt").write_text('mupen64plus-alt-map = "True"\n', encoding="utf-8")
+        found = [(f.severity, f.check, f.message) for f in doctor.check_retroarch(self.root)
+                 if f.check == "retroarch-options"]
+        self.assertEqual([f[:2] for f in found], [("info", "retroarch-options"), ("warning", "retroarch-options")])
+        self.assertIn("instead of Mupen64Plus-Next.opt", found[0][2])
+        self.assertIn('mupen64plus-alt-map = "True"', found[1][2])
+
+    def test_core_options_switches(self):
+        game = "config/Mupen64Plus-Next/Mario Kart 64 (USA).opt"
+        checks = lambda: [(f.severity, f.check) for f in doctor.check_retroarch(self.root, options=[game])
+                          if f.check == "retroarch-options"]
+        self.assertEqual(checks(), [])                                  # the capture: game on, global off
+        self.set_cfg("game_specific_options", "false")
+        self.assertEqual(checks(), [("warning", "retroarch-options")])  # map-helper's game file is ignored
+        self.set_cfg("global_core_options", "true")
+        self.assertEqual(checks(), [("warning", "retroarch-options")])
+
     def test_remap_save_on_exit_with_managed_remaps(self):
         rmp = f"{SNES9X}/Snes9x.rmp"
         found = [(f.severity, f.check) for f in doctor.check_retroarch(self.root, managed=[rmp])]

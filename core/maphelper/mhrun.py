@@ -209,7 +209,8 @@ def prepare(args, command: list[str], esde: Optional[list[str]], budget: Budget,
     with lock(Path(args.state_dir) / "locks" / f"{emulator}.lock"):
         budget.check("taking the lock")
         req = pipeline.Request(emulator, system, root, args.rules or [USER_RULES], core=core,
-                               game=args.game or info.game, probe_args=args, write=True, state_dir=args.state_dir)
+                               game=args.game or info.game, rom=info.rom, probe_args=args, write=True,
+                               state_dir=args.state_dir)
         outcome = pipeline.run(req, log=lambda line: None, gate=budget.gate, adapter=adapter)
     if outcome.result.aborted:
         raise BudgetExceeded("over the time budget before writing; nothing written")

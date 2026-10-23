@@ -26,6 +26,7 @@ GC_PORTS = 4
 class Rendered:
     patches: list = field(default_factory=list)
     warnings: list = field(default_factory=list)
+    seeds: dict = field(default_factory=dict)      # new file -> the file it starts as a copy of (writer seeds)
 
 
 class DolphinAdapter:

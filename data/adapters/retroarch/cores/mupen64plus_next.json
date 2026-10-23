@@ -10,17 +10,29 @@
     "https://github.com/libretro/mupen64plus-libretro-nx/blob/12edd2c74a517ff86dfa8cfc71ad75e4c10486d5/libretro/libretro.c#L656",
     "https://github.com/libretro/mupen64plus-libretro-nx/blob/12edd2c74a517ff86dfa8cfc71ad75e4c10486d5/custom/mupen64plus-core/plugin/emulate_game_controller_via_libretro.c#L76",
     "https://github.com/libretro/mupen64plus-libretro-nx/blob/12edd2c74a517ff86dfa8cfc71ad75e4c10486d5/custom/mupen64plus-core/plugin/emulate_game_controller_via_libretro.c#L310",
-    "https://github.com/libretro/mupen64plus-libretro-nx/blob/12edd2c74a517ff86dfa8cfc71ad75e4c10486d5/libretro/libretro_core_options.h#L1586"
+    "https://github.com/libretro/mupen64plus-libretro-nx/blob/12edd2c74a517ff86dfa8cfc71ad75e4c10486d5/libretro/libretro_core_options.h#L1586",
+    "https://github.com/libretro/mupen64plus-libretro-nx/blob/12edd2c74a517ff86dfa8cfc71ad75e4c10486d5/libretro/libretro_core_options.h#L1534-L1584",
+    "https://github.com/libretro/mupen64plus-libretro-nx/blob/12edd2c74a517ff86dfa8cfc71ad75e4c10486d5/libretro/libretro_core_options.h#L1649-L1727",
+    "https://github.com/libretro/mupen64plus-libretro-nx/blob/12edd2c74a517ff86dfa8cfc71ad75e4c10486d5/libretro/libretro.c#L760-L841",
+    "https://github.com/libretro/RetroArch/blob/69a4f0ea1e8aaf442ae4858f2e7f2b31a1776576/core_option_manager.c#L1031-L1053"
   ],
-  "core_options": {
-    "mupen64plus-pak1": {
+  "options": {
+    "deadzones.ls": {
+      "key": "mupen64plus-astick-deadzone",
+      "percent_values": [0, 5, 10, 15, 20, 25, 30],
+      "default": "15"
+    },
+    "pak": {
+      "key": "mupen64plus-pak{N}",
       "values": [
         "none",
         "memory",
         "rumble",
         "transfer"
       ],
-      "default": "memory"
+      "per_player": true,
+      "players": 4,
+      "default": ["memory", "none", "none", "none"]
     }
   },
   "targets": {
@@ -62,5 +74,5 @@
       "n64.standard.c_right": "R"
     }
   },
-  "notes": "Right stick is read as digital C buttons (threshold 0x4000). Pak is a core option, not a libretro device."
+  "notes": "Right stick is read as digital C buttons (threshold 0x4000). Pak is a core option, not a libretro device. The deadzone (percent) is one for all ports; so is mupen64plus-astick-sensitivity (50-150 step 5, default 100), which no canonical option maps to."
 }

@@ -101,6 +101,104 @@ class RetroArchTest(OwnersDeck):
             self.adapter.core_for("nes")            # Mesen and Nestopia both run it
 
 
+N64_DIR = "config/Mupen64Plus-Next"
+N64_CORE = f"{N64_DIR}/Mupen64Plus-Next.opt"          # the owner's, captured: the core's full option set
+MK64 = f"{N64_DIR}/Mario Kart 64 (USA).opt"
+
+
+def options(content="system", **values) -> Resolution:
+    """deadzones_ls=0.1 -> {"deadzones.ls": Choice(0.1)} from a rule at the given content level."""
+    return Resolution(options={k.replace("_", "."): Choice(v, "user.test", content=content)
+                               for k, v in values.items()})
+
+
+class RetroArchCoreOptionsTest(OwnersDeck):
+    """Mupen64Plus-Next core options, against the owner's config (game_specific_options on, global off)."""
+
+    def setUp(self):
+        super().setUp()
+        self.n64 = self.adapter.core_for("n64", "Mupen64Plus-Next")
+
+    def render(self, players, game="Mario Kart 64 (USA)", folder="n64"):
+        rendered = self.adapter.render(players, self.n64, self.current, config_root=self.root, game=game,
+                                       folder=folder)
+        return rendered, {(p.file, p.key): p.value for p in rendered.patches}
+
+    def apply(self, players, **kw):
+        rendered, _ = self.render(players, **kw)
+        return apply_patches(self.root, rendered.patches, self.adapter.managed_keys(self.n64, rendered.patches),
+                             seeds=rendered.seeds)
+
+    def opt(self, rel):
+        return IniDocument.parse((self.root / rel).read_text(encoding="utf-8")).index()
+
+    def test_global_and_per_player_options_go_to_the_core_file(self):
+        rendered, patches = self.render({1: options(deadzones_ls=0.08, pak="rumble"), 2: options(pak="memory"),
+                                         3: options()})
+        self.assertEqual(patches, {(N64_CORE, "mupen64plus-astick-deadzone"): '"10"',   # 8% snaps to 10
+                                   (N64_CORE, "mupen64plus-pak1"): '"rumble"',
+                                   (N64_CORE, "mupen64plus-pak2"): '"memory"'})       # pak3 left alone
+        self.assertEqual((rendered.seeds, rendered.warnings), ({}, []))
+        self.assertEqual(self.render({2: options(deadzones_ls=0.3)})[1], {})            # global: player 1 only
+
+    def test_deadzone_snaps_to_the_cores_steps(self):
+        for value, want in ((0, "0"), (0.125, "10"), (0.13, "15"), (0.3, "30")):
+            self.assertEqual(self.render({1: options(deadzones_ls=value)})[1],
+                             {(N64_CORE, "mupen64plus-astick-deadzone"): f'"{want}"'})
+        rendered, patches = self.render({1: options(deadzones_ls=0.5)})
+        self.assertEqual(list(patches.values()), ['"30"'])
+        self.assertIn("outside", rendered.warnings[0])
+
+    def test_a_game_rule_creates_a_seeded_game_file(self):
+        result = self.apply({1: options(deadzones_ls=0.2), 2: options("game", pak="rumble")})
+        self.assertEqual((result.changed_files, result.rejected), ([MK64], []))
+        self.assertIn(f"--- a/{N64_CORE}\n+++ b/{MK64}", result.diff)
+        want = self.opt(N64_CORE) | {(None, "mupen64plus-astick-deadzone"): '"20"',
+                                     (None, "mupen64plus-pak2"): '"rumble"'}
+        self.assertEqual(self.opt(MK64), want)                       # every other option as the core file has it
+        self.assertEqual(self.opt(N64_CORE)[(None, "mupen64plus-pak2")], '"none"')   # untouched
+        # Once it exists, RetroArch loads it for this game, so everything for the game goes there, game rule or not.
+        _, patches = self.render({1: options(deadzones_ls=0.1)})
+        self.assertEqual(patches, {(MK64, "mupen64plus-astick-deadzone"): '"10"'})
+        self.assertEqual(self.render({1: options(deadzones_ls=0.1)}, game="Super Mario 64 (USA)")[1],
+                         {(N64_CORE, "mupen64plus-astick-deadzone"): '"10"'})
+
+    def test_a_folder_file_is_loaded_instead_of_the_core_file(self):
+        folder = f"{N64_DIR}/n64.opt"
+        (self.root / folder).write_text('mupen64plus-alt-map = "True"\n', encoding="utf-8")
+        rendered, patches = self.render({1: options(pak="none")})
+        self.assertEqual(patches, {(folder, "mupen64plus-pak1"): '"none"'})
+        rendered, _ = self.render({1: options("game", pak="none")})
+        self.assertEqual(rendered.seeds, {MK64: folder})               # the game file starts from the folder's
+        warnings = self.adapter.check(self.root, self.n64, self.current, game="Mario Kart 64 (USA)", folder="n64")
+        self.assertEqual(len(warnings), 2)
+        self.assertIn("folder options file", warnings[0])
+        self.assertIn('mupen64plus-alt-map = "True"', warnings[1])
+
+    def test_checks_on_the_owners_deck_are_clean(self):
+        self.assertEqual(self.adapter.check(self.root, self.n64, self.current, game="Mario Kart 64 (USA)",
+                                            folder="n64"), [])
+
+    def test_game_rules_are_dropped_without_game_specific_options(self):
+        self.set_cfg("game_specific_options", "false")
+        rendered, patches = self.render({1: options("game", pak="rumble"), 2: options(pak="memory")})
+        self.assertEqual(patches, {(N64_CORE, "mupen64plus-pak2"): '"memory"'})
+        self.assertIn("game_specific_options is off", rendered.warnings[0])
+
+    def test_nothing_is_written_with_global_core_options(self):
+        self.set_cfg("global_core_options", "true")
+        rendered, patches = self.render({1: options(pak="rumble")})
+        self.assertEqual(patches, {})
+        self.assertIn("global_core_options is on", rendered.warnings[0])
+
+    def set_cfg(self, key, value):
+        cfg = self.root / CFG
+        text = cfg.read_text(encoding="utf-8")
+        cfg.write_text(text.replace(f'{key} = "{"true" if value == "false" else "false"}"', f'{key} = "{value}"'),
+                       encoding="utf-8")
+        self.assertIn(f'{key} = "{value}"', cfg.read_text(encoding="utf-8"))
+
+
 def hotkeys(**chords) -> Resolution:
     """save_state="select+r1" -> {"hotkey.save_state": Choice({"chord": ["select", "r1"]})}; a single name is an input."""
     def source(spec):

@@ -2,7 +2,8 @@
 
 All RetroArch facts come from data/adapters/retroarch/ (retropad.json, hotkeys.json and one descriptor per core).
 Hotkeys go into retroarch.cfg, and only when some rule sets one; so does each assigned player's joypad port
-(input_playerN_joypad_index).
+(input_playerN_joypad_index). Core options a descriptor maps (its `options`) go into the one options file
+RetroArch loads for the launch (options_target).
 """
 
 from __future__ import annotations
@@ -21,6 +22,7 @@ from .dolphin import Rendered
 
 DATA = _DATA / "adapters" / "retroarch"
 REMAP_DIR = "config/remaps"   # input_remapping_directory's default under the config root; EmuDeck keeps it
+OPTIONS_DIR = "config"        # RetroArch's config directory (rgui_config_directory; EmuDeck's is the root's config/)
 SUFFIXES = ("_btn", "_axis")
 _PORT_LINE = re.compile(r"^\s*input_player\d+_joypad_index\s*=", re.MULTILINE)
 _REMAP_KEY = re.compile(r"^input_player\d+_(btn|stk)_")
@@ -56,20 +58,53 @@ class RetroArchAdapter:
         """The core-level remap: loaded when no game or content-dir remap exists (config_load_remap)."""
         return f"{REMAP_DIR}/{desc['core']}/{desc['core']}.rmp"
 
-    def managed_keys(self, desc: dict) -> dict:
+    @staticmethod
+    def options_file(desc: dict, name: str) -> str:
+        """config/<library_name>/<name>.opt: name is the game id (game options), the ROM's folder name (folder
+        options) or library_name itself (core options). validate_per_core_options, runloop.c L1083-1114 @ v1.22.2."""
+        return f"{OPTIONS_DIR}/{desc['core']}/{name}.opt"
+
+    def managed_keys(self, desc: dict, patches: list = ()) -> dict:
+        """patches: the rendered ones; an options file manages exactly the option keys written to it."""
         hk = self.hotkeys
         bases = [hk["enable"], *hk["targets"].values()]
-        return {self.remap_file(desc): {"keys": ["input_player[1-9]_btn_*", "input_player[1-9]_stk_*"]},
-                hk["file"]: {"keys": [f"input_{b}{s}" for b in bases for s in SUFFIXES]
-                             + ["input_player[1-9]_joypad_index", "input_player1[0-6]_joypad_index"]}}
+        managed = {self.remap_file(desc): {"keys": ["input_player[1-9]_btn_*", "input_player[1-9]_stk_*"]},
+                   hk["file"]: {"keys": [f"input_{b}{s}" for b in bases for s in SUFFIXES]
+                                + ["input_player[1-9]_joypad_index", "input_player1[0-6]_joypad_index"]}}
+        for p in patches:
+            if p.file.endswith(".opt"):
+                managed.setdefault(p.file, {"keys": []})["keys"].append(p.key)
+        return managed
+
+    def options_target(self, config_root: Optional[Path], desc: dict, game: Optional[str], folder: Optional[str],
+                       game_specific: bool = True, game_scoped: bool = False) -> tuple[str, Optional[str]]:
+        """(the options file to write, the file to seed it from when it's new, or None).
+
+        RetroArch loads exactly one file, with no layering (runloop_init_core_options_path, runloop.c L1147-1236
+        @ v1.22.2): with game_specific_options on, the game's .opt if it exists, else the folder's; otherwise the
+        core's. Keys the file lacks take the core's defaults. So a game-scoped option goes into the game's .opt,
+        created as a copy of the file RetroArch would load instead, which keeps every other option as it was."""
+        exists = lambda rel: config_root is not None and (Path(config_root) / rel).is_file()
+        fallback = self.options_file(desc, desc["core"])
+        if game_specific and folder and exists(self.options_file(desc, folder)):
+            fallback = self.options_file(desc, folder)
+        if game_specific and game:
+            mine = self.options_file(desc, game)
+            if exists(mine):
+                return mine, None
+            if game_scoped:
+                return mine, fallback if exists(fallback) else None
+        return fallback, None
 
     # -- render ----------------------------------------------------------------
 
     def render(self, players: dict[int, Resolution], desc: dict,
                current: Optional[Callable[[str, Optional[str], str], Optional[str]]] = None,
-               ports: Optional[dict[int, int]] = None) -> Rendered:
+               ports: Optional[dict[int, int]] = None, config_root: Optional[Path] = None,
+               game: Optional[str] = None, folder: Optional[str] = None) -> Rendered:
         """players: RetroArch user number -> resolution. current(file, section, key) reads the live value.
-        ports: user number -> the joypad port (SDL index) of that user's pad, written as input_playerN_joypad_index."""
+        ports: user number -> the joypad port (SDL index) of that user's pad, written as input_playerN_joypad_index.
+        config_root, game (the game id) and folder (the ROM's folder name) pick the core options file."""
         current = current or (lambda *_: None)
         out, file = Rendered(), self.remap_file(desc)
         for user, port in sorted((ports or {}).items()):
@@ -92,6 +127,7 @@ class RetroArchAdapter:
                 out.patches.append(Patch(file, None, self._key(user, name), f'"{target}"'))
         if 1 in players:
             self._render_hotkeys(players[1], current, out)
+        self._render_options(players, desc, current, config_root, game, folder, out)
         return out
 
     def _remap(self, user: int, resolution: Resolution, desc: dict, out: Rendered) -> dict:
@@ -227,6 +263,65 @@ class RetroArchAdapter:
         out.warnings.append(f"retroarch: {combo['key']} = \"{index}\": {name} still quits RetroArch, "
                             f"wherever hotkey.exit is")
 
+    # -- core options (config/<core>/*.opt) ---------------------------------------
+
+    def _render_options(self, players: dict[int, Resolution], desc: dict, current: Callable,
+                        config_root: Optional[Path], game: Optional[str], folder: Optional[str],
+                        out: Rendered) -> None:
+        """The descriptor's `options`: a global one from player 1's resolution (like hotkeys), a per-player one
+        (`{N}` in the key) from player N's. A player whose rules don't set it leaves that key alone."""
+        values = {}                                  # core option key -> (value, Choice)
+        for option, spec in desc.get("options", {}).items():
+            for user in range(1, spec["players"] + 1) if spec.get("per_player") else (1,):
+                choice = players[user].options.get(option) if user in players else None
+                value = None if choice is None else self._option_value(option, spec, choice.value, out)
+                if value is not None:
+                    values[spec["key"].format(N=user)] = (value, choice)
+        if not values:
+            return
+        setting = lambda key, default: (current(self.hotkeys["file"], None, key) or default).strip('"')
+        # Defaults: DEFAULT_GLOBAL_CORE_OPTIONS false, DEFAULT_GAME_SPECIFIC_OPTIONS true (config.def.h L910-914).
+        if setting("global_core_options", "false") == "true":
+            out.warnings.append("retroarch: global_core_options is on, so every core shares "
+                                "retroarch-core-options.cfg; map-helper doesn't write it, and core options were not "
+                                "written")
+            return
+        game_specific = setting("game_specific_options", "true") != "false"
+        scoped = sorted(k for k, (_, choice) in values.items() if choice.content == "game")
+        if scoped and not game_specific:
+            # The game's .opt would be ignored, and the core's is shared by every game: leave the game's values out.
+            out.warnings.append(f"retroarch: game_specific_options is off, so RetroArch ignores game options files; "
+                                f"{', '.join(scoped)} from game rules not written")
+            values = {k: v for k, v in values.items() if k not in scoped}
+        rel, seed = self.options_target(config_root, desc, game, folder, game_specific,
+                                        game_scoped=bool(scoped) and game_specific)
+        if seed:
+            out.seeds[rel] = seed
+        elif config_root is not None and not (Path(config_root) / rel).is_file() \
+                and (Path(config_root) / "retroarch-core-options.cfg").is_file():
+            # With no core .opt yet, RetroArch takes the initial values from retroarch-core-options.cfg (src_path,
+            # runloop.c L1188-1230 @ v1.22.2); the file we create replaces that source.
+            out.warnings.append(f"retroarch: {rel} doesn't exist yet; map-helper creates it with only its own "
+                                f"options, so this core's other options in retroarch-core-options.cfg stop applying")
+        for key, (value, _) in sorted(values.items()):
+            out.patches.append(Patch(rel, None, key, f'"{value}"'))
+
+    @staticmethod
+    def _option_value(option: str, spec: dict, value, out: Rendered) -> Optional[str]:
+        """A canonical value as one the core lists. RetroArch drops a value that isn't listed and uses the default
+        (core_option_manager.c L1031-1053 @ v1.22.2), so a percent snaps to the nearest listed one."""
+        if "percent_values" in spec:
+            allowed, percent = spec["percent_values"], round(value * 100, 6)
+            nearest = min(allowed, key=lambda v: (abs(v - percent), v))
+            if not allowed[0] <= percent <= allowed[-1]:
+                out.warnings.append(f"retroarch: {option} {value} is outside {spec['key']}'s range "
+                                    f"({allowed[0]}-{allowed[-1]}%); wrote {nearest}")
+            return str(nearest)
+        if value not in spec["values"]:
+            out.warnings.append(f"retroarch: {spec['key']} has no {value!r} (only {', '.join(spec['values'])})")
+            return None
+        return value
+
     @staticmethod
     def _key(user: int, name: str) -> str:
         """B -> input_player1_btn_b, LEFT_X+ -> input_player1_stk_l_x+ (input_remapping_save_file)."""
@@ -238,9 +333,12 @@ class RetroArchAdapter:
     # -- checks ----------------------------------------------------------------
 
     def check(self, config_root: Path, desc: dict,
-              current: Callable[[str, Optional[str], str], Optional[str]], ports: bool = False) -> list[str]:
-        """Things that make RetroArch ignore the core-level remap we write (and, with ports, the joypad ports)."""
+              current: Callable[[str, Optional[str], str], Optional[str]], ports: bool = False,
+              game: Optional[str] = None, folder: Optional[str] = None) -> list[str]:
+        """Things that make RetroArch ignore the core-level remap we write (and, with ports, the joypad ports), and
+        what the options file RetroArch loads for this launch (game, folder: as for render) says."""
         warnings = self._check_ports(config_root, desc, current) if ports else []
+        warnings += self._check_options(config_root, desc, current, game, folder)
         for key, why in (("auto_remaps_enable", "remap files aren't loaded at all"),
                          ("input_remap_binds_enable", "remaps are ignored")):
             if (current("retroarch.cfg", None, key) or "").strip('"') == "false":
@@ -254,6 +352,23 @@ class RetroArchAdapter:
             if shadow.name != mine:
                 warnings.append(f"retroarch: {shadow.relative_to(config_root)} is a game or folder remap; when it "
                                 f"matches, RetroArch loads it instead of {mine} (no layering)")
+        return warnings
+
+    def _check_options(self, config_root: Path, desc: dict, current: Callable, game: Optional[str],
+                       folder: Optional[str]) -> list[str]:
+        if (current(self.hotkeys["file"], None, "global_core_options") or "").strip('"') == "true":
+            return []                                # render says so when an option is set
+        game_specific = (current(self.hotkeys["file"], None, "game_specific_options") or "").strip('"') != "false"
+        rel, _ = self.options_target(config_root, desc, game, folder, game_specific)
+        warnings = []
+        if desc.get("options") and rel == self.options_file(desc, folder or ""):
+            warnings.append(f"retroarch: {rel} is a folder options file; RetroArch loads it instead of "
+                            f"{desc['core']}.opt (no layering), so core options go there")
+        for variant in desc.get("core_option_variants", {}):
+            key, _, value = variant.partition("=")
+            if (current(rel, None, key) or "").strip('"') == value:
+                warnings.append(f"retroarch: {rel} sets {key} = \"{value}\"; map-helper's {desc['core']} remaps "
+                                f"assume the core's default layout, so buttons land elsewhere")
         return warnings
 
     def _check_ports(self, config_root: Path, desc: dict,
@@ -292,7 +407,11 @@ def saved_on_exit(config_root: Path, rel: str, written: dict) -> bool:
     we wrote, with our value; some of ours may be gone (seen on a Deck: player 2's lines, docs/13). EmuDeck's ABXY
     toggle renames its own <core>.rmp.disabled over the file instead (emuDeckRetroArch.sh @ dddb302 L363-374): four
     input_player1_btn_* lines and no device line (tests/fixtures/retroarch). A Quick Menu edit saved on quit puts a
-    value of the user's in, which makes the file theirs, as does a save made by hand with remap_save_on_exit off."""
+    value of the user's in, which makes the file theirs, as does a save made by hand with remap_save_on_exit off.
+
+    A core options file (.opt) has its own test, options_flushed."""
+    if rel.endswith(".opt"):
+        return options_flushed(config_root, rel, written)
     root = Path(config_root)
     cfg = root / "retroarch.cfg"
     settings = IniDocument.parse(cfg.read_text(encoding="utf-8", errors="replace")).index() if cfg.is_file() else {}
@@ -307,3 +426,19 @@ def saved_on_exit(config_root: Path, rel: str, written: dict) -> bool:
     value = lambda v: v.strip().strip('"')
     return all(key in written and value(written[key]) == value(v)
                for key, v in saved.items() if key[0] is None and _REMAP_KEY.match(key[1]))
+
+
+def options_flushed(config_root: Path, rel: str, written: dict) -> bool:
+    """Is the options file map-helper created, last written with `written`, now only RetroArch's flush of it?
+
+    When content closes, runloop_deinit_core_options (runloop.c L1033-1080 @ v1.22.2) reads the options file it
+    loaded, sets every option of the core in it (core_option_manager_flush, core_option_manager.c L1890-1903) and
+    writes it back sorted as `key = "value"` lines, keeping keys it doesn't know, and only if a value changed
+    (config_file_write, libretro-common/file/config_file.c L1401-1468). So its flush keeps every option we wrote
+    with our value; a Quick Menu change to one of ours makes the file the user's."""
+    try:
+        saved = IniDocument.parse((Path(config_root) / rel).read_text(encoding="utf-8")).index()
+    except (OSError, UnicodeDecodeError):
+        return False
+    value = lambda v: v.strip().strip('"')
+    return all(key in saved and value(saved[key]) == value(v) for key, v in written.items())
