@@ -1,0 +1,105 @@
+{
+  "id": "nds",
+  "system": "nds",
+  "controller": "standard",
+  "file": "nds.png",
+  "width": 720,
+  "height": 655,
+  "background": "transparent",
+  "source": {
+    "title": "File:Nintendo-DS-Fat-Blue.png",
+    "url": "https://commons.wikimedia.org/wiki/File:Nintendo-DS-Fat-Blue.png",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "a": [
+      551,
+      479,
+      17
+    ],
+    "b": [
+      511,
+      495,
+      17
+    ],
+    "x": [
+      535,
+      449,
+      17
+    ],
+    "y": [
+      495,
+      465,
+      17
+    ],
+    "select": [
+      537,
+      406,
+      42,
+      20,
+      9
+    ],
+    "start": [
+      575,
+      415,
+      42,
+      20,
+      9
+    ],
+    "dpad": [
+      141,
+      393,
+      88,
+      74
+    ],
+    "up": [
+      154,
+      372,
+      32,
+      26
+    ],
+    "down": [
+      128,
+      414,
+      32,
+      26
+    ],
+    "left": [
+      112,
+      389,
+      28,
+      26
+    ],
+    "right": [
+      169,
+      397,
+      28,
+      26
+    ],
+    "r": [
+      637,
+      404,
+      24,
+      54
+    ],
+    "touch_press": [
+      331,
+      415,
+      284,
+      162
+    ],
+    "lid": [
+      377,
+      312,
+      240,
+      44
+    ]
+  },
+  "hidden": [
+    "l"
+  ],
+  "edge": {
+    "l": 0.07
+  }
+}

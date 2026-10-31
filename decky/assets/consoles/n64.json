@@ -1,0 +1,97 @@
+{
+  "id": "n64",
+  "system": "n64",
+  "controller": "standard",
+  "file": "n64.jpg",
+  "width": 720,
+  "height": 709,
+  "background": "white",
+  "source": {
+    "title": "File:Nintendo-64-Controller-Gray-Flat.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:Nintendo-64-Controller-Gray-Flat.jpg",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "a": [
+      543,
+      298,
+      31
+    ],
+    "b": [
+      494,
+      248,
+      31
+    ],
+    "start": [
+      362,
+      249,
+      28
+    ],
+    "c_up": [
+      593,
+      170,
+      23
+    ],
+    "c_down": [
+      595,
+      248,
+      23
+    ],
+    "c_left": [
+      553,
+      208,
+      23
+    ],
+    "c_right": [
+      634,
+      210,
+      23
+    ],
+    "dpad": [
+      148,
+      235,
+      126,
+      120
+    ],
+    "up": [
+      148,
+      198,
+      38,
+      44
+    ],
+    "down": [
+      148,
+      272,
+      38,
+      44
+    ],
+    "left": [
+      108,
+      235,
+      44,
+      38
+    ],
+    "right": [
+      188,
+      235,
+      44,
+      38
+    ],
+    "stick": [
+      365,
+      385,
+      50
+    ]
+  },
+  "hidden": [
+    "z",
+    "l",
+    "r"
+  ],
+  "edge": {
+    "l": 0.12,
+    "z": 0.5,
+    "r": 0.88
+  }
+}

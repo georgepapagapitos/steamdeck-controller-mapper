@@ -1,0 +1,85 @@
+{
+  "id": "3do",
+  "system": "3do",
+  "controller": "standard",
+  "file": "3do.jpg",
+  "width": 720,
+  "height": 471,
+  "background": "white",
+  "source": {
+    "title": "File:3DO-101M-Controller.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:3DO-101M-Controller.jpg",
+    "author": "Evan-Amos",
+    "license": "CC0"
+  },
+  "spots": {
+    "dpad": [
+      175,
+      184,
+      150,
+      136,
+      10
+    ],
+    "up": [
+      193,
+      138,
+      38,
+      50,
+      25
+    ],
+    "down": [
+      155,
+      216,
+      38,
+      50,
+      25
+    ],
+    "left": [
+      129,
+      170,
+      50,
+      36,
+      13
+    ],
+    "right": [
+      215,
+      187,
+      50,
+      36,
+      13
+    ],
+    "a": [
+      452,
+      300,
+      28
+    ],
+    "b": [
+      524,
+      262,
+      28
+    ],
+    "c": [
+      595,
+      235,
+      28
+    ],
+    "x": [
+      333,
+      180,
+      20
+    ],
+    "p": [
+      409,
+      198,
+      20
+    ]
+  },
+  "hidden": [
+    "l",
+    "r"
+  ],
+  "edge": {
+    "l": 0.33,
+    "r": 0.81
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "id": "genesis-six_button",
+  "system": "genesis",
+  "controller": "six_button",
+  "file": "genesis-six_button.jpg",
+  "width": 720,
+  "height": 507,
+  "background": "white",
+  "source": {
+    "title": "File:Sega-Genesis-6But-Cont.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:Sega-Genesis-6But-Cont.jpg",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "dpad": [
+      200,
+      184,
+      130,
+      122,
+      -10
+    ],
+    "up": [
+      214,
+      148,
+      34,
+      44,
+      20
+    ],
+    "down": [
+      186,
+      218,
+      34,
+      44,
+      20
+    ],
+    "left": [
+      158,
+      176,
+      44,
+      34,
+      12
+    ],
+    "right": [
+      244,
+      194,
+      44,
+      34,
+      12
+    ],
+    "x": [
+      452,
+      220,
+      27
+    ],
+    "y": [
+      518,
+      211,
+      27
+    ],
+    "z": [
+      584,
+      210,
+      27
+    ],
+    "a": [
+      447,
+      292,
+      35
+    ],
+    "b": [
+      517,
+      273,
+      34
+    ],
+    "c": [
+      593,
+      271,
+      35
+    ],
+    "start": [
+      356,
+      198,
+      62,
+      30,
+      3
+    ]
+  },
+  "hidden": [
+    "mode"
+  ],
+  "edge": {
+    "mode": 0.72
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "id": "mastersystem",
+  "system": "mastersystem",
+  "controller": "standard",
+  "file": "mastersystem.jpg",
+  "width": 720,
+  "height": 295,
+  "background": "white",
+  "source": {
+    "title": "File:Sega-Master-System-Controllers.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:Sega-Master-System-Controllers.jpg",
+    "author": "Evan-Amos",
+    "license": "Public domain",
+    "note": "cropped to the single controller from the Commons 1920px thumbnail, then scaled to 720 wide"
+  },
+  "spots": {
+    "dpad": [
+      200,
+      150,
+      168,
+      142
+    ],
+    "up": [
+      212,
+      106,
+      42,
+      34
+    ],
+    "down": [
+      187,
+      191,
+      42,
+      34
+    ],
+    "left": [
+      146,
+      140,
+      34,
+      42
+    ],
+    "right": [
+      253,
+      158,
+      34,
+      42
+    ],
+    "one": [
+      450,
+      215,
+      80,
+      64,
+      0
+    ],
+    "two": [
+      547,
+      228,
+      80,
+      68,
+      0
+    ]
+  },
+  "hidden": [
+    "pause"
+  ]
+}

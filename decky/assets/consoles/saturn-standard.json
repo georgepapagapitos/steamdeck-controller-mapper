@@ -1,0 +1,96 @@
+{
+  "id": "saturn-standard",
+  "system": "saturn",
+  "controller": "standard",
+  "file": "saturn-standard.jpg",
+  "width": 720,
+  "height": 495,
+  "background": "white",
+  "source": {
+    "title": "File:Sega-Saturn-Controller-NA-Mk-II-FL.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:Sega-Saturn-Controller-NA-Mk-II-FL.jpg",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "dpad": [
+      195,
+      186,
+      68
+    ],
+    "up": [
+      192,
+      138,
+      40,
+      36
+    ],
+    "down": [
+      190,
+      222,
+      40,
+      36
+    ],
+    "left": [
+      148,
+      182,
+      36,
+      40
+    ],
+    "right": [
+      232,
+      175,
+      36,
+      40
+    ],
+    "x": [
+      442,
+      212,
+      23
+    ],
+    "y": [
+      507,
+      186,
+      23
+    ],
+    "z": [
+      577,
+      177,
+      24
+    ],
+    "a": [
+      450,
+      290,
+      31
+    ],
+    "b": [
+      527,
+      265,
+      31
+    ],
+    "c": [
+      608,
+      257,
+      31
+    ],
+    "start": [
+      340,
+      261,
+      58,
+      26,
+      -6
+    ],
+    "r": [
+      636,
+      122,
+      104,
+      30,
+      55
+    ]
+  },
+  "hidden": [
+    "l"
+  ],
+  "edge": {
+    "l": 0.2
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "id": "saturn-3d",
+  "system": "saturn",
+  "controller": "3d",
+  "file": "saturn-3d.jpg",
+  "width": 720,
+  "height": 824,
+  "background": "white",
+  "source": {
+    "title": "File:Sega-Saturn-3D-Controller.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:Sega-Saturn-3D-Controller.jpg",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "stick_x": [
+      172,
+      255,
+      62
+    ],
+    "stick_y": [
+      172,
+      255,
+      62
+    ],
+    "dpad": [
+      188,
+      448,
+      70
+    ],
+    "up": [
+      184,
+      410,
+      46,
+      48
+    ],
+    "down": [
+      182,
+      486,
+      46,
+      48
+    ],
+    "left": [
+      146,
+      446,
+      48,
+      46
+    ],
+    "right": [
+      225,
+      446,
+      48,
+      46
+    ],
+    "x": [
+      405,
+      360,
+      29
+    ],
+    "y": [
+      473,
+      340,
+      29
+    ],
+    "z": [
+      547,
+      330,
+      29
+    ],
+    "a": [
+      410,
+      445,
+      29
+    ],
+    "b": [
+      483,
+      420,
+      29
+    ],
+    "c": [
+      560,
+      410,
+      30
+    ],
+    "start": [
+      310,
+      537,
+      34
+    ]
+  },
+  "hidden": [
+    "l",
+    "r",
+    "l_analog",
+    "r_analog"
+  ],
+  "edge": {
+    "l_analog": 0.14,
+    "l": 0.24,
+    "r": 0.76,
+    "r_analog": 0.86
+  }
+}

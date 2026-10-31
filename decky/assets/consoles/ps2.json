@@ -1,0 +1,27 @@
+{
+  "id": "ps2", "system": "ps2", "controller": "dualshock2",
+  "file": "ps2.jpg", "width": 720, "height": 560, "background": "white",
+  "source": {"title": "File:PS2-DualShock2.jpg", "url": "https://commons.wikimedia.org/wiki/File:PS2-DualShock2.jpg", "author": "Evan-Amos", "license": "Public domain"},
+  "spots": {
+    "dpad": [201, 165, 120, 115],
+    "up": [208, 134, 23],
+    "right": [232, 172, 23],
+    "down": [193, 198, 23],
+    "left": [170, 160, 23],
+    "triangle": [557, 192, 25],
+    "square": [497, 223, 25],
+    "circle": [597, 245, 25],
+    "cross": [535, 282, 25],
+    "select": [322, 194, 38, 28],
+    "start": [428, 215, 44, 30],
+    "analog": [360, 259, 40, 28],
+    "lstick_x": [260, 266, 50],
+    "lstick_y": [260, 266, 50],
+    "l3": [260, 266, 50],
+    "rstick_x": [432, 302, 50],
+    "rstick_y": [432, 302, 50],
+    "r3": [432, 302, 50]
+  },
+  "hidden": ["l1", "r1", "l2", "r2"],
+  "edge": {"l2": 0.27, "l1": 0.37, "r1": 0.75, "r2": 0.85}
+}

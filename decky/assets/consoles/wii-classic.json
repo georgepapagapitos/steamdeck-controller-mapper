@@ -1,0 +1,108 @@
+{
+  "id": "wii-classic",
+  "system": "wii",
+  "controller": "classic",
+  "file": "wii-classic.jpg",
+  "width": 720,
+  "height": 400,
+  "background": "grey",
+  "source": {
+    "title": "File:Wii-Classic-Controller-White.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:Wii-Classic-Controller-White.jpg",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "a": [
+      620,
+      153,
+      25
+    ],
+    "b": [
+      557,
+      202,
+      25
+    ],
+    "x": [
+      557,
+      103,
+      25
+    ],
+    "y": [
+      494,
+      150,
+      25
+    ],
+    "minus": [
+      310,
+      152,
+      15
+    ],
+    "home": [
+      358,
+      152,
+      16
+    ],
+    "plus": [
+      407,
+      152,
+      15
+    ],
+    "dpad": [
+      159,
+      152,
+      118,
+      116
+    ],
+    "up": [
+      159,
+      118,
+      36,
+      44
+    ],
+    "down": [
+      159,
+      186,
+      36,
+      44
+    ],
+    "left": [
+      124,
+      152,
+      44,
+      36
+    ],
+    "right": [
+      194,
+      152,
+      44,
+      36
+    ],
+    "lstick": [
+      270,
+      250,
+      52
+    ],
+    "rstick": [
+      447,
+      250,
+      52
+    ]
+  },
+  "hidden": [
+    "l_digital",
+    "r_digital",
+    "zl",
+    "zr",
+    "l_analog",
+    "r_analog"
+  ],
+  "edge": {
+    "l_analog": 0.13,
+    "l_digital": 0.21,
+    "zl": 0.3,
+    "zr": 0.7,
+    "r_digital": 0.79,
+    "r_analog": 0.87
+  }
+}

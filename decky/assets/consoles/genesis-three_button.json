@@ -1,0 +1,74 @@
+{
+  "id": "genesis-three_button",
+  "system": "genesis",
+  "controller": "three_button",
+  "file": "genesis-three_button.jpg",
+  "width": 720,
+  "height": 491,
+  "background": "white",
+  "source": {
+    "title": "File:Sega-Genesis-3But-Cont.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:Sega-Genesis-3But-Cont.jpg",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "dpad": [
+      180,
+      168,
+      134,
+      110,
+      -10
+    ],
+    "up": [
+      182,
+      130,
+      36,
+      46,
+      12
+    ],
+    "down": [
+      160,
+      198,
+      36,
+      46,
+      12
+    ],
+    "left": [
+      133,
+      157,
+      46,
+      36,
+      12
+    ],
+    "right": [
+      221,
+      170,
+      46,
+      36,
+      12
+    ],
+    "a": [
+      444,
+      248,
+      37
+    ],
+    "b": [
+      521,
+      228,
+      36
+    ],
+    "c": [
+      600,
+      222,
+      37
+    ],
+    "start": [
+      517,
+      148,
+      76,
+      30
+    ]
+  },
+  "hidden": []
+}

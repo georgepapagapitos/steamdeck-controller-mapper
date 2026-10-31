@@ -31,11 +31,17 @@ rule = "\n\n" + "-" * 78 + "\n\n"
 license_text = (root.parent / "LICENSE").read_text(encoding="utf-8").rstrip("\n")
 license_text += rule + (root / "TEMPLATE-LICENSE").read_text(encoding="utf-8").rstrip("\n")
 license_text += rule + ("Pad glyphs and controller icons: Input Prompts 1.5A by Kenney (www.kenney.nl), CC0 1.0.\n"
-                        "Only the SVGs the plugin uses are included; see assets/kenney/License.txt.\n")
+                        "Only the SVGs the plugin uses are included; see assets/kenney/License.txt.\n"
+                        "Console controller photos: public domain, from Wikimedia Commons (mostly Evan-Amos);\n"
+                        "each assets/consoles/<id>.json names its source page, author and licence.\n")
 
 files = {name: (root / name).read_bytes()
          for name in ("package.json", "plugin.json", "main.py", "README.md", "assets/kenney/License.txt")}
 files["LICENSE"] = license_text.encode("utf-8")
+# Console controller photos (public domain, Wikimedia Commons; each .json names its source) and their spots.
+for path in sorted((root / "assets" / "consoles").glob("*")):
+    if path.is_file():
+        files[path.relative_to(root).as_posix()] = path.read_bytes()
 for path in sorted((root / "dist").rglob("*")):
     if path.is_file():
         files[path.relative_to(root).as_posix()] = path.read_bytes()

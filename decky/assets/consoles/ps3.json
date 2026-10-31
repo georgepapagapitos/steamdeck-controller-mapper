@@ -1,0 +1,27 @@
+{
+  "id": "ps3", "system": "ps3", "controller": "dualshock3",
+  "file": "ps3.jpg", "width": 720, "height": 533, "background": "white",
+  "source": {"title": "File:PS3-DualShock3.jpg", "url": "https://commons.wikimedia.org/wiki/File:PS3-DualShock3.jpg", "author": "Evan-Amos", "license": "Public domain"},
+  "spots": {
+    "dpad": [202, 135, 118, 112],
+    "up": [210, 103, 23],
+    "right": [233, 141, 23],
+    "down": [193, 167, 23],
+    "left": [172, 128, 23],
+    "triangle": [561, 159, 25],
+    "square": [499, 190, 25],
+    "circle": [599, 213, 25],
+    "cross": [537, 246, 25],
+    "select": [323, 163, 40, 28],
+    "start": [428, 183, 44, 28],
+    "ps": [367, 207, 23],
+    "lstick_x": [257, 233, 50],
+    "lstick_y": [257, 233, 50],
+    "l3": [257, 233, 50],
+    "rstick_x": [430, 271, 50],
+    "rstick_y": [430, 271, 50],
+    "r3": [430, 271, 50]
+  },
+  "hidden": ["l1", "r1", "l2", "r2", "motion"],
+  "edge": {"l2": 0.28, "l1": 0.38, "r1": 0.75, "r2": 0.85}
+}

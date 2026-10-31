@@ -1,0 +1,27 @@
+{
+  "id": "psx-dualshock", "system": "psx", "controller": "dualshock",
+  "file": "psx-dualshock.jpg", "width": 720, "height": 563, "background": "white",
+  "source": {"title": "File:PlayStation-DualShock.jpg", "url": "https://commons.wikimedia.org/wiki/File:PlayStation-DualShock.jpg", "author": "Evan-Amos", "license": "Public domain"},
+  "spots": {
+    "dpad": [202, 153, 120, 115],
+    "up": [212, 123, 23],
+    "right": [233, 163, 23],
+    "down": [190, 185, 23],
+    "left": [171, 148, 23],
+    "triangle": [568, 190, 25],
+    "square": [505, 222, 25],
+    "circle": [607, 246, 25],
+    "cross": [543, 279, 25],
+    "select": [326, 186, 38, 28],
+    "start": [432, 207, 42, 28],
+    "analog": [364, 250, 40, 30],
+    "lstick_x": [260, 258, 48],
+    "lstick_y": [260, 258, 48],
+    "l3": [260, 258, 48],
+    "rstick_x": [437, 298, 48],
+    "rstick_y": [437, 298, 48],
+    "r3": [437, 298, 48]
+  },
+  "hidden": ["l1", "r1", "l2", "r2"],
+  "edge": {"l2": 0.28, "l1": 0.38, "r1": 0.77, "r2": 0.87}
+}

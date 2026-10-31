@@ -1,0 +1,20 @@
+{
+  "id": "psx-digital", "system": "psx", "controller": "digital",
+  "file": "psx-digital.png", "width": 720, "height": 626, "background": "transparent",
+  "source": {"title": "File:PSX-Original-Controller.png", "url": "https://commons.wikimedia.org/wiki/File:PSX-Original-Controller.png", "author": "Evan-Amos", "license": "Public domain"},
+  "spots": {
+    "dpad": [205, 148, 120, 110],
+    "up": [222, 113, 24],
+    "right": [243, 157, 24],
+    "down": [189, 182, 24],
+    "left": [167, 139, 24],
+    "triangle": [575, 205, 26],
+    "square": [500, 230, 26],
+    "circle": [610, 266, 26],
+    "cross": [535, 296, 26],
+    "select": [325, 231, 44, 32],
+    "start": [401, 250, 46, 30]
+  },
+  "hidden": ["l1", "r1", "l2", "r2"],
+  "edge": {"l2": 0.31, "l1": 0.41, "r1": 0.8, "r2": 0.9}
+}

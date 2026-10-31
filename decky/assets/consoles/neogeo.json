@@ -1,0 +1,77 @@
+{
+  "id": "neogeo",
+  "system": "neogeo",
+  "controller": "standard",
+  "file": "neogeo.jpg",
+  "width": 720,
+  "height": 520,
+  "background": "white",
+  "source": {
+    "title": "File:Neo-Geo-CD-Controller-FL.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:Neo-Geo-CD-Controller-FL.jpg",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "dpad": [
+      194,
+      168,
+      80
+    ],
+    "up": [
+      168,
+      90,
+      20
+    ],
+    "down": [
+      220,
+      240,
+      20
+    ],
+    "left": [
+      108,
+      202,
+      20
+    ],
+    "right": [
+      278,
+      128,
+      20
+    ],
+    "a": [
+      490,
+      315,
+      36
+    ],
+    "b": [
+      585,
+      297,
+      36
+    ],
+    "c": [
+      480,
+      230,
+      36
+    ],
+    "d": [
+      575,
+      208,
+      36
+    ],
+    "select": [
+      373,
+      228,
+      72,
+      30,
+      -10
+    ],
+    "start": [
+      339,
+      303,
+      72,
+      30,
+      -10
+    ]
+  },
+  "hidden": []
+}

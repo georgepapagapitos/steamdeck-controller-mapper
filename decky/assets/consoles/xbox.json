@@ -1,0 +1,124 @@
+{
+  "id": "xbox",
+  "system": "xbox",
+  "controller": "standard",
+  "file": "xbox.jpg",
+  "width": 720,
+  "height": 642,
+  "background": "white",
+  "source": {
+    "title": "File:Xbox-s-controller.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:Xbox-s-controller.jpg",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "lstick_x": [
+      230,
+      125,
+      55
+    ],
+    "lstick_y": [
+      230,
+      125,
+      55
+    ],
+    "l3": [
+      230,
+      125,
+      55
+    ],
+    "dpad": [
+      282,
+      243,
+      58
+    ],
+    "up": [
+      282,
+      208,
+      40,
+      38
+    ],
+    "down": [
+      268,
+      276,
+      40,
+      38
+    ],
+    "left": [
+      242,
+      240,
+      38,
+      40
+    ],
+    "right": [
+      320,
+      240,
+      38,
+      40
+    ],
+    "rstick_x": [
+      455,
+      285,
+      60
+    ],
+    "rstick_y": [
+      455,
+      285,
+      60
+    ],
+    "r3": [
+      455,
+      285,
+      60
+    ],
+    "x": [
+      538,
+      195,
+      25
+    ],
+    "y": [
+      600,
+      168,
+      25
+    ],
+    "b": [
+      640,
+      228,
+      25
+    ],
+    "a": [
+      570,
+      260,
+      25
+    ],
+    "white": [
+      560,
+      345,
+      25
+    ],
+    "black": [
+      622,
+      318,
+      25
+    ],
+    "back": [
+      147,
+      182,
+      16
+    ],
+    "start": [
+      166,
+      224,
+      21
+    ]
+  },
+  "hidden": [
+    "l_trigger",
+    "r_trigger"
+  ],
+  "edge": {
+    "l_trigger": 0.3,
+    "r_trigger": 0.78
+  }
+}

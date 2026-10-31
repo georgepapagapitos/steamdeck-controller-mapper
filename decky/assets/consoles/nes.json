@@ -1,0 +1,72 @@
+{
+  "id": "nes",
+  "system": "nes",
+  "controller": "standard",
+  "file": "nes.jpg",
+  "width": 720,
+  "height": 362,
+  "background": "white",
+  "source": {
+    "title": "File:NES-Controller-Flat.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:NES-Controller-Flat.jpg",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "a": [
+      585,
+      255,
+      33
+    ],
+    "b": [
+      496,
+      255,
+      33
+    ],
+    "select": [
+      290,
+      254,
+      64,
+      30,
+      0
+    ],
+    "start": [
+      379,
+      254,
+      64,
+      30,
+      0
+    ],
+    "dpad": [
+      140,
+      220,
+      128,
+      126
+    ],
+    "up": [
+      139,
+      180,
+      42,
+      42
+    ],
+    "down": [
+      139,
+      259,
+      42,
+      42
+    ],
+    "left": [
+      100,
+      220,
+      42,
+      42
+    ],
+    "right": [
+      178,
+      220,
+      42,
+      42
+    ]
+  },
+  "hidden": []
+}

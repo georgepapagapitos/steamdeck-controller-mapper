@@ -1,0 +1,72 @@
+{
+  "id": "gb",
+  "system": "gb",
+  "controller": "standard",
+  "file": "gb.png",
+  "width": 375,
+  "height": 600,
+  "background": "transparent",
+  "source": {
+    "title": "File:Game-Boy-Original.png",
+    "url": "https://commons.wikimedia.org/wiki/File:Game-Boy-Original.png",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "a": [
+      292.2,
+      402.6,
+      22.9
+    ],
+    "b": [
+      239.6,
+      422.9,
+      22.9
+    ],
+    "select": [
+      130,
+      486,
+      48,
+      20,
+      -22
+    ],
+    "start": [
+      183,
+      492,
+      48,
+      20,
+      -22
+    ],
+    "dpad": [
+      79.2,
+      403.6,
+      84.4,
+      91.7
+    ],
+    "up": [
+      79.7,
+      374.0,
+      30.2,
+      31.3
+    ],
+    "down": [
+      79.7,
+      433.9,
+      30.2,
+      31.3
+    ],
+    "left": [
+      52.1,
+      403.6,
+      30.2,
+      31.3
+    ],
+    "right": [
+      106.8,
+      404.7,
+      30.2,
+      31.3
+    ]
+  },
+  "hidden": []
+}

@@ -1,0 +1,114 @@
+{
+  "id": "wiiu-pro",
+  "system": "wiiu",
+  "controller": "pro",
+  "file": "wiiu-pro.png",
+  "width": 720,
+  "height": 512,
+  "background": "transparent",
+  "source": {
+    "title": "File:Nintendo Wii U Pro Controller Transparent.png",
+    "url": "https://commons.wikimedia.org/wiki/File:Nintendo_Wii_U_Pro_Controller_Transparent.png",
+    "author": "TzarN64 (background removed from Evan-Amos's File:Nintendo-Wii-U-Pro-Controller-Black.jpg)",
+    "license": "Public domain"
+  },
+  "spots": {
+    "a": [
+      512,
+      209,
+      21
+    ],
+    "b": [
+      470,
+      242,
+      21
+    ],
+    "x": [
+      470,
+      178,
+      21
+    ],
+    "y": [
+      427,
+      209,
+      21
+    ],
+    "minus": [
+      311,
+      150,
+      14
+    ],
+    "home": [
+      359,
+      150,
+      14
+    ],
+    "plus": [
+      408,
+      150,
+      14
+    ],
+    "dpad": [
+      247,
+      212,
+      98,
+      90
+    ],
+    "up": [
+      247,
+      188,
+      30,
+      40
+    ],
+    "down": [
+      247,
+      237,
+      30,
+      40
+    ],
+    "left": [
+      222,
+      212,
+      40,
+      30
+    ],
+    "right": [
+      272,
+      212,
+      40,
+      30
+    ],
+    "lstick": [
+      182,
+      123,
+      42
+    ],
+    "rstick": [
+      539,
+      123,
+      42
+    ],
+    "l3": [
+      182,
+      123,
+      42
+    ],
+    "r3": [
+      539,
+      123,
+      42
+    ]
+  },
+  "hidden": [
+    "l",
+    "r",
+    "zl",
+    "zr"
+  ],
+  "edge": {
+    "zl": 0.19,
+    "l": 0.29,
+    "r": 0.71,
+    "zr": 0.81
+  }
+}

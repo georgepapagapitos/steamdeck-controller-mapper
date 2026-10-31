@@ -1,0 +1,113 @@
+{
+  "id": "gc",
+  "system": "gc",
+  "controller": "standard",
+  "file": "gc.jpg",
+  "width": 720,
+  "height": 621,
+  "background": "white",
+  "source": {
+    "title": "File:Gamecube-controller.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:Gamecube-controller.jpg",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "a": [
+      556,
+      201,
+      84,
+      70,
+      -5
+    ],
+    "b": [
+      477,
+      207,
+      54,
+      48,
+      0
+    ],
+    "x": [
+      622,
+      212,
+      46,
+      70,
+      20
+    ],
+    "y": [
+      578,
+      146,
+      80,
+      46,
+      8
+    ],
+    "start": [
+      404,
+      164,
+      17
+    ],
+    "z": [
+      667,
+      160,
+      30,
+      88,
+      -36
+    ],
+    "dpad": [
+      239,
+      218,
+      86,
+      78
+    ],
+    "up": [
+      252,
+      196,
+      30,
+      38,
+      35
+    ],
+    "right": [
+      263,
+      227,
+      38,
+      30,
+      20
+    ],
+    "down": [
+      219,
+      243,
+      30,
+      38,
+      30
+    ],
+    "left": [
+      210,
+      208,
+      38,
+      30,
+      16
+    ],
+    "main": [
+      243,
+      75,
+      48
+    ],
+    "c": [
+      403,
+      278,
+      48
+    ]
+  },
+  "hidden": [
+    "l_digital",
+    "r_digital",
+    "l_analog",
+    "r_analog"
+  ],
+  "edge": {
+    "l_analog": 0.14,
+    "l_digital": 0.24,
+    "r_digital": 0.76,
+    "r_analog": 0.86
+  }
+}

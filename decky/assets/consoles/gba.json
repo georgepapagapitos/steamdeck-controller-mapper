@@ -1,0 +1,80 @@
+{
+  "id": "gba",
+  "system": "gba",
+  "controller": "standard",
+  "file": "gba.jpg",
+  "width": 720,
+  "height": 480,
+  "background": "grey",
+  "source": {
+    "title": "File:Collection Charles Cros. Consoles de jeux vidéo (média - multimédias). Consoles de jeux vidéo Nintendo - Game Boy Advance. Console de jeux vidéo Nintendo - Game Boy Advance, n° de série AC 10326571 - btv1b550100502 (05 of 81).jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:Collection_Charles_Cros._Consoles_de_jeux_vidéo_(média_-_multimédias)._Consoles_de_jeux_vidéo_Nintendo_-_Game_Boy_Advance._Console_de_jeux_vidéo_Nintendo_-_Game_Boy_Advance,_n°_de_série_AC_10326571_-_btv1b550100502_(05_of_81).jpg",
+    "author": "Bibliothèque nationale de France (Collection Charles Cros)",
+    "license": "Public domain"
+  },
+  "spots": {
+    "a": [
+      586,
+      209,
+      22
+    ],
+    "b": [
+      536,
+      225,
+      22
+    ],
+    "start": [
+      193,
+      291,
+      12
+    ],
+    "select": [
+      193,
+      321,
+      12
+    ],
+    "dpad": [
+      157,
+      215,
+      80,
+      80
+    ],
+    "up": [
+      157,
+      193,
+      34,
+      32
+    ],
+    "down": [
+      157,
+      238,
+      34,
+      32
+    ],
+    "left": [
+      133,
+      215,
+      32,
+      34
+    ],
+    "right": [
+      180,
+      215,
+      32,
+      34
+    ],
+    "l": [
+      142,
+      112,
+      88,
+      32
+    ],
+    "r": [
+      588,
+      116,
+      80,
+      32
+    ]
+  },
+  "hidden": []
+}

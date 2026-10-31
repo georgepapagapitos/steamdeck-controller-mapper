@@ -1,0 +1,35 @@
+{
+  "id": "atari2600-paddle",
+  "system": "atari2600",
+  "controller": "paddle",
+  "file": "atari2600-paddle.jpg",
+  "width": 720,
+  "height": 720,
+  "background": "white",
+  "source": {
+    "title": "File:Atari-2600-Paddle-Controller-FR.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:Atari-2600-Paddle-Controller-FR.jpg",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "paddle": [
+      354,
+      222,
+      150
+    ],
+    "fire": [
+      93,
+      366,
+      102,
+      146
+    ]
+  },
+  "hidden": [
+    "reset",
+    "select",
+    "left_difficulty",
+    "right_difficulty",
+    "color_bw"
+  ]
+}

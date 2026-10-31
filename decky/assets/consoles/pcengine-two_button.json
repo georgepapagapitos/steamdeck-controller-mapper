@@ -1,0 +1,71 @@
+{
+  "id": "pcengine-two_button",
+  "system": "pcengine",
+  "controller": "two_button",
+  "file": "pcengine-two_button.jpg",
+  "width": 720,
+  "height": 378,
+  "background": "white",
+  "source": {
+    "title": "File:NEC-TurboDuo-Controller-Flat-Top.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:NEC-TurboDuo-Controller-Flat-Top.jpg",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "dpad": [
+      125,
+      266,
+      68
+    ],
+    "up": [
+      124,
+      229,
+      46,
+      46
+    ],
+    "down": [
+      124,
+      304,
+      46,
+      46
+    ],
+    "left": [
+      85,
+      266,
+      46,
+      46
+    ],
+    "right": [
+      165,
+      266,
+      46,
+      46
+    ],
+    "ii": [
+      527,
+      288,
+      31
+    ],
+    "i": [
+      607,
+      288,
+      31
+    ],
+    "select": [
+      322,
+      291,
+      62,
+      32,
+      0
+    ],
+    "run": [
+      404,
+      291,
+      60,
+      32,
+      0
+    ]
+  },
+  "hidden": []
+}

@@ -1,0 +1,118 @@
+{
+  "id": "3ds",
+  "system": "3ds",
+  "controller": "standard",
+  "file": "3ds.png",
+  "width": 720,
+  "height": 651,
+  "background": "transparent",
+  "source": {
+    "title": "File:Nintendo-3DS-AquaOpen.png",
+    "url": "https://commons.wikimedia.org/wiki/File:Nintendo-3DS-AquaOpen.png",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "a": [
+      541,
+      448,
+      17
+    ],
+    "b": [
+      500,
+      465,
+      17
+    ],
+    "x": [
+      524,
+      417,
+      17
+    ],
+    "y": [
+      483,
+      434,
+      17
+    ],
+    "select": [
+      188,
+      500,
+      74,
+      26,
+      12
+    ],
+    "home": [
+      264,
+      520,
+      78,
+      26,
+      12
+    ],
+    "start": [
+      342,
+      540,
+      74,
+      26,
+      12
+    ],
+    "dpad": [
+      110,
+      427,
+      80,
+      64
+    ],
+    "up": [
+      120,
+      408,
+      24,
+      22
+    ],
+    "down": [
+      98,
+      444,
+      24,
+      22
+    ],
+    "left": [
+      85,
+      422,
+      24,
+      22
+    ],
+    "right": [
+      133,
+      431,
+      24,
+      22
+    ],
+    "circle_x": [
+      152,
+      348,
+      31
+    ],
+    "circle_y": [
+      152,
+      348,
+      31
+    ],
+    "touch_press": [
+      314,
+      423,
+      300,
+      198
+    ]
+  },
+  "hidden": [
+    "l",
+    "r",
+    "zl",
+    "zr",
+    "cstick_x",
+    "cstick_y"
+  ],
+  "edge": {
+    "l": 0.17,
+    "zl": 0.27,
+    "zr": 0.74,
+    "r": 0.84
+  }
+}

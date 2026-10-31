@@ -1,0 +1,120 @@
+{
+  "id": "switch",
+  "system": "switch",
+  "controller": "pro",
+  "file": "switch.jpg",
+  "width": 720,
+  "height": 560,
+  "background": "white",
+  "source": {
+    "title": "File:Nintendo-Switch-Pro-Controller-FL.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:Nintendo-Switch-Pro-Controller-FL.jpg",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "a": [
+      575,
+      190,
+      22
+    ],
+    "b": [
+      522,
+      210,
+      22
+    ],
+    "x": [
+      541,
+      150,
+      22
+    ],
+    "y": [
+      488,
+      170,
+      22
+    ],
+    "minus": [
+      328,
+      106,
+      16
+    ],
+    "plus": [
+      463,
+      131,
+      16
+    ],
+    "home": [
+      423,
+      160,
+      19
+    ],
+    "capture": [
+      347,
+      143,
+      32,
+      28
+    ],
+    "dpad": [
+      276,
+      200,
+      98,
+      86
+    ],
+    "up": [
+      285,
+      177,
+      38,
+      34
+    ],
+    "down": [
+      268,
+      224,
+      38,
+      34
+    ],
+    "left": [
+      250,
+      195,
+      40,
+      34
+    ],
+    "right": [
+      305,
+      206,
+      36,
+      34
+    ],
+    "lstick": [
+      231,
+      125,
+      40
+    ],
+    "rstick": [
+      437,
+      226,
+      40
+    ],
+    "l3": [
+      231,
+      125,
+      40
+    ],
+    "r3": [
+      437,
+      226,
+      40
+    ]
+  },
+  "hidden": [
+    "l",
+    "r",
+    "zl",
+    "zr"
+  ],
+  "edge": {
+    "zl": 0.23,
+    "l": 0.32,
+    "r": 0.72,
+    "zr": 0.81
+  }
+}

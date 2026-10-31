@@ -1,0 +1,72 @@
+{
+  "id": "gbc",
+  "system": "gbc",
+  "controller": "standard",
+  "file": "gbc.png",
+  "width": 354,
+  "height": 600,
+  "background": "transparent",
+  "source": {
+    "title": "File:Game-Boy-Color-Purple.png",
+    "url": "https://commons.wikimedia.org/wiki/File:Game-Boy-Color-Purple.png",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "a": [
+      300.5,
+      388.2,
+      21.7
+    ],
+    "b": [
+      236.5,
+      408.9,
+      21.7
+    ],
+    "select": [
+      152.5,
+      497,
+      40,
+      20,
+      0
+    ],
+    "start": [
+      203.2,
+      497,
+      40,
+      20,
+      0
+    ],
+    "dpad": [
+      76.8,
+      399.0,
+      88.7,
+      88.7
+    ],
+    "up": [
+      76.8,
+      371.4,
+      31.5,
+      30.5
+    ],
+    "down": [
+      76.8,
+      427.1,
+      31.5,
+      30.5
+    ],
+    "left": [
+      48.8,
+      399.0,
+      30.5,
+      31.5
+    ],
+    "right": [
+      104.9,
+      399.0,
+      30.5,
+      31.5
+    ]
+  },
+  "hidden": []
+}

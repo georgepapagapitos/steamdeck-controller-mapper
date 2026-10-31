@@ -1,0 +1,94 @@
+{
+  "id": "wii-wiimote_nunchuk",
+  "system": "wii",
+  "controller": "wiimote_nunchuk",
+  "file": "wii-wiimote_nunchuk.jpg",
+  "width": 720,
+  "height": 667,
+  "background": "white",
+  "source": {
+    "title": "File:Nintendo-Wii-Remote-wNunchuk.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:Nintendo-Wii-Remote-wNunchuk.jpg",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "a": [
+      565,
+      190,
+      21
+    ],
+    "one": [
+      495,
+      361,
+      16
+    ],
+    "two": [
+      481,
+      395,
+      16
+    ],
+    "minus": [
+      507,
+      247,
+      12
+    ],
+    "home": [
+      537,
+      257,
+      12
+    ],
+    "plus": [
+      567,
+      265,
+      12
+    ],
+    "dpad": [
+      590,
+      131,
+      66,
+      60
+    ],
+    "up": [
+      596,
+      115,
+      24,
+      26
+    ],
+    "down": [
+      582,
+      150,
+      24,
+      26
+    ],
+    "left": [
+      568,
+      127,
+      26,
+      24
+    ],
+    "right": [
+      610,
+      137,
+      26,
+      24
+    ],
+    "nunchuk": [
+      285,
+      80,
+      30
+    ]
+  },
+  "hidden": [
+    "b",
+    "c",
+    "z",
+    "shake",
+    "nunchuk_shake"
+  ],
+  "edge": {
+    "c": 0.44,
+    "z": 0.52,
+    "b": 0.82
+  }
+}

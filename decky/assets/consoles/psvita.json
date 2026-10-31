@@ -1,0 +1,29 @@
+{
+  "id": "psvita", "system": "psvita", "controller": "standard",
+  "file": "psvita.png", "width": 720, "height": 439, "background": "transparent",
+  "source": {"title": "File:PlayStation-Vita-1101-FL.png", "url": "https://commons.wikimedia.org/wiki/File:PlayStation-Vita-1101-FL.png", "author": "Evan-Amos", "license": "Public domain"},
+  "spots": {
+    "dpad": [103, 107, 44],
+    "up": [112, 86, 19],
+    "right": [124, 113, 19],
+    "down": [96, 127, 19],
+    "left": [82, 102, 19],
+    "triangle": [645, 198, 17],
+    "square": [606, 220, 17],
+    "circle": [665, 233, 17],
+    "cross": [627, 255, 17],
+    "lstick_x": [96, 188, 30],
+    "lstick_y": [96, 188, 30],
+    "rstick_x": [591, 303, 31],
+    "rstick_y": [591, 303, 31],
+    "ps": [70, 244, 50, 30, -3],
+    "select": [563, 358, 38, 22, 12],
+    "start": [599, 367, 38, 22, 14],
+    "front_touch_press": [367, 204, 490, 318],
+    "front_touch_x": [367, 204, 490, 318],
+    "front_touch_y": [367, 204, 490, 318],
+    "l": [156, 35, 64, 18, -6],
+    "r": [641, 136, 52, 18, 35]
+  },
+  "hidden": ["rear_touch_press", "rear_touch_x", "rear_touch_y", "motion"]
+}

@@ -1,0 +1,92 @@
+{
+  "id": "dreamcast",
+  "system": "dreamcast",
+  "controller": "standard",
+  "file": "dreamcast.jpg",
+  "width": 720,
+  "height": 838,
+  "background": "white",
+  "source": {
+    "title": "File:Sega-Dreamcast-Cont-n-VMU.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:Sega-Dreamcast-Cont-n-VMU.jpg",
+    "author": "Evan-Amos",
+    "license": "Public domain",
+    "note": "cropped to the single controller from the Commons 1920px thumbnail, then scaled to 720 wide"
+  },
+  "spots": {
+    "stick_x": [
+      89,
+      270,
+      51
+    ],
+    "stick_y": [
+      89,
+      270,
+      51
+    ],
+    "dpad": [
+      124,
+      416,
+      114,
+      116
+    ],
+    "up": [
+      127,
+      379,
+      46,
+      40
+    ],
+    "down": [
+      121,
+      453,
+      44,
+      40
+    ],
+    "left": [
+      89,
+      412,
+      40,
+      50
+    ],
+    "right": [
+      158,
+      417,
+      42,
+      50
+    ],
+    "y": [
+      539,
+      323,
+      30
+    ],
+    "x": [
+      472,
+      371,
+      30
+    ],
+    "b": [
+      593,
+      384,
+      30
+    ],
+    "a": [
+      527,
+      432,
+      30
+    ],
+    "start": [
+      301,
+      561,
+      70,
+      68
+    ]
+  },
+  "hidden": [
+    "l_trigger",
+    "r_trigger"
+  ],
+  "edge": {
+    "l_trigger": 0.2,
+    "r_trigger": 0.8
+  }
+}

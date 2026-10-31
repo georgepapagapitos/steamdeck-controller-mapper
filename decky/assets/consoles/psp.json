@@ -1,0 +1,24 @@
+{
+  "id": "psp", "system": "psp", "controller": "standard",
+  "file": "psp.png", "width": 720, "height": 405, "background": "transparent",
+  "source": {"title": "File:Sony-PSP-1000-Body.png", "url": "https://commons.wikimedia.org/wiki/File:Sony-PSP-1000-Body.png", "author": "Evan-Amos", "license": "Public domain"},
+  "spots": {
+    "dpad": [95, 130, 54],
+    "up": [102, 100, 20],
+    "right": [125, 137, 20],
+    "down": [86, 160, 20],
+    "left": [65, 126, 20],
+    "triangle": [620, 175, 22],
+    "square": [572, 211, 22],
+    "circle": [653, 223, 22],
+    "cross": [602, 258, 22],
+    "stick_x": [74, 220, 26],
+    "stick_y": [74, 220, 26],
+    "home": [130, 281, 44, 24, 4],
+    "select": [460, 338, 44, 24, 8],
+    "start": [505, 346, 44, 24, 8],
+    "l": [133, 19, 64, 20, -10],
+    "r": [641, 101, 74, 26, 20]
+  },
+  "hidden": []
+}

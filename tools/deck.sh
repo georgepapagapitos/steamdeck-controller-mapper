@@ -101,6 +101,11 @@ plugin() {
   (cd decky && corepack pnpm run build >/dev/null)
   scp -q decky/dist/index.js "$HOST:homebrew/plugins/map-helper/dist/index.js"
   scp -q decky/main.py "$HOST:homebrew/plugins/map-helper/main.py"
+  if [ -d decky/assets/consoles ]; then
+    # The installed plugin's folder belongs to root; its data folder is ours (main.py looks in both).
+    ssh "$HOST" "mkdir -p homebrew/data/map-helper/consoles"
+    scp -q decky/assets/consoles/* "$HOST:homebrew/data/map-helper/consoles/"
+  fi
   ui reload
 }
 

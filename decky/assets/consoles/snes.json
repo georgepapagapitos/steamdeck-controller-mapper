@@ -1,0 +1,89 @@
+{
+  "id": "snes",
+  "system": "snes",
+  "controller": "standard",
+  "file": "snes.jpg",
+  "width": 720,
+  "height": 352,
+  "background": "white",
+  "source": {
+    "title": "File:SNES-Controller-Flat.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:SNES-Controller-Flat.jpg",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "a": [
+      620,
+      187,
+      28
+    ],
+    "b": [
+      553,
+      240,
+      28
+    ],
+    "x": [
+      553,
+      137,
+      28
+    ],
+    "y": [
+      485,
+      190,
+      28
+    ],
+    "select": [
+      292,
+      212,
+      64,
+      26,
+      -40
+    ],
+    "start": [
+      367,
+      212,
+      64,
+      26,
+      -40
+    ],
+    "dpad": [
+      160,
+      191,
+      124,
+      124
+    ],
+    "up": [
+      160,
+      151,
+      38,
+      44
+    ],
+    "down": [
+      160,
+      231,
+      38,
+      44
+    ],
+    "left": [
+      124,
+      191,
+      44,
+      38
+    ],
+    "right": [
+      196,
+      191,
+      44,
+      38
+    ]
+  },
+  "hidden": [
+    "l",
+    "r"
+  ],
+  "edge": {
+    "l": 0.23,
+    "r": 0.77
+  }
+}

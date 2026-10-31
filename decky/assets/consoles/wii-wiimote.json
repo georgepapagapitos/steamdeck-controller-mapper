@@ -1,0 +1,84 @@
+{
+  "id": "wii-wiimote",
+  "system": "wii",
+  "controller": "wiimote",
+  "file": "wii-wiimote.png",
+  "width": 720,
+  "height": 277,
+  "background": "transparent",
+  "source": {
+    "title": "File:Dsc6965121320 00RAW crop corr 03.png",
+    "url": "https://commons.wikimedia.org/wiki/File:Dsc6965121320_00RAW_crop_corr_03.png",
+    "author": "PantheraLeo1359531",
+    "license": "CC0"
+  },
+  "spots": {
+    "a": [
+      496,
+      128,
+      29
+    ],
+    "one": [
+      202,
+      128,
+      19
+    ],
+    "two": [
+      142,
+      128,
+      19
+    ],
+    "minus": [
+      381,
+      81,
+      16
+    ],
+    "home": [
+      381,
+      127,
+      17
+    ],
+    "plus": [
+      382,
+      175,
+      16
+    ],
+    "dpad": [
+      598,
+      128,
+      90,
+      88
+    ],
+    "up": [
+      623,
+      128,
+      38,
+      30
+    ],
+    "down": [
+      574,
+      128,
+      38,
+      30
+    ],
+    "left": [
+      598,
+      104,
+      30,
+      38
+    ],
+    "right": [
+      598,
+      152,
+      30,
+      38
+    ]
+  },
+  "hidden": [
+    "b",
+    "shake"
+  ],
+  "edge": {
+    "b": 0.83
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "id": "atari2600-joystick",
+  "system": "atari2600",
+  "controller": "joystick",
+  "file": "atari2600-joystick.jpg",
+  "width": 720,
+  "height": 743,
+  "background": "white",
+  "source": {
+    "title": "File:Atari-2600-Joystick.jpg",
+    "url": "https://commons.wikimedia.org/wiki/File:Atari-2600-Joystick.jpg",
+    "author": "Evan-Amos",
+    "license": "Public domain"
+  },
+  "spots": {
+    "dpad": [
+      375,
+      40,
+      102,
+      56,
+      0
+    ],
+    "up": [
+      390,
+      355,
+      30
+    ],
+    "down": [
+      385,
+      482,
+      30
+    ],
+    "left": [
+      232,
+      425,
+      30
+    ],
+    "right": [
+      545,
+      420,
+      30
+    ],
+    "fire": [
+      131,
+      406,
+      100,
+      54,
+      0
+    ]
+  },
+  "hidden": [
+    "reset",
+    "select",
+    "left_difficulty",
+    "right_difficulty",
+    "color_bw"
+  ]
+}
