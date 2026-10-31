@@ -10,6 +10,7 @@ import { Loading, Message, SampleBanner, failureText } from "../States";
 import { t } from "../strings";
 import { Styles } from "../styles";
 import { GoodToKnow, Shortcuts } from "./Shortcuts";
+import { Health } from "./Health";
 import { Guard } from "../Guard";
 
 // The last launch, game running or not: ES-DE stays open between games, so Steam can't say whether this one
@@ -215,6 +216,7 @@ export function Panel() {
           </PanelSectionRow>
         </PanelSection>
       )}
+      <Guard name="health"><Health /></Guard>
       <NowPlaying data={result.data} />
       <Guard name="shortcuts" resetKey={result.data.launch.ts}><Shortcuts data={result.data} /></Guard>
       <Controls data={result.data} />

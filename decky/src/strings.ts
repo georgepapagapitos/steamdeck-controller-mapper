@@ -42,6 +42,14 @@ export const t = {
     fewer: "Fewer shortcuts",
   },
   controls: "Controls",
+  health: {
+    title: "Needs attention",
+    hooks: "map-helper won't run when games start",
+    steamInput: "Steam Input is off where emulators need it",
+    repair: "Repair",
+    repairing: "Repairing…",
+    repaired: "map-helper runs at launch again.",
+  },
   order: {
     makeFirst: (pad: string) => `Make ${pad} player 1`,
     makeFirstShort: "Make player 1",

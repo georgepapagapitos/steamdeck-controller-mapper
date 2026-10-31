@@ -289,6 +289,41 @@ class Plugin:
             decky.logger.exception("edit_rules failed")
             return _fail("failed", "Something went wrong while saving. The plugin log has details.")
 
+    async def get_health(self) -> dict:
+        """What would stop map-helper helping, from `map-helper doctor --json`: its launch hooks missing or broken, and
+        Steam Input turned off where emulators need it. Everything else doctor says is for a terminal."""
+        try:
+            if not os.path.isfile(_entry()):
+                return _fail("not-installed", "map-helper isn't installed on this Deck yet.")
+            result = await _run_core("doctor", "--json")
+            if result is None:
+                return _fail("timeout", "map-helper took too long to check itself.")
+            code, out, _err = result
+            findings = json.loads(out.decode("utf-8", "replace")).get("findings", []) if len(out) <= MAX_OUTPUT_BYTES else []
+            keep = [f for f in findings if isinstance(f, dict) and (
+                (f.get("check") == "launch-hooks" and f.get("severity") in ("error", "warning"))
+                or (f.get("check") == "steam-input" and f.get("severity") == "error"))]
+            return {"ok": True, "data": {"problems": [{"check": f["check"], "severity": f["severity"],
+                                                       "message": str(f.get("message", ""))} for f in keep]}}
+        except Exception:
+            decky.logger.exception("get_health failed")
+            return _fail("failed", "map-helper couldn't check itself.")
+
+    async def repair_hooks(self) -> dict:
+        """`map-helper setup --write`: puts mh-run back in front of launches (idempotent; what an EmuDeck update or an
+        SRM run can undo)."""
+        try:
+            if not os.path.isfile(_entry()):
+                return _fail("not-installed", "map-helper isn't installed on this Deck yet.")
+            result = await _run_core("setup", "--write", timeout=EDIT_TIMEOUT_S)
+            if result is None:
+                return _fail("timeout", "Repairing took too long.")
+            code, _out, err = result
+            return {"ok": True, "data": {}} if code == 0 else _fail("failed", _last_line(err) or f"exit code {code}")
+        except Exception:
+            decky.logger.exception("repair_hooks failed")
+            return _fail("failed", "Something went wrong while repairing. The plugin log has details.")
+
     async def set_player_order(self, models: list) -> dict:
         """`map-helper players set MODEL...` (player 1 first), or `clear` for an empty list: Steam's order again."""
         try:

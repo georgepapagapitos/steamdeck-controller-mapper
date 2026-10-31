@@ -85,5 +85,23 @@ class BackendTest(unittest.TestCase):
         self.assertEqual(self.call("set_player_order", ["sony.dualsense"])["code"], "not-installed")
 
 
+    def test_health_keeps_only_what_stops_map_helper_working(self):
+        findings = [{"severity": "error", "check": "launch-hooks", "message": "es-de: no game-start script"},
+                    {"severity": "warning", "check": "launch-hooks", "message": "mh-run: the shim runs an old core"},
+                    {"severity": "error", "check": "steam-input", "message": 'steam: "Disable Steam Input" is set'},
+                    {"severity": "warning", "check": "steam-input", "message": "couldn't read localconfig.vdf"},
+                    {"severity": "warning", "check": "retroarch-shadow", "message": "a game remap"},
+                    {"severity": "info", "check": "emudeck-automap", "message": "AutoMap is on for Cemu"}]
+
+        async def fake_core(*args, timeout=None):
+            self.assertEqual(args, ("doctor", "--json"))
+            return 0, json.dumps({"findings": findings}).encode(), b""
+
+        self.main._run_core, self.main._entry = fake_core, lambda: __file__
+        got = self.call("get_health")
+        self.assertEqual([(p["check"], p["severity"]) for p in got["data"]["problems"]],
+                         [("launch-hooks", "error"), ("launch-hooks", "warning"), ("steam-input", "error")])
+
+
 if __name__ == "__main__":
     unittest.main()

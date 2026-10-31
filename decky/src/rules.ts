@@ -85,6 +85,9 @@ export const deleteRules = (ids: string[]) =>
   fixture ? Promise.resolve(sampleOnly<{ rules: string[] }>()) : ask<{ rules: string[] }>("delete_rules", ids);
 export const resetRules = (system: string, game: string | null, dryRun: boolean) =>
   ask<{ rules: string[]; labels: string[]; dry_run: boolean }>("reset_rules", system, game, dryRun || !!fixture);
+export interface HealthProblem { check: string; severity: string; message: string }
+export const getHealth = () => ask<{ problems: HealthProblem[] }>("get_health");
+export const repairHooks = () => ask<Record<string, never>>("repair_hooks");
 export const setPlayerOrder = (models: string[]) => ask<{ order: string[] }>("set_player_order", models);
 export const getSystemLogo = (system: string) => ask<{ url: string }>("get_system_logo", system);
 

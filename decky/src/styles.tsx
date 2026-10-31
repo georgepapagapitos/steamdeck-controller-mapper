@@ -382,6 +382,7 @@ const css = `
 .mh-player-detail { font-size: 12px; color: ${colors.muted}; }
 /* Steam's Field rows in the panel start at its edge; line them up with the section titles and text. */
 .mh-qam .mh-qam-field { padding-left: 16px !important; padding-right: 16px !important; }
+.mh-health { display: inline-flex; align-items: center; gap: 8px; color: ${colors.warn}; font-weight: 600; }
 .mh-keys { display: inline-flex; align-items: center; gap: 4px; color: ${colors.text}; }
 .mh-keys-plus { font-size: 12px; color: ${colors.muted}; }
 .mh-key { color: ${colors.text}; font-size: 13px; font-weight: 700; }
