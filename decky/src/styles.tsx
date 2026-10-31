@@ -301,7 +301,7 @@ const css = `
 .mh-bumper { font-size: 10px; font-weight: 700; color: ${colors.muted}; border: 1px solid ${colors.border};
   border-radius: 4px; padding: 1px 4px; align-self: center; }
 .mh-capture-pads { display: flex; gap: 16px; width: 100%; justify-content: center; }
-.mh-capture-pane { flex: 1 1 0; max-width: 300px; min-width: 0; }
+.mh-capture-pane { flex: 1 1 0; max-width: 300px; min-width: 0; height: 200px; display: flex; flex-direction: column; }
 .mh-console { width: 100%; height: auto; display: block; }
 .mh-capture .mh-modal-title { align-self: stretch; }
 .mh-spot.mh-was { box-shadow: 0 0 0 2px ${colors.muted}; border-radius: 50%; }

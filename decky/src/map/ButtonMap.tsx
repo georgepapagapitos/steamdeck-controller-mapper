@@ -210,7 +210,7 @@ function MapView({ data, sample, reload }: { data: LastLaunch; sample: boolean; 
               </div>
             )}
             <ControlList pad={player.pad} controls={controls} steamOnly={backs} isDeck={isDeck} selected={selected}
-              prefix={prefix} system={launch.system} onSelect={setSelected} onChange={ctx ? (c) => openEdit(ctx, c) : undefined}
+              prefix={prefix} onSelect={setSelected} onChange={ctx ? (c) => openEdit(ctx, c) : undefined}
               onDefault={ctx ? (c) => backToDefault(ctx, c) : undefined} canDefault={canDefault} defaults={defaults} />
           </div>
         </div>

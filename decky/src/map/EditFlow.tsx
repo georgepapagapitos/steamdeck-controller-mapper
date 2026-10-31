@@ -8,7 +8,7 @@ import { type Change, type EditResult, type Op, type Scope, type Target, editRul
 import { t } from "../strings";
 import { Styles } from "../styles";
 import { type Capture, type Want, asSource, capture, padIndices, steamPadName } from "./capture";
-import { ConsolePad, consoleIcons, hasConsolePad } from "./consoles";
+import { ConsoleDrawing } from "./ConsoleDrawing";
 import { type Control, groupControls } from "./controls";
 import { PadDrawing } from "./PadDrawing";
 
@@ -334,7 +334,6 @@ function DecideView({ launch, player, players, prefix, step, onSaved, onAgain, o
       <div className="mh-decide">
         <Glyph pad={player.pad} label={words.glyph} size={32} className="mh-glyph" />
         <span className="mh-decide-arrow" aria-hidden="true">→</span>
-        {consoleIcons(launch.system, binds.map((b) => b.target), 34)}
         <span className="mh-decide-what">{what}</span>
       </div>
       <div className="mh-modal-note">
@@ -487,8 +486,10 @@ export function EditFlow({ closeModal, launch, player, players, control, prefix,
           padName={shortPadName(player.pad.name)}
           title={title}
           want={step.want}
-          consolePad={hasConsolePad(launch.system)
-            ? <ConsolePad system={launch.system} lit={lit} label={t.edit.consolePad(what)} /> : null}
+          consolePad={
+            <ConsoleDrawing system={launch.system} controller={lit[0]?.split(".")[1] ?? null}
+              targets={lit.map((x) => x.split(".").pop()!)} name={t.edit.consolePad(what)}
+              labels={Object.fromEntries(step.job.targets.map((x) => [x.target.split(".").pop()!, x.label]))} />}
           pad={(pressed) => (
             <PadDrawing pad={player.pad} controls={controls}
               selected={pressed ? controlKeyFor(controls, pressed) : current} outlined={pressed ? null : current} />
