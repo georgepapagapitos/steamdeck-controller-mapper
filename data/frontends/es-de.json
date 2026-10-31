@@ -7,7 +7,7 @@
   "https://github.com/dragoonDorise/EmuDeck/blob/dddb30229adbbd54d5ff7283cfd70e11c4322c26/functions/ToolScripts/emuDeckESDE.sh"
  ],
  "_conventions": {
-  "systems": "ES-DE system name -> its <command> tags in order, [label, command], copied verbatim from ES-DE's bundled Linux es_systems.xml. Only systems where some command runs an emulator map-helper manages (a RetroArch core with a descriptor in data/adapters/retroarch/cores/, %EMULATOR_DOLPHIN%, %EMULATOR_PCSX2%). The first command is ES-DE's default; a gamelist's alternativeEmulator label (or a game's altemulator) picks another by label (FileData::launchGame). consolearcade and triforce are left out: their games aren't a console map-helper has layouts for.",
+  "systems": "ES-DE system name -> its <command> tags in order, [label, command], copied verbatim from ES-DE's bundled Linux es_systems.xml. Only systems where some command runs an emulator map-helper manages (a RetroArch core with a descriptor in data/adapters/retroarch/cores/, %EMULATOR_DOLPHIN%, %EMULATOR_PCSX2%, %EMULATOR_XEMU%: es_systems.xml L2506-L2514 @ a529a9d for xbox). The first command is ES-DE's default; a gamelist's alternativeEmulator label (or a game's altemulator) picks another by label (FileData::launchGame). consolearcade and triforce are left out: their games aren't a console map-helper has layouts for.",
   "custom": "A system in ~/ES-DE/custom_systems/es_systems.xml replaces the bundled one (INSTALL.md, 'Custom es_systems.xml'); map-helper reads that file at launch. EmuDeck's custom file overrides none of these systems on x86 (its nds and saturn entries sit inside an <!--armcores ... armcores--> comment that ESDE_addArmCores removes only on ARM).",
   "aliases": "ES-DE system name -> map-helper system id where they differ (identity otherwise). Each is the console the ES-DE system emulates, per its <fullname>/<platform> in the same file.",
   "emudeck_defaults": "EmuDeck's ESDE_setDefaultEmulators writes alternativeEmulator labels into gamelists: 'Dolphin (Standalone)' for gc and wii, 'PCSX2 (Standalone)' for ps2, 'DuckStation (Standalone)' for psx, 'PPSSPP (Standalone)' for psp, 'Beetle Saturn' for saturn, 'melonDS DS' for nds (when the melonDS standalone isn't installed)."
@@ -773,6 +773,12 @@
    [
     "Emulicious (Standalone)",
     "%EMULATOR_EMULICIOUS% %ROM%"
+   ]
+  ],
+  "xbox": [
+   [
+    "xemu (Standalone)",
+    "%INJECT%=%BASENAME%.esprefix %EMULATOR_XEMU% -dvd_path %ROM%"
    ]
   ],
   "gc": [

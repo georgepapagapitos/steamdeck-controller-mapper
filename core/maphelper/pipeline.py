@@ -105,6 +105,11 @@ def _pcsx2():
     return PCSX2Adapter()
 
 
+def _xemu():
+    from .adapters.xemu import XemuAdapter
+    return XemuAdapter()
+
+
 def _retroarch():
     from .adapters.retroarch import RetroArchAdapter
     return RetroArchAdapter()
@@ -127,6 +132,7 @@ EMULATORS = {
     "dolphin": Emulator(_dolphin, _render_by_device,
                         HOME / ".var/app/org.DolphinEmu.dolphin-emu/config/dolphin-emu"),   # Flatpak
     "pcsx2": Emulator(_pcsx2, _render_by_device, HOME / ".config/PCSX2"),                    # AppImage
+    "xemu": Emulator(_xemu, _render_by_device, HOME / ".var/app/app.xemu.xemu/data/xemu/xemu"),          # Flatpak
     "retroarch": Emulator(_retroarch, _render_retroarch,
                           HOME / ".var/app/org.libretro.RetroArch/config/retroarch", _retroarch_saved),  # Flatpak
 }

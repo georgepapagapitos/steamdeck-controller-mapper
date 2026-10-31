@@ -116,6 +116,14 @@ def apply_patches(config_root: Path, patches: list, managed: dict, state_dir: Pa
         after = doc.serialize()
         if after == before:
             continue                                   # no-op: don't touch the file or its mtime
+        if rel.endswith(".toml"):
+            # A TOML file that doesn't parse can stop its emulator from starting (xemu: "Failed to load xemu config
+            # file", ui/xemu.c L1325-L1333): never write one.
+            import tomllib
+            try:
+                tomllib.loads(after)
+            except tomllib.TOMLDecodeError as e:
+                raise RuntimeError(f"{rel}: the edit wouldn't be valid TOML ({e}); nothing written") from None
         # Belt and braces for "never write outside managed keys": whatever the editor did, every other line must come
         # back unchanged. A parser bug fails here instead of silently rewriting a user's config.
         keys = {(p.section, p.key) for p in file_patches}

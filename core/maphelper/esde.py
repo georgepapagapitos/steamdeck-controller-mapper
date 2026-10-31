@@ -56,6 +56,9 @@ def classify(command: str) -> tuple[Optional[str], Optional[str]]:
         return "dolphin", None
     if "%EMULATOR_PCSX2%" in command or "pcsx2-qt.sh" in command:
         return "pcsx2", None
+    # ES-DE's own find rule runs the Flatpak export; EmuDeck's launcher, if a custom system uses it (docs/adapters/xemu.md).
+    if "%EMULATOR_XEMU%" in command or "xemu-emu.sh" in command or "app.xemu.xemu" in command:
+        return "xemu", None
     return None, None
 
 
