@@ -249,3 +249,23 @@ export function capture(want: Want, onPress: (input: string, fits: boolean) => v
     },
   };
 }
+
+// Every press and release of the given pads, as canonical inputs, until stop(): the button map's test mode. Same
+// source as capture() (Steam's per-controller input messages); null when this Steam client doesn't have them.
+export function listen(onInput: (input: string, pressed: boolean) => void,
+  { pads = null }: { pads?: number[] | null } = {}): { stop: () => void } | null {
+  const input = SteamClient.Input as unknown as Record<string, unknown>;
+  if (typeof input.RegisterForControllerInputMessages !== "function") return null;
+  try {
+    const registration = (input.RegisterForControllerInputMessages as (
+      cb: (index: number, button: number, pressed: boolean) => void) => { unregister: () => void })(
+      (index, button, pressed) => {
+        const name = MESSAGE[button];
+        if (name && name !== "guide" && (pads === null || pads.includes(index))) onInput(name, pressed);
+      });
+    return { stop: () => registration.unregister() };
+  } catch (e) {
+    console.warn("map-helper: no controller input messages; test mode unavailable", e);
+    return null;
+  }
+}

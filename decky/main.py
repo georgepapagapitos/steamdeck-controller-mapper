@@ -32,6 +32,21 @@ SYSTEM_ID = re.compile(r"^[a-z0-9][a-z0-9_-]{0,31}$")
 MAX_OPS_BYTES = 16 * 1024
 MAX_LOGO_BYTES = 512 * 1024
 LOGO_TYPES = {".svg": "image/svg+xml", ".png": "image/png"}
+CONSOLE_ID = re.compile(r"^[a-z0-9]+(?:[_-][a-z0-9]+)*$")
+CONSOLE_TYPES = {".png": "image/png", ".jpg": "image/jpeg"}
+MAX_CONSOLE_BYTES = 2 * 1024 * 1024
+GLYPH_NAME = re.compile(r"^[a-z0-9]+(_[a-z0-9]+)*$")
+MAX_GLYPHS = 200
+MAX_GLYPH_BYTES = 64 * 1024
+# Steam's own button glyphs, the ones Steam Input hands games (GetGlyphSVGForActionOrigin): read from the user's Steam
+# install at runtime, never shipped with the plugin. "knockout" are single-colour shapes, drawn as masks.
+# Steam's controller pictures (its controller settings screen), by the only names the plugin asks for.
+ART_DIR = (".local", "share", "Steam", "steamui", "images", "controller")
+ART_FILES = {"xboxone": "controller_config_controller_xboxone.png",
+             "generic": "controller_config_controller_generic.png", "ps5": "controller_config_controller_ps5.png",
+             "switch_pro": "controller_config_controller_switch_pro.png",
+             "steam_deck": "controller_config_controller_steam_deck.svg"}
+GLYPH_DIR = (".local", "share", "Steam", "controller_base", "images", "api", "knockout")
 # Decky's plugin socket buffers 1 MiB per message (docs/14 §2); the button map is far smaller.
 MAX_OUTPUT_BYTES = 512 * 1024
 SUPPORTED_SCHEMA = 1
@@ -39,6 +54,43 @@ SUPPORTED_SCHEMA = 1
 
 def _home() -> str:
     return decky.DECKY_USER_HOME
+
+
+def _steam_glyphs(names: list) -> dict:
+    folder = os.path.join(_home(), *GLYPH_DIR)
+    out = {}
+    for name in dict.fromkeys(names):
+        path = os.path.join(folder, f"{name}.svg")
+        try:
+            if os.path.getsize(path) <= MAX_GLYPH_BYTES:
+                with open(path, encoding="utf-8") as f:
+                    out[name] = f.read()
+        except OSError:
+            continue
+    return out
+
+
+def _console_art(system: str, controller: str):
+    """Public-domain photo of the console's controller shipped in assets/consoles (<system>-<controller> or
+    <system>), with its traced spots; None when there is none."""
+    # The zip ships them in the plugin's assets/; a developer copy (tools/deck.sh plugin) goes to the plugin's data
+    # folder, since an installed plugin's own folder belongs to root.
+    folders = [os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "consoles"),
+               os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "consoles")]
+    for folder, name in ((f, n) for f in folders for n in (f"{system}-{controller}", system)):
+        meta = os.path.join(folder, f"{name}.json")
+        if not os.path.isfile(meta):
+            continue
+        with open(meta, encoding="utf-8") as f:
+            info = json.load(f)
+        image = os.path.join(folder, os.path.basename(info.get("file", "")))
+        ext = os.path.splitext(image)[1]
+        if ext not in CONSOLE_TYPES or not os.path.isfile(image) or os.path.getsize(image) > MAX_CONSOLE_BYTES:
+            return None
+        with open(image, "rb") as f:
+            url = f"data:{CONSOLE_TYPES[ext]};base64,{base64.b64encode(f.read()).decode('ascii')}"
+        return {"url": url, **{k: info[k] for k in ("width", "height", "spots", "hidden", "edge", "background") if k in info}}
+    return None
 
 
 def _entry() -> str:
@@ -281,6 +333,45 @@ class Plugin:
         except Exception:
             decky.logger.exception("get_system_logo failed")
             return _fail("failed", "Couldn't read the ES-DE theme.")
+
+    async def get_controller_art(self, name: str) -> dict:
+        """Steam's picture of a pad as a data URL; never shipped with the plugin."""
+        try:
+            if name not in ART_FILES:
+                return _fail("refused", "That isn't a controller picture map-helper knows.")
+            path = os.path.join(_home(), *ART_DIR, ART_FILES[name])
+            if not os.path.isfile(path) or os.path.getsize(path) > MAX_LOGO_BYTES:
+                return _fail("no-art", "Steam has no picture of this controller.")
+            with open(path, "rb") as f:
+                data = f.read()
+            mime = LOGO_TYPES[os.path.splitext(path)[1]]
+            return {"ok": True, "data": {"url": f"data:{mime};base64,{base64.b64encode(data).decode('ascii')}"}}
+        except Exception:
+            decky.logger.exception("get_controller_art failed")
+            return _fail("failed", "Couldn't read Steam's controller picture.")
+
+    async def get_console_art(self, system: str, controller: str) -> dict:
+        """A photo of the emulated console's controller and where its buttons are."""
+        try:
+            if not all(isinstance(v, str) and CONSOLE_ID.match(v) for v in (system, controller)):
+                return _fail("refused", "That isn't a console map-helper knows.")
+            found = await asyncio.get_running_loop().run_in_executor(None, _console_art, system, controller)
+            return {"ok": True, "data": found} if found else _fail("no-art", "No picture of this console's controller.")
+        except Exception:
+            decky.logger.exception("get_console_art failed")
+            return _fail("failed", "Couldn't read the console picture.")
+
+    async def get_steam_glyphs(self, names: list) -> dict:
+        """{name: svg text} for each of Steam's knockout glyphs asked for that exists; missing names are left out."""
+        try:
+            if not isinstance(names, list) or len(names) > MAX_GLYPHS or \
+                    not all(isinstance(n, str) and GLYPH_NAME.match(n) for n in names):
+                return _fail("refused", "Those aren't glyph names.")
+            found = await asyncio.get_running_loop().run_in_executor(None, _steam_glyphs, names)
+            return {"ok": True, "data": found}
+        except Exception:
+            decky.logger.exception("get_steam_glyphs failed")
+            return _fail("failed", "Couldn't read Steam's controller glyphs.")
 
     async def _main(self):
         decky.logger.info("map-helper backend started (core: %s)", _entry())

@@ -25,6 +25,7 @@ export interface PadInput {
   note?: string;
   note_short?: string; // a few words for a list row: "Hold for C buttons"
   note_source?: Source; // where the note's fact comes from (EmuDeck's hotkey button, the core's modifier)
+  held_with?: string; // a chord row: gives note_short only while this input (canonical name) is held
   steam_only?: boolean; // back buttons and paddles: emulators never see them
 }
 
@@ -48,11 +49,20 @@ export interface PadOption {
   source?: Source;
 }
 
+// One of the emulator's shortcuts (hotkeys) on player 1's pad: the buttons to press together, first one held.
+export interface Shortcut {
+  target: string; // "hotkey.save_state"
+  label: string; // "Save state"
+  inputs: { input: string; glyph: string }[];
+  source?: Source;
+}
+
 export interface Player {
   player: number;
   pad: Pad;
   inputs: PadInput[];
   options?: PadOption[];
+  hotkeys?: Shortcut[]; // player 1 only: emulators read shortcuts from one pad
 }
 
 export type Outcome = "changed" | "no-changes" | "skipped" | "error";

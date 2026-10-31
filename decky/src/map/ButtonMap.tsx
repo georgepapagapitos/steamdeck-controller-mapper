@@ -11,13 +11,15 @@ import { Loading, Message, SampleBanner, failureText } from "../States";
 import { t } from "../strings";
 import { Styles } from "../styles";
 import { steamKey } from "./BackStrip";
-import { ControlList, DEFAULTS_KEY } from "./ControlList";
+import { ControlList } from "./ControlList";
 import { type Control, groupControls, steamOnlyInputs } from "./controls";
 import { type MapContext, backToDefault, backToDefaults, openEdit, openMenu, ruleDrives } from "./actions";
-import { DetailCard } from "./DetailCard";
-import { Legend, OptionChips } from "./OptionChips";
+import { ConsoleDrawing } from "./ConsoleDrawing";
+import { OptionChips } from "./OptionChips";
 import { PadDrawing } from "./PadDrawing";
 import { PlayerTabs } from "./PlayerTabs";
+import { ShortcutStrip } from "./ShortcutStrip";
+import { TestMode } from "./TestMode";
 
 const goBack = () => Navigation.NavigateBack();
 
@@ -106,7 +108,12 @@ function MapView({ data, sample, reload }: { data: LastLaunch; sample: boolean; 
     .join(" · ");
   const isDeck = player?.pad.shape === "deck";
   const control = controls.find((c) => c.key === selected);
-  const steamOnly = backs.find((b) => steamKey(b) === selected);
+  // The console's side: which of its controllers the core drives ("n64.standard.a" -> standard), what the selected
+  // control becomes there, and each button's own label for the chips.
+  const allDrives = (player?.inputs ?? []).flatMap((i) => i.drives);
+  const consoleController = allDrives.find((d) => d.target.split(".").length === 3)?.target.split(".")[1] ?? null;
+  const consoleTargets = (control?.inputs ?? []).flatMap((i) => i.drives.map((d) => d.target.split(".").pop()!));
+  const consoleLabels = Object.fromEntries(allDrives.map((d) => [d.target.split(".").pop()!, d.label]));
   const warnings = data.warnings ?? [];
   const [pending, setPending] = useState(() => pendingFor(launch.ts));
   const ctx: MapContext | null = player ? {
@@ -126,8 +133,28 @@ function MapView({ data, sample, reload }: { data: LastLaunch; sample: boolean; 
     || players.some((p) => groupControls(p.inputs).some((c) => ruleDrives(c).length > 0));
   const defaults = ctx && rulesHere
     ? { note: ruleButtons ? t.edit.defaultsRowNote(ruleButtons) : null, onActivate: () => backToDefaults(ctx) } : undefined;
+  // Test mode: a press on the player's pad selects its row, so both pictures light it and the list follows.
+  const [testing, setTesting] = useState(false);
+  const keyFor = (input: string): string | null => {
+    const name = input.match(/^(ls|rs)_/)?.[1] ?? input;
+    const found = controls.find((c) => c.key === name || c.inputs.some((i) => i.input === name));
+    if (found) return found.key;
+    const back = backs.find((b) => b.input === input);
+    return back ? steamKey(back) : null;
+  };
+  const showPressed = (input: string) => {
+    const key = keyFor(input);
+    if (!key) return;
+    setSelected(key);
+    setTimeout(() => right.current?.querySelector(".mh-row.mh-on")?.scrollIntoView({ block: "nearest" }), 30);
+  };
+  const leaveTest = () => {
+    setTesting(false);
+    focusSelected();
+  };
+  const startTest = player ? () => setTesting(true) : undefined;
   const undo = useUndo();
-  const menu = ctx ? () => openMenu(ctx, undo?.label ?? null) : undefined;
+  const menu = ctx ? () => openMenu(ctx, undo?.label ?? null, startTest) : undefined;
 
   return (
     <Focusable
@@ -139,6 +166,8 @@ function MapView({ data, sample, reload }: { data: LastLaunch; sample: boolean; 
       onMenuActionDescription={menu ? t.edit.menu : undefined}
       onOptionsButton={undo ? () => undoLast() : undefined}
       onOptionsActionDescription={undo ? t.edit.undo : undefined}
+      onSecondaryButton={startTest}
+      onSecondaryActionDescription={startTest ? t.test.start : undefined}
     >
       <Header title={shortGameTitle(launch)} subtitle={subtitle} logo={logo} onMenu={menu}>
         <PlayerTabs players={players} current={current} onPick={pick} />
@@ -152,16 +181,26 @@ function MapView({ data, sample, reload }: { data: LastLaunch; sample: boolean; 
           <div className="mh-left">
             {sample && <SampleBanner result={{ ok: true, data, sample }} />}
             {controls.length ? (
-              <PadDrawing pad={player.pad} controls={controls} selected={selected} />
+              <PadDrawing pad={player.pad} controls={controls} selected={selected} extras={backs} />
             ) : (
               <Message title={player.pad.name} body={t.map.noInputs} />
             )}
-            <Legend />
-            <DetailCard pad={player.pad} prefix={prefix} system={launch.system} control={control} steamOnly={steamOnly} isDeck={isDeck}
-              defaults={selected === DEFAULTS_KEY} systemName={launch.system_name || launch.system.toUpperCase()} />
+            {consoleController && (
+              <>
+                <div className="mh-becomes" aria-hidden="true">{t.map.becomes(launch.system_name || launch.system.toUpperCase())}</div>
+                <ConsoleDrawing system={launch.system} controller={consoleController} targets={consoleTargets}
+                  labels={consoleLabels} name={launch.system_name || launch.system} />
+              </>
+            )}
           </div>
           <div className="mh-right" ref={right}>
             {pending > 0 && <div className="mh-pending" role="status">{t.edit.pending(pending)}</div>}
+            {testing ? (
+              <TestMode pad={player.pad} leaveGlyph={player.inputs.find((i) => i.input === "face_east")?.glyph ?? "B"}
+                onInput={showPressed} onLeave={leaveTest} />
+            ) : (
+              <ShortcutStrip player={player} />
+            )}
             <OptionChips player={player} />
             {warnings.length > 0 && (
               <div className="mh-warnings" role="note" aria-label={t.map.warnings}>

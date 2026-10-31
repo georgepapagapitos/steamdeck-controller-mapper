@@ -1,7 +1,7 @@
 import { useQuickAccessVisible } from "@decky/api";
 import { ButtonItem, Field, PanelSection, PanelSectionRow } from "@decky/ui";
 import { useEffect, useRef } from "react";
-import { FaCheck, FaChevronRight, FaExclamationTriangle } from "react-icons/fa";
+import { FaChevronRight, FaExclamationTriangle } from "react-icons/fa";
 import { useLastLaunch } from "../backend";
 import type { LastLaunch, Player } from "../data";
 import { gameTitle, launchLine, launchTime, modeName, optionText, outcomeText, policyText } from "../format";
@@ -9,6 +9,7 @@ import { openButtonMap, openRulesPage } from "../navigation";
 import { Loading, Message, SampleBanner, failureText } from "../States";
 import { t } from "../strings";
 import { Styles } from "../styles";
+import { GoodToKnow, Shortcuts } from "./Shortcuts";
 
 // The last launch, game running or not: ES-DE stays open between games, so Steam can't say whether this one
 // still runs. "Last played" is true either way.
@@ -21,11 +22,14 @@ function NowPlaying({ data }: { data: LastLaunch }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <div className="mh-qam-game">{gameTitle(launch)}</div>
           <div className="mh-qam-sub">{launchLine(launch)}</div>
-          <div className="mh-qam-outcome" data-outcome={launch.outcome}>
-            {good ? <FaCheck aria-hidden="true" size={12} /> : <FaExclamationTriangle aria-hidden="true" size={12} />}
-            {outcomeText(launch)}
-          </div>
-          {launch.detail && <div className="mh-qam-detail">{launch.detail}</div>}
+          {/* Only when something went wrong: "mappings applied" says nothing to someone looking for the controls. */}
+          {!good && (
+            <div className="mh-qam-outcome" data-outcome={launch.outcome}>
+              <FaExclamationTriangle aria-hidden="true" size={12} />
+              {outcomeText(launch)}
+            </div>
+          )}
+          {!good && launch.detail && <div className="mh-qam-detail">{launch.detail}</div>}
         </div>
       </PanelSectionRow>
     </PanelSection>
@@ -40,6 +44,7 @@ function PlayerRow({ player, index }: { player: Player; index: number }) {
   const detail = playerDetail(player);
   return (
     <Field
+      className="mh-qam-field"
       focusable
       highlightOnFocus
       bottomSeparator="none"
@@ -81,16 +86,24 @@ function Players({ data }: { data: LastLaunch }) {
           </PanelSectionRow>
         ))
       )}
-      {data.players.length > 0 && (
-        <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => openButtonMap(0)}>
-            {t.showButtonMap}
-          </ButtonItem>
-        </PanelSectionRow>
-      )}
       <PanelSectionRow>
         <ButtonItem layout="below" onClick={openRulesPage}>
           {t.rules.open}
+        </ButtonItem>
+      </PanelSectionRow>
+    </PanelSection>
+  );
+}
+
+// Player 1's pad at a glance: what isn't obvious from the buttons, then the full map.
+function Controls({ data }: { data: LastLaunch }) {
+  if (data.players.length === 0) return null;
+  return (
+    <PanelSection title={t.controls}>
+      <GoodToKnow data={data} />
+      <PanelSectionRow>
+        <ButtonItem layout="below" onClick={() => openButtonMap(0)}>
+          {t.showButtonMap}
         </ButtonItem>
       </PanelSectionRow>
     </PanelSection>
@@ -102,7 +115,7 @@ function WhoIsPlayerOne({ data }: { data: LastLaunch }) {
   return (
     <PanelSection title={t.whoIsP1}>
       <PanelSectionRow>
-        <Field focusable highlightOnFocus padding="compact" bottomSeparator="none"
+        <Field className="mh-qam-field" focusable highlightOnFocus padding="compact" bottomSeparator="none"
           description={data.policy?.reason ? t.policyWhy(data.policy.reason) : undefined}>
           <div className="mh-qam-text">{policyText(data.policy, data.launch.mode)}</div>
         </Field>
@@ -114,7 +127,7 @@ function WhoIsPlayerOne({ data }: { data: LastLaunch }) {
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <PanelSectionRow>
-      <Field focusable highlightOnFocus padding="compact" bottomSeparator="none" label={label}>
+      <Field className="mh-qam-field" focusable highlightOnFocus padding="compact" bottomSeparator="none" label={label}>
         <span className="mh-qam-value">{value}</span>
       </Field>
     </PanelSectionRow>
@@ -196,6 +209,8 @@ export function Panel() {
         </PanelSection>
       )}
       <NowPlaying data={result.data} />
+      <Shortcuts data={result.data} />
+      <Controls data={result.data} />
       <Players data={result.data} />
       <WhoIsPlayerOne data={result.data} />
       <Footer data={result.data} />

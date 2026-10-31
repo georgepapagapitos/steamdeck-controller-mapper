@@ -1,5 +1,6 @@
+import { callable } from "@decky/api";
 import icons from "mh:kenney";
-import type { CSSProperties } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 import type { Pad } from "./data";
 
 // Pad glyphs and controller icons from Kenney's Input Prompts (CC0, assets/kenney/License.txt). An icon is picked
@@ -48,7 +49,95 @@ const DECK: Table = {
   R5: "steamdeck_button_r5", "L pad": "steamdeck_trackpad_l", "R pad": "steamdeck_trackpad_r",
 };
 
+// Steam's own glyphs, the ones Steam shows for each pad (Steam Input's knockout set, read from the user's Steam
+// install by the backend, never shipped). Preferred over Kenney's when the install has them.
+const COMMON: Table = {
+  "D-pad": "shared_dpad", "↑": "shared_dpad_up", "↓": "shared_dpad_down", "←": "shared_dpad_left",
+  "→": "shared_dpad_right", LS: "shared_lstick", RS: "shared_rstick", L3: "shared_lstick_click",
+  R3: "shared_rstick_click",
+};
+const LETTERS: Table = { A: "shared_button_a", B: "shared_button_b", X: "shared_button_x", Y: "shared_button_y" };
+
+const STEAM_XBOX: Table = {
+  ...COMMON, ...LETTERS, LB: "xbox_lb", RB: "xbox_rb", LT: "xbox_lt", RT: "xbox_rt", View: "xbox_button_select",
+  Menu: "xbox_button_start", Xbox: "xbox_button_logo", Share: "xbox_button_share",
+  P1: "xbox_p1", P2: "xbox_p2", P3: "xbox_p3", P4: "xbox_p4", PL: "shared_pl", PR: "shared_pr",
+};
+// An 8BitDo in X-input mode: Xbox glyphs, with its own home button, as Steam shows it.
+const STEAM_8BITDO: Table = { ...STEAM_XBOX, Home: "8bitdo_button_home", Xbox: "8bitdo_button_home" };
+
+const STEAM_PS: Table = {
+  ...COMMON, "✕": "ps_button_x", "○": "ps_button_circle", "□": "ps_button_square", "△": "ps_button_triangle",
+  "D-pad": "ps_dpad", "↑": "ps_dpad_up", "↓": "ps_dpad_down", "←": "ps_dpad_left", "→": "ps_dpad_right",
+  PS: "ps4_button_logo", Mic: "ps_button_mute",
+};
+const STEAM_DS4: Table = {
+  ...STEAM_PS, L1: "ps4_l1", R1: "ps4_r1", L2: "ps4_l2", R2: "ps4_r2", Share: "ps4_button_share",
+  Options: "ps4_button_options", Touchpad: "ps4_trackpad",
+};
+const STEAM_DUALSENSE: Table = {
+  ...STEAM_PS, L1: "ps5_l1", R1: "ps5_r1", L2: "ps5_l2", R2: "ps5_r2", Create: "ps5_button_create",
+  Options: "ps5_button_options", Touchpad: "ps5_trackpad",
+};
+
+const STEAM_SWITCH: Table = {
+  ...COMMON, ...LETTERS, "D-pad": "switchpro_dpad", "↑": "switchpro_dpad_up", "↓": "switchpro_dpad_down",
+  "←": "switchpro_dpad_left", "→": "switchpro_dpad_right", LS: "switchpro_lstick", RS: "switchpro_rstick",
+  L3: "switchpro_lstick_click", R3: "switchpro_rstick_click", L: "switchpro_l", R: "switchpro_r",
+  ZL: "switchpro_l2", ZR: "switchpro_r2", "−": "switchpro_button_minus", "+": "switchpro_button_plus",
+  Home: "switchpro_button_home", Capture: "switchpro_button_capture",
+};
+
+const STEAM_DECK: Table = {
+  ...COMMON, ...LETTERS, L1: "sd_l1", R1: "sd_r1", L2: "sd_l2", R2: "sd_r2", View: "sd_button_view",
+  Menu: "sd_button_menu", Steam: "sd_button_steam", L4: "sd_l4", L5: "sd_l5", R4: "sd_r4", R5: "sd_r5",
+  "L pad": "sd_ltrackpad", "R pad": "sd_rtrackpad",
+};
+
+const STEAM_TABLES = [STEAM_8BITDO, STEAM_DS4, STEAM_DUALSENSE, STEAM_SWITCH, STEAM_DECK];
+
 type PadLike = Pick<Pad, "shape"> & { family?: string | null };
+
+function steamTable(pad: PadLike): Table | null {
+  if (pad.shape === "playstation") return pad.family === "sony.dualsense" ? STEAM_DUALSENSE : STEAM_DS4;
+  if (pad.shape === "xbox") return pad.family?.startsWith("8bitdo") ? STEAM_8BITDO : STEAM_XBOX;
+  if (pad.shape === "nintendo") return STEAM_SWITCH;
+  if (pad.shape === "deck") return STEAM_DECK;
+  return null;
+}
+
+const getSteamGlyphs = callable<[string[]], { ok: boolean; data?: Record<string, string> }>("get_steam_glyphs");
+let steam: Record<string, string> = {};
+let loading: Promise<void> | null = null;
+const listeners = new Set<() => void>();
+
+function loadSteamGlyphs() {
+  loading ??= (async () => {
+    try {
+      const names = [...new Set(STEAM_TABLES.flatMap((t) => Object.values(t)))];
+      const answer = await getSteamGlyphs(names);
+      if (answer?.ok && answer.data) {
+        steam = answer.data;
+        listeners.forEach((f) => f());
+      }
+    } catch (e) {
+      console.warn("map-helper: Steam's glyphs aren't available; using the built-in ones", e); // fixture builds too
+    }
+  })();
+}
+
+// Re-renders the caller once Steam's glyphs have loaded (the first render draws the built-in ones).
+export function useSteamGlyphs() {
+  const [, bump] = useState(0);
+  useEffect(() => {
+    const f = () => bump((n) => n + 1);
+    listeners.add(f);
+    loadSteamGlyphs();
+    return () => {
+      listeners.delete(f);
+    };
+  }, []);
+}
 
 function table(pad: PadLike): Table | null {
   if (pad.shape === "playstation") return pad.family === "sony.dualsense" ? DUALSENSE : PLAYSTATION;
@@ -58,7 +147,10 @@ function table(pad: PadLike): Table | null {
   return null;
 }
 
+// An icon name for Icon: Steam's glyph ("steam:<name>") when the install has it, else Kenney's, else null.
 export function glyphIcon(pad: PadLike, label: string): string | null {
+  const own = steamTable(pad)?.[label];
+  if (own && steam[own]) return `steam:${own}`;
   const name = table(pad)?.[label];
   return name && icons[name] ? name : null;
 }
@@ -80,7 +172,8 @@ const urls = new Map<string, string>();
 function maskUrl(name: string): string {
   let url = urls.get(name);
   if (!url) {
-    url = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(icons[name])}")`;
+    const svg = name.startsWith("steam:") ? steam[name.slice(6)] : icons[name];
+    url = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
     urls.set(name, url);
   }
   return url;
@@ -105,6 +198,7 @@ export function Glyph({ pad, label, size, className }: {
   size: number | string;
   className?: string;
 }) {
+  useSteamGlyphs();
   const name = glyphIcon(pad, label);
   return name ? <Icon name={name} size={size} className={className} /> : <span className={className}>{label}</span>;
 }

@@ -157,9 +157,10 @@ export function openRules() {
 }
 
 // The map's ≡ menu: undo, the rules list, back to the emulator's defaults.
-export function openMenu(ctx: MapContext, undoLabel: string | null) {
+export function openMenu(ctx: MapContext, undoLabel: string | null, onTest?: () => void) {
   showContextMenu(
     <Menu label={t.edit.menu} cancelText={t.edit.cancel}>
+      {onTest && <MenuItem onSelected={onTest}>{t.test.start}</MenuItem>}
       {undoLabel && <MenuItem onSelected={() => undoLast()}>{t.edit.undoWhat(undoLabel)}</MenuItem>}
       <MenuItem onSelected={openRules}>{t.edit.openRules}</MenuItem>
       <MenuItem onSelected={() => backToDefaults(ctx)}>{t.edit.defaultsMenu}</MenuItem>

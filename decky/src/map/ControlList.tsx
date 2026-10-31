@@ -116,7 +116,8 @@ export function ControlList(props: Props) {
                 ) : (
                   <span className="mh-row-target mh-row-none">{t.map.nothing}</span>
                 )}
-                <span className="mh-dot" data-kind={controlKind(control)} aria-hidden="true" />
+                {/* Only a button you changed is marked; the emulator's and EmuDeck's defaults need no badge. */}
+                {controlKind(control) === "rule" && <span className="mh-changed">{t.map.changed}</span>}
               </Row>
             );
           })}
@@ -132,7 +133,6 @@ export function ControlList(props: Props) {
               <span className="mh-row-glyph"><Glyph pad={pad} label={input.glyph} size={22} /></span>
               <span className="mh-row-name">{input.name}</span>
               <span className="mh-row-target mh-row-none">{t.map.steamOnly}</span>
-              <span className="mh-dot" data-kind="none" aria-hidden="true" />
             </Row>
           ))}
         </Focusable>

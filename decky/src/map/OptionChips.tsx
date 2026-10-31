@@ -33,19 +33,3 @@ export function OptionChips({ player }: { player: Player }) {
   );
 }
 
-export function Legend() {
-  return (
-    <div className="mh-legend" aria-label={t.map.legend}>
-      {(["rule", "emulator", "emudeck"] as const).map((kind) => (
-        <span key={kind} className="mh-legend-item">
-          <span className="mh-dot" data-kind={kind} aria-hidden="true" />
-          {t.source[kind]}
-        </span>
-      ))}
-      <span className="mh-legend-item">
-        <span className="mh-dot" data-kind="none" aria-hidden="true" />
-        {t.map.nothing}
-      </span>
-    </div>
-  );
-}

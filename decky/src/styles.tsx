@@ -46,9 +46,99 @@ const css = `
 .mh-tab-on { background: ${colors.accent}; color: ${colors.onAccent}; border-color: ${colors.accent}; }
 .mh-tabs .mh-tab { gap: 6px; }
 .mh-body { flex: 1; display: flex; gap: 16px; padding: 10px 16px 46px; min-height: 0; }
-.mh-left { flex: 0 0 300px; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+.mh-left { flex: 0 0 clamp(300px, 40%, 720px); min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
 .mh-right { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
 
+/* The pad's picture and the console's share the column: each takes what height it can and fits inside it. */
+.mh-art-wrap { width: 100%; flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+.mh-art-box { flex: 1 1 0; min-height: 0; container-type: size; display: flex; align-items: center; justify-content: center; }
+.mh-art { position: relative; flex: none; container-type: inline-size; }
+.mh-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.mh-strip-shortcuts {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; padding: 8px 12px; border-radius: 8px;
+  background: ${colors.surfaceLow}; font-size: 13px; color: ${colors.text};
+}
+.mh-strip-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: ${colors.muted}; }
+.mh-strip-item { display: inline-flex; align-items: center; gap: 6px; }
+.mh-test {
+  display: flex; align-items: center; gap: 14px; padding: 10px 14px; border-radius: 8px; font-size: 14px;
+  background: #3a2a14; border: 2px solid ${colors.selected}; color: ${colors.text}; outline: none !important;
+}
+.mh-test-dot { width: 10px; height: 10px; border-radius: 50%; background: ${colors.selected}; flex: none;
+  animation: mh-pulse 1.2s ease-in-out infinite; }
+@keyframes mh-pulse { 50% { opacity: 0.3; } }
+@media (prefers-reduced-motion: reduce) { .mh-test-dot { animation: none; } }
+.mh-test-text { flex: 1; font-weight: 600; }
+.mh-test-leave { position: relative; display: inline-flex; align-items: center; gap: 6px; color: ${colors.muted}; padding-bottom: 4px; }
+.mh-test-bar { position: absolute; left: 0; bottom: 0; height: 2px; width: 0; background: ${colors.selected}; }
+.mh-test-holding .mh-test-bar { width: 100%; transition: width 900ms linear; }
+.mh-test-touch { padding: 6px 12px; border-radius: 6px; background: ${colors.surface}; font-size: 13px; }
+.mh-changed {
+  margin-left: auto; flex: none; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; padding: 2px 8px;
+  border-radius: 10px; color: ${colors.onAccent}; background: ${colors.rule};
+}
+.mh-becomes {
+  display: flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: ${colors.muted};
+}
+.mh-becomes::before, .mh-becomes::after { content: ""; flex: 1; height: 1px; background: ${colors.divider}; }
+.mh-console-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.mh-console-boxed { border-radius: 12px; }
+.mh-console-boxed img { border-radius: 12px; }
+/* Hidden buttons pinned to the photo's top edge, over where they are on the pad. */
+.mh-console-box { padding-top: 40px; }
+.mh-edge { position: absolute; bottom: calc(100% + 6px); transform: translateX(-50%); }
+.mh-console img { object-fit: contain; }
+.mh-art-glyph { position: absolute; display: flex; align-items: center; justify-content: center; color: #8b98a8; }
+.mh-ring {
+  position: absolute; box-sizing: border-box; border: 3px solid ${colors.selected};
+  box-shadow: 0 0 0 4px rgba(255, 159, 67, 0.25), 0 0 18px rgba(255, 159, 67, 0.55);
+  transition: left 120ms ease-out, top 120ms ease-out, width 120ms ease-out, height 120ms ease-out;
+}
+.mh-ring-was { border-color: ${colors.muted}; box-shadow: none; }
+@media (prefers-reduced-motion: reduce) { .mh-strip-shortcuts {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; padding: 8px 12px; border-radius: 8px;
+  background: ${colors.surfaceLow}; font-size: 13px; color: ${colors.text};
+}
+.mh-strip-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: ${colors.muted}; }
+.mh-strip-item { display: inline-flex; align-items: center; gap: 6px; }
+.mh-test {
+  display: flex; align-items: center; gap: 14px; padding: 10px 14px; border-radius: 8px; font-size: 14px;
+  background: #3a2a14; border: 2px solid ${colors.selected}; color: ${colors.text}; outline: none !important;
+}
+.mh-test-dot { width: 10px; height: 10px; border-radius: 50%; background: ${colors.selected}; flex: none;
+  animation: mh-pulse 1.2s ease-in-out infinite; }
+@keyframes mh-pulse { 50% { opacity: 0.3; } }
+@media (prefers-reduced-motion: reduce) { .mh-test-dot { animation: none; } }
+.mh-test-text { flex: 1; font-weight: 600; }
+.mh-test-leave { position: relative; display: inline-flex; align-items: center; gap: 6px; color: ${colors.muted}; padding-bottom: 4px; }
+.mh-test-bar { position: absolute; left: 0; bottom: 0; height: 2px; width: 0; background: ${colors.selected}; }
+.mh-test-holding .mh-test-bar { width: 100%; transition: width 900ms linear; }
+.mh-test-touch { padding: 6px 12px; border-radius: 6px; background: ${colors.surface}; font-size: 13px; }
+.mh-changed {
+  margin-left: auto; flex: none; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; padding: 2px 8px;
+  border-radius: 10px; color: ${colors.onAccent}; background: ${colors.rule};
+}
+.mh-becomes {
+  display: flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: ${colors.muted};
+}
+.mh-becomes::before, .mh-becomes::after { content: ""; flex: 1; height: 1px; background: ${colors.divider}; }
+.mh-console-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.mh-console img { object-fit: contain; }
+.mh-art-glyph { position: absolute; display: flex; align-items: center; justify-content: center; color: #8b98a8; }
+.mh-ring { transition: none; } }
+.mh-shoulders { display: flex; justify-content: space-between; padding: 0 6%; }
+.mh-shoulders > div { display: flex; gap: 8px; }
+.mh-backs { align-items: center; }
+.mh-backs-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: ${colors.muted}; }
+.mh-shoulder {
+  min-width: 40px; height: 34px; box-sizing: border-box; padding: 0 6px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; color: ${colors.text};
+  background: ${colors.surfaceLow}; border: 2px solid transparent; font-size: 12px; font-weight: 700;
+}
+.mh-shoulder.mh-on { border-color: ${colors.selected}; box-shadow: 0 0 12px rgba(255, 159, 67, 0.5); }
+.mh-shoulder.mh-was { border-color: ${colors.muted}; }
 .mh-pad { position: relative; width: 100%; aspect-ratio: 640 / 400; container-type: inline-size; }
 .mh-pad svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .mh-spot {
@@ -185,8 +275,9 @@ const css = `
 .mh-job-what { margin-left: auto; color: ${colors.muted}; font-size: 13px; }
 .mh-glyph-name { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; }
 .mh-glyph { font-weight: 700; }
-.mh-target-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-.mh-target-grid .mh-target { width: auto; min-width: 0; padding: 0 8px; }
+.mh-target-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+/* Steam's DialogButton sets its own min-width; without these four columns overflow the dialog. */
+.mh-target-grid .mh-target { width: auto !important; min-width: 0 !important; padding: 0 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mh-pressed { font-size: 18px; }
 .mh-rule-names { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.6; }
 
@@ -288,6 +379,15 @@ const css = `
 .mh-player-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .mh-player-name { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mh-player-detail { font-size: 12px; color: ${colors.muted}; }
+/* Steam's Field rows in the panel start at its edge; line them up with the section titles and text. */
+.mh-qam .mh-qam-field { padding-left: 16px !important; padding-right: 16px !important; }
+.mh-keys { display: inline-flex; align-items: center; gap: 4px; color: ${colors.text}; }
+.mh-keys-plus { font-size: 12px; color: ${colors.muted}; }
+.mh-key { color: ${colors.text}; font-size: 13px; font-weight: 700; }
+.mh-hold { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: ${colors.muted}; padding: 2px 0 4px; }
+.mh-hold-pad { flex-basis: 100%; font-size: 12px; }
+.mh-note { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; }
+.mh-qam-more { font-size: 13px; color: ${colors.accent}; }
 .mh-qam-value { font-size: 13px; color: ${colors.text}; text-align: right; }
 .mh-qam-text { font-size: 13px; color: ${colors.muted}; line-height: 1.45; }
 .mh-qam-facts { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: ${colors.muted}; width: 100%; }
