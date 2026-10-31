@@ -121,6 +121,12 @@ function WhoIsPlayerOne({ data }: { data: LastLaunch }) {
           <div className="mh-qam-text">{policyText(data.policy, data.launch.mode)}</div>
         </Field>
       </PanelSectionRow>
+      {data.players.length > 1 && (
+        <PanelSectionRow>
+          {/* Player 2's tab has "Make … player 1" (and "Use Steam's order" once yours is set). */}
+          <ButtonItem layout="below" onClick={() => openButtonMap(1)}>{t.order.change}</ButtonItem>
+        </PanelSectionRow>
+      )}
     </PanelSection>
   );
 }

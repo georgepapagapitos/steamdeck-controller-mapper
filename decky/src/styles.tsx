@@ -77,6 +77,7 @@ const css = `
   margin-left: auto; flex: none; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; padding: 2px 8px;
   border-radius: 10px; color: ${colors.onAccent}; background: ${colors.rule};
 }
+.mh-clash { background: ${colors.selected}; }
 .mh-becomes {
   display: flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
   color: ${colors.muted};

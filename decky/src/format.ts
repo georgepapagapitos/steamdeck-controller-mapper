@@ -132,6 +132,21 @@ export function warningText(warning: unknown): string {
   return JSON.stringify(warning);
 }
 
+// The core's "player 2: face_east drives several inputs: gc.standard.a, gc.standard.x" (show.py, after the layout's
+// allowed pairs such as GC L and L-Analog): the pad inputs of this player that give two console inputs at once.
+const CLASH = /^player (\d+): (\S+) drives several inputs:/;
+
+export function clashInputs(warnings: unknown[] | undefined, player: number): Set<string> {
+  const out = new Set<string>();
+  for (const w of warnings ?? []) {
+    const m = typeof w === "string" ? w.match(CLASH) : null;
+    if (m && Number(m[1]) === player) out.add(m[2]);
+  }
+  return out;
+}
+
+export const isClashWarning = (w: unknown) => typeof w === "string" && CLASH.test(w);
+
 export function hasPlayers(data: LastLaunch): boolean {
   return Array.isArray(data.players) && data.players.length > 0;
 }

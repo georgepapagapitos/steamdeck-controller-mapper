@@ -51,6 +51,7 @@ export const t = {
     toSteam: "Use Steam's order",
     steamBody: "Players follow Steam's controller order again from the next launch.",
     saved: "Player order saved",
+    change: "Change who is player 1",
   },
   letters: {
     byPosition: (system: string, example: string) =>
@@ -88,7 +89,7 @@ export const t = {
     "steam-order":
       "The first pad you press after the game starts: Steam's controller order. Restart the game and press a button on that pad first to change it.",
     "external-first": "Docked: your own controllers come first, in Steam's order. The Deck's controls come last.",
-    pinned: "You pinned controllers to players in map-helper.",
+    pinned: "Your order, set in map-helper: the same in every game, whichever pad you press first.",
     "deck-only": "Only the Deck's own controls are used.",
   } as Record<string, string>,
   policyUnknown: (name: string) => `Player order: ${name}.`,
@@ -120,6 +121,7 @@ export const t = {
     backPaddles: "Back paddles",
     back_: "Back",
     changed: "Changed",
+    clashTag: "Clash",
     becomes: (system: string) => `becomes on the ${system}`,
     backButtons: "Back buttons",
     steamOnly: "Steam Input only",

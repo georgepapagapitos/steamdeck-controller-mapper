@@ -3,7 +3,7 @@ import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { FaBars, FaChevronLeft } from "react-icons/fa";
 import { useLastLaunch } from "../backend";
 import type { LastLaunch } from "../data";
-import { launchLine, launchTime, programName, shortGameTitle, shortPadName, systemPrefix, warningText } from "../format";
+import { clashInputs, isClashWarning, launchLine, launchTime, programName, shortGameTitle, shortPadName, systemPrefix, warningText } from "../format";
 import { takeRequestedPlayer } from "../navigation";
 import { getSystemLogo, notePending, pendingFor, setPlayerOrder } from "../rules";
 import { undoLast, useUndo } from "../undo";
@@ -118,7 +118,9 @@ function MapView({ data, sample, reload }: { data: LastLaunch; sample: boolean; 
   const consoleController = allDrives.find((d) => d.target.split(".").length === 3)?.target.split(".")[1] ?? null;
   const consoleTargets = (control?.inputs ?? []).flatMap((i) => i.drives.map((d) => d.target.split(".").pop()!));
   const consoleLabels = Object.fromEntries(allDrives.map((d) => [d.target.split(".").pop()!, d.label]));
-  const warnings = data.warnings ?? [];
+  // A clash is shown on its row (tag, and X takes the rule out); the raw line isn't for the warning box.
+  const warnings = (data.warnings ?? []).filter((w) => !isClashWarning(w));
+  const clashes = player ? clashInputs(data.warnings, player.player) : new Set<string>();
   const [pending, setPending] = useState(() => pendingFor(launch.ts));
   const ctx: MapContext | null = player ? {
     launch, player, players, prefix,
@@ -256,7 +258,7 @@ function MapView({ data, sample, reload }: { data: LastLaunch; sample: boolean; 
             )}
             <ControlList pad={player.pad} controls={controls} steamOnly={backs} isDeck={isDeck} selected={selected}
               prefix={prefix} onSelect={setSelected} onChange={ctx ? (c) => openEdit(ctx, c) : undefined}
-              onDefault={ctx ? (c) => backToDefault(ctx, c) : undefined} canDefault={canDefault} defaults={defaults} actions={actions} />
+              onDefault={ctx ? (c) => backToDefault(ctx, c) : undefined} canDefault={canDefault} defaults={defaults} actions={actions} clashes={clashes} />
           </div>
         </div>
       )}

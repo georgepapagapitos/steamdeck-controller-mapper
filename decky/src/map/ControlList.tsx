@@ -24,6 +24,7 @@ interface Props {
   canDefault?: (control: Control) => boolean;
   defaults?: { note: string | null; onActivate: () => void }; // the "Back to emulator defaults" row, when rules apply
   actions?: ActionRow[]; // rows above the buttons that do something for the whole map (test mode, letters)
+  clashes?: Set<string>; // pad inputs that give two console inputs at once (a rule moved one onto a used button)
 }
 
 // A row at the top of the list that acts on the whole map: one line, an icon, what A does.
@@ -133,7 +134,9 @@ export function ControlList(props: Props) {
                   <span className="mh-row-target mh-row-none">{t.map.nothing}</span>
                 )}
                 {/* Only a button you changed is marked; the emulator's and EmuDeck's defaults need no badge. */}
-                {controlKind(control) === "rule" && <span className="mh-changed">{t.map.changed}</span>}
+                {control.inputs.some((i) => props.clashes?.has(i.input))
+                  ? <span className="mh-changed mh-clash" title={t.map.clash}>{t.map.clashTag}</span>
+                  : controlKind(control) === "rule" && <span className="mh-changed">{t.map.changed}</span>}
               </Row>
             );
           })}
