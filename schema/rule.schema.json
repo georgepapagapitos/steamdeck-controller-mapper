@@ -108,6 +108,15 @@
         },
         {
           "type": "object",
+          "required": ["inputs"],
+          "additionalProperties": false,
+          "description": "Several pad buttons that each give this console input (RB and RT both SNES R).",
+          "properties": {
+            "inputs": { "type": "array", "minItems": 2, "uniqueItems": true, "items": { "$ref": "#/$defs/physicalInput" } }
+          }
+        },
+        {
+          "type": "object",
           "required": ["chord"],
           "additionalProperties": false,
           "properties": {

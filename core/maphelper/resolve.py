@@ -105,7 +105,7 @@ def _expand_meta(key: str, layout: Optional[dict]) -> Optional[str]:
 
 
 def _capability_problem(source: dict, controller: Controller) -> Optional[str]:
-    inputs = source.get("chord") or [source.get("input")]
+    inputs = source.get("chord") or source.get("inputs") or [source.get("input")]
     for name in inputs:
         cap = INPUT_CAPABILITY.get(name)
         if cap and cap not in controller.capabilities:
@@ -121,9 +121,10 @@ def _duplicate_source_warnings(bindings: dict, layout: Optional[dict]) -> list:
         allowed.add(frozenset(f"{layout['system']}.{layout['default_controller']}.{p}" for p in pair.split("+")))
     by_input: dict[str, list] = {}
     for key, choice in bindings.items():
-        if key.startswith("hotkey.") or "input" not in choice.value or choice.value["input"] == "none":
+        if key.startswith("hotkey.") or "chord" in choice.value or choice.value.get("input") == "none":
             continue
-        by_input.setdefault(choice.value["input"], []).append(key)
+        for name in choice.value.get("inputs") or [choice.value["input"]]:
+            by_input.setdefault(name, []).append(key)
     return [f"{inp} drives several inputs: {keys}" for inp, keys in sorted(by_input.items())
             if len(keys) > 1 and frozenset(keys) not in allowed]
 

@@ -112,6 +112,11 @@ class DolphinTokenTest(unittest.TestCase):
         out = self.render_one("gc.standard.z", {"input": "none"})
         self.assertEqual(out.patches[0].value, "")
 
+    def test_several_inputs_are_alternatives(self):
+        out = self.render_one("gc.standard.z", {"inputs": ["r1", "select"]})
+        self.assertEqual(out.patches[0].value, "`Shoulder R`|Back")    # the form EmuDeck's own Z binding uses
+        self.assertEqual(self.render_one("gc.standard.main_x", {"inputs": ["ls_x", "rs_x"]}).patches, [])
+
     def test_full_axis_on_button_warns(self):
         out = self.render_one("gc.standard.a", {"input": "ls_x"})
         self.assertEqual(out.patches, [])

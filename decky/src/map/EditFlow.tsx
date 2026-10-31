@@ -285,6 +285,13 @@ function DecideView({ launch, player, players, prefix, step, onSaved, onAgain, o
     ? row!.drives.find((d) => d.target === its[0])! : null;
   const canSwap = !!theirs && want === "button" && job.targets.length === 1 && !/^(ls|rs)$/.test(job.input.input);
   const [swap, setSwap] = useState(true);
+  // Other pad buttons that already give this console input: it can stay on them too ("inputs"), or move here.
+  // Adding is the likely intent for a button that did nothing; changing a button's job, moving it.
+  const others = binds.length === 1 && want === "button" && source !== null
+    ? player.inputs.filter((r) => !r.steam_only && r.input !== pressed && r.drives.some((d) => d.target === binds[0].target))
+    : [];
+  const [keepBoth, setKeepBoth] = useState(job.targets.length === 0);
+  const both = others.length > 0 && keepBoth;
   const all: Bind[] = canSwap && swap ? [...binds, { target: theirs!.target, label: theirs!.label, source: job.input.input }]
     : binds;
   const [preview, setPreview] = useState<{ busy: boolean; result?: EditResult; error?: string }>({ busy: true });
@@ -292,7 +299,10 @@ function DecideView({ launch, player, players, prefix, step, onSaved, onAgain, o
   const request = useRef(0);
   const opsFor = (where: Where): Op[] => {
     const scope = scopeOf(launch, player, where);
-    return all.map((b) => ({ op: "set", target: b.target, source: { input: b.source }, scope }));
+    return all.map((b) => ({
+      op: "set", target: b.target, scope,
+      source: both && b.target === binds[0].target ? { inputs: [...others.map((r) => r.input), b.source] } : { input: b.source },
+    }));
   };
 
   useEffect(() => {
@@ -303,7 +313,7 @@ function DecideView({ launch, player, players, prefix, step, onSaved, onAgain, o
       if (id !== request.current) return;
       setPreview(answer.ok ? { busy: false, result: answer.data } : { busy: false, error: answer.error });
     });
-  }, [swap]);
+  }, [swap, keepBoth]);
 
   const save = async (where: Where) => {
     setSaving(where);
@@ -328,10 +338,23 @@ function DecideView({ launch, player, players, prefix, step, onSaved, onAgain, o
         <span className="mh-decide-what">{what}</span>
       </div>
       <div className="mh-modal-note">
-        {from && from.input !== pressed ? t.edit.moves(what, from.glyph, words.glyph) : t.edit.decideLine(words.glyph, what)}
+        {both ? t.edit.alsoLine(others.map((r) => r.glyph).join(", "), words.glyph, what)
+          : from && from.input !== pressed ? t.edit.moves(what, from.glyph, words.glyph) : t.edit.decideLine(words.glyph, what)}
       </div>
       {problem ? <div className="mh-modal-warn">{problem}</div> : (
         <>
+          {others.length > 0 && (
+            <Focusable className="mh-swap" flow-children="row">
+              <DialogButton className={`mh-chip-button${keepBoth ? " mh-chip-on" : ""}`} onClick={() => setKeepBoth(true)}>
+                {keepBoth && <FaCheck aria-hidden="true" size={11} />}
+                {t.edit.keepBoth([...others.map((r) => r.glyph), words.glyph].join(" and "), what)}
+              </DialogButton>
+              <DialogButton className={`mh-chip-button${!keepBoth ? " mh-chip-on" : ""}`} onClick={() => setKeepBoth(false)}>
+                {!keepBoth && <FaCheck aria-hidden="true" size={11} />}
+                {t.edit.moveOnly(words.glyph, what)}
+              </DialogButton>
+            </Focusable>
+          )}
           {canSwap && (
             <Focusable className="mh-swap" flow-children="row">
               <DialogButton className={`mh-chip-button${swap ? " mh-chip-on" : ""}`} onClick={() => setSwap(true)}>

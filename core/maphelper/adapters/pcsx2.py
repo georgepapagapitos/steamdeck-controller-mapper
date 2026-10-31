@@ -129,6 +129,11 @@ class PCSX2Adapter:
         if "chord" in source:
             tokens = [self._token(i, out) for i in source["chord"]]
             return None if None in tokens else " & ".join(f"{device}/{t}" for t in tokens)
+        if "inputs" in source:
+            # A second PCSX2 binding looks like a repeated key line [VERIFY], which the INI writer can't add: the first only.
+            out.warnings.append(f"pcsx2: {target}: one button per input; bound {source['inputs'][0]} only, "
+                                f"not {', '.join(source['inputs'][1:])}")
+            source = {"input": source["inputs"][0]}
         name = source["input"]
         if name == "none":
             return ""        # an empty value binds nothing (InputManager::SplitChord)

@@ -27,6 +27,13 @@ class ValidateTest(unittest.TestCase):
     def test_minimal_rule_is_valid(self):
         self.assertEqual(validate_rule(base()), [])
 
+    def test_several_inputs(self):
+        self.assertEqual(validate_rule(base(bindings={"snes.standard.r": {"inputs": ["r1", "r2"]}})), [])
+        for bad in (["r1"], ["r1", "r1"], ["r1", "none"], ["r1", "face_up"]):
+            with self.subTest(bad):
+                self.assertNotEqual(validate_rule(base(bindings={"snes.standard.r": {"inputs": bad}})), [])
+        self.assertNotEqual(validate_rule(base(bindings={"snes.standard.r": {"inputs": ["r1", "r2"], "invert": True}})), [])
+
     def test_rejects_bad_cases(self):
         cases = {
             "unknown input": base(bindings={"gc.standard.a": {"input": "face_up"}}),

@@ -179,15 +179,17 @@ class RetroArchAdapter:
                 out.warnings.append(f"retroarch: {desc['core']} has no input for {target}")
                 continue
             source = choice.value
-            if "input" not in source:
+            if "chord" in source:
                 out.warnings.append(f"retroarch: {target}: chords can't be remapped in RetroArch")
                 continue
-            physical = self.pad["physical_to_retropad"].get(source["input"])
-            if physical not in self.ids or core_input not in self.ids:
-                # guide, paddles, gyro... have no RetroPad id; full axes (LEFT_X) aren't remapped one-to-one
-                out.warnings.append(f"retroarch: {target}: {source['input']} can't drive {core_input} in a remap")
-                continue
-            remap[physical] = self.ids[core_input]
+            # A remap is per pad button, so several buttons can each send this core input ("inputs").
+            for name in source.get("inputs") or [source["input"]]:
+                physical = self.pad["physical_to_retropad"].get(name)
+                if physical not in self.ids or core_input not in self.ids:
+                    # guide, paddles, gyro... have no RetroPad id; full axes (LEFT_X) aren't remapped one-to-one
+                    out.warnings.append(f"retroarch: {target}: {name} can't drive {core_input} in a remap")
+                    continue
+                remap[physical] = self.ids[core_input]
         return remap
 
     # -- hotkeys (retroarch.cfg) -------------------------------------------------

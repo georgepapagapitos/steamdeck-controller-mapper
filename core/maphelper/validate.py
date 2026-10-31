@@ -92,6 +92,14 @@ def _validate_source(source: object) -> list[str]:
             return ["chord needs at least 2 inputs"]
         bad = [i for i in chord if i not in PHYSICAL_INPUTS]
         return [f"unknown inputs in chord: {bad}"] if bad else []
+    if "inputs" in source:
+        inputs = source["inputs"]
+        if set(source) != {"inputs"}:
+            return ["inputs sources take no other fields"]
+        if not isinstance(inputs, list) or len(inputs) < 2 or len(set(inputs)) != len(inputs):
+            return ["inputs needs at least 2 different physical inputs"]
+        bad = [i for i in inputs if i not in PHYSICAL_INPUTS or i == "none"]
+        return [f"unknown inputs: {bad}"] if bad else []
     if source.get("input") not in PHYSICAL_INPUTS:
         return [f"unknown physical input: {source.get('input')!r}"]
     errors = []

@@ -99,6 +99,10 @@ class DolphinAdapter:
     def _button_value(self, target: str, source: dict, out: Rendered) -> Optional[str]:
         if "chord" in source:
             return " & ".join(self._quote(self._token(i, out)) for i in source["chord"])
+        if "inputs" in source:
+            # Alternatives: any of them presses it (ControlExpression's `|`, as EmuDeck's `Shoulder R`|Back).
+            values = [self._button_value(target, {"input": i}, out) for i in source["inputs"]]
+            return None if None in values else "|".join(values)
         name = source["input"]
         if name == "none":
             return ""
@@ -109,6 +113,9 @@ class DolphinAdapter:
         return None if token is None else self._quote(token)
 
     def _axis_values(self, target: str, keys: dict, source: dict, out: Rendered) -> list:
+        if "inputs" in source:
+            out.warnings.append(f"dolphin: {target} is an axis; it takes one stick, not {', '.join(source['inputs'])}")
+            return []
         name = source.get("input")
         if name == "none":
             return [(keys["neg"], ""), (keys["pos"], "")]

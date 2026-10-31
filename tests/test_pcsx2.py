@@ -135,6 +135,11 @@ class PCSX2TokenTest(unittest.TestCase):
                                             ("Pad2", "Analog"): "SDL-1/Back & SDL-1/LeftStick",
                                             ("Pad2", "L1"): ""})
 
+    def test_several_inputs_bind_the_first_and_warn(self):
+        out = self.render({"ps2.dualshock2.r1": {"inputs": ["r1", "r2"]}})
+        self.assertEqual(self.values(out), {("Pad1", "R1"): "SDL-0/RightShoulder"})
+        self.assertTrue(any("r2" in w for w in out.warnings))
+
     def test_full_axis_on_button_and_gyro_warn(self):
         out = self.render({"ps2.dualshock2.cross": {"input": "ls_x"}, "ps2.dualshock2.circle": {"input": "gyro"}})
         self.assertEqual(out.patches, [])

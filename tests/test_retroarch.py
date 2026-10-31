@@ -54,6 +54,14 @@ class RetroArchTest(OwnersDeck):
         patches, _ = self.render({1: resolution(snes_standard_a="face_south")})
         self.assertEqual(patches, {(REMAP, "input_player1_btn_b"): '"8"', (REMAP, "input_player1_btn_a"): '"-1"'})
 
+    def test_several_inputs_each_send_the_target(self):
+        # RB and RT both SNES R: both keys send R, and neither lets go of it.
+        res = Resolution(bindings={"snes.standard.r": Choice({"inputs": ["r1", "r2"]}, "user.test")})
+        patches, warnings = self.render({1: res})
+        r = f'"{self.adapter.ids["R"]}"'
+        self.assertEqual(patches, {(REMAP, "input_player1_btn_r"): r, (REMAP, "input_player1_btn_r2"): r})
+        self.assertEqual(warnings, [])
+
     def test_live_remap_decides_what_is_displaced(self):
         # EmuDeck's abxy remap, enabled: A->B, B->A, X->Y, Y->X. A rule puts SNES B on west (RetroPad Y).
         shutil.copy(self.root / (REMAP + ".disabled"), self.root / REMAP)

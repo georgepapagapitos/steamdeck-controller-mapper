@@ -225,7 +225,8 @@ class _Sources:
 
     def binding(self, target: str, physical: str, src: tuple) -> dict:
         choice = self.resolution.bindings.get(target) if self.resolution else None
-        if choice is not None and _same_input(choice.value.get("input"), physical):
+        if choice is not None and (_same_input(choice.value.get("input"), physical)
+                                   or physical in (choice.value.get("inputs") or [])):
             return self.rule(choice.rule_id)
         return self.plain(src)
 

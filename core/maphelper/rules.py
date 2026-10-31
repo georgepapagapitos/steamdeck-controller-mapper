@@ -224,8 +224,11 @@ def _checked(ops: object, layouts: dict) -> list:
                 raise RuleError("unset needs the rule to take the binding out of")
             continue
         source = op.get("source")
-        if not (isinstance(source, dict) and source.get("input") in PHYSICAL_INPUTS):
-            raise RuleError(f"set needs a source with a physical input: {source!r}")
+        several = isinstance(source, dict) and set(source) == {"inputs"} and isinstance(source["inputs"], list) \
+            and len(source["inputs"]) >= 2 and len(set(source["inputs"])) == len(source["inputs"]) \
+            and all(i in PHYSICAL_INPUTS and i != "none" for i in source["inputs"])
+        if not (several or (isinstance(source, dict) and source.get("input") in PHYSICAL_INPUTS)):
+            raise RuleError(f"set needs a source with a physical input, or inputs: {source!r}")
         if ("rule" in op) == ("scope" in op):
             raise RuleError("set needs either a rule or a scope")
         if "scope" in op:
@@ -409,7 +412,7 @@ def listing(book: Book, db, layouts: Optional[dict] = None) -> dict:
             "controller_level": rule.controller.level,
             "scope": describe_scope(rule.controller, rule.content, (layout or {}).get("name"), db),
             "bindings": [{"target": k, "label": _target_label(k, layout) if layout else k,
-                          "input": v.get("input") or "+".join(v.get("chord", []))}
+                          "input": v.get("input") or ", ".join(v.get("inputs", [])) or "+".join(v.get("chord", []))}
                          for k, v in entry.doc.get("bindings", {}).items()],
             "options": len(entry.doc.get("options", {})),
             "notes": entry.doc.get("notes", ""),

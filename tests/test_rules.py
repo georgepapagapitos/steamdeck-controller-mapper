@@ -188,6 +188,17 @@ class EditTest(RulesBase):
         self.assertEqual({(c["input"], tuple(c["after"])) for c in undone["changes"]}, {("face_north", ())})
         self.assertEqual(self.files(), before)
 
+    def test_two_pad_buttons_for_one_console_input(self):
+        # Z on LT stays, and RT gives Z too: one binding with both inputs.
+        out = self.edit([{"op": "set", "target": "n64.standard.z", "source": {"inputs": ["l2", "r2"]},
+                          "scope": SYSTEM_ANY}])
+        rule = json.loads((self.on / f"{out['rules'][0]}.json").read_text(encoding="utf-8"))
+        self.assertEqual(rule["bindings"], {"n64.standard.z": {"inputs": ["l2", "r2"]}})
+        self.assertEqual((self.map_of()["l2"], self.map_of()["r2"]), (["Z"], ["Z"]))
+        one = self.edit([{"op": "set", "target": "n64.standard.z", "source": {"inputs": ["l2"]}, "scope": SYSTEM_ANY}],
+                        code=2)
+        self.assertIn("physical input", one["error"])
+
     def test_a_dry_run_changes_nothing_on_disk(self):
         before = self.files()
         out = self.edit([put("c_down", "face_north", scope=SYSTEM_ANY)], "--dry-run")

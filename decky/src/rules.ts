@@ -13,7 +13,7 @@ export interface Scope {
 }
 
 export type Op =
-  | { op: "set"; target: string; source: { input: string }; rule?: string; scope?: Scope }
+  | { op: "set"; target: string; source: { input: string } | { inputs: string[] }; rule?: string; scope?: Scope }
   | { op: "unset"; target: string; rule: string };
 
 // One input whose job changes, for one player of the pads connected now.
