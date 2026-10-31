@@ -222,9 +222,20 @@ class PCSX2Adapter:
         names its pad (SDL-<n>/<control>); keyboard bindings and chords (` & `) don't count."""
         from ..show import Described
         out = Described(port=player if player <= PORTS else None)
+        by_token = {t: name for name, t in self.tokens.items() if isinstance(t, str)}
+        if player == 1:
+            spec = self.table["hotkeys"]
+            for target, key in spec["targets"].items():
+                # "SDL-0/Back & SDL-0/Start"; a keyboard part (Keyboard/F8) leaves the hotkey off the pad.
+                inputs = []
+                for part in (after(FILE, spec["section"], key) or "").split("&") if key else []:
+                    found = _SDL_REF.match(part.strip())
+                    inputs.append(by_token.get(part.strip()[found.end():]) if found else None)
+                if inputs and None not in inputs:
+                    out.hotkeys.append((target, inputs, ("emulator", "PCSX2.ini",
+                                                         after.patched(FILE, spec["section"], key))))
         if system not in self.systems or out.port is None:
             return out
-        by_token = {t: name for name, t in self.tokens.items() if isinstance(t, str)}
         section = f"Pad{player}"
         for target, spec in self.table["targets"].items():
             for key in spec["keys"].values() if "keys" in spec else [spec["key"]]:

@@ -168,9 +168,11 @@ class DolphinAdapter:
         this pad count; chords and controls of another device (`SDL/1/...:Back`) don't."""
         from ..show import Described
         out = Described(port=player if player <= GC_PORTS else None)
+        by_token = self._by_token()
+        if player == 1:
+            self._describe_hotkeys(after, by_token, out)
         if system not in self.systems or out.port is None:
             return out
-        by_token = self._by_token()
         for target, spec in self.table["targets"].items():
             if not target.startswith(f"{system}."):
                 continue
@@ -192,6 +194,25 @@ class DolphinAdapter:
             value = float(raw) / 100 if raw else spec["default"] / 100
             out.options.append((option, round(value, 4), self._option_source(after, section, spec["key"]), player))
         return out
+
+    def _describe_hotkeys(self, after: Callable, by_token: dict, out) -> None:
+        """Each managed hotkey as the pad buttons of its first alternative that is all pad controls:
+        `@(Back+`Button S`)` (ordered) or `Back & `Button S`` (together); keyboard ones (@(Alt+Return)) are skipped."""
+        spec = self.table["hotkeys"]
+        for target, key in spec["targets"].items():
+            if not key:
+                continue
+            for alt in (after(spec["file"], spec["section"], key) or "").split("|"):
+                alt = alt.strip()
+                if alt.startswith("@(") and alt.endswith(")"):
+                    parts = alt[2:-1].split("+")
+                else:
+                    parts = alt.split("&")
+                tokens = [p.strip().strip("`") for p in parts]
+                if tokens and all(t in by_token for t in tokens):
+                    out.hotkeys.append((target, [by_token[t] for t in tokens],
+                                        ("emulator", spec["file"], after.patched(spec["file"], spec["section"], key))))
+                    break
 
     @staticmethod
     def _option_source(after: Callable, section: str, key: str) -> tuple:

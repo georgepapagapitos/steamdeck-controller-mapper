@@ -44,6 +44,7 @@
               }
             }
           ],
+          "held_with": "r2",
           "note": "C▼ while ZR is held (the core's C-button modifier)",
           "note_source": {
             "kind": "emulator",
@@ -82,6 +83,7 @@
               }
             }
           ],
+          "held_with": "r2",
           "note": "C◀ while ZR is held (the core's C-button modifier)",
           "note_source": {
             "kind": "emulator",
@@ -361,6 +363,188 @@
             "scope": "all Nintendo 64 games, any pad"
           }
         }
+      ],
+      "hotkeys": [
+        {
+          "target": "hotkey.save_state",
+          "label": "Save state",
+          "inputs": [
+            {
+              "input": "select",
+              "glyph": "−"
+            },
+            {
+              "input": "r1",
+              "glyph": "R"
+            }
+          ],
+          "source": {
+            "kind": "emulator",
+            "detail": "retroarch.cfg"
+          }
+        },
+        {
+          "target": "hotkey.load_state",
+          "label": "Load state",
+          "inputs": [
+            {
+              "input": "select",
+              "glyph": "−"
+            },
+            {
+              "input": "l1",
+              "glyph": "L"
+            }
+          ],
+          "source": {
+            "kind": "emulator",
+            "detail": "retroarch.cfg"
+          }
+        },
+        {
+          "target": "hotkey.fast_forward",
+          "label": "Fast forward",
+          "inputs": [
+            {
+              "input": "select",
+              "glyph": "−"
+            },
+            {
+              "input": "r2",
+              "glyph": "ZR"
+            }
+          ],
+          "source": {
+            "kind": "emulator",
+            "detail": "retroarch.cfg"
+          }
+        },
+        {
+          "target": "hotkey.rewind",
+          "label": "Rewind",
+          "inputs": [
+            {
+              "input": "select",
+              "glyph": "−"
+            },
+            {
+              "input": "l2",
+              "glyph": "ZL"
+            }
+          ],
+          "source": {
+            "kind": "emulator",
+            "detail": "retroarch.cfg"
+          }
+        },
+        {
+          "target": "hotkey.pause",
+          "label": "Pause",
+          "inputs": [
+            {
+              "input": "select",
+              "glyph": "−"
+            },
+            {
+              "input": "face_south",
+              "glyph": "B"
+            }
+          ],
+          "source": {
+            "kind": "emulator",
+            "detail": "retroarch.cfg"
+          }
+        },
+        {
+          "target": "hotkey.menu",
+          "label": "Emulator menu",
+          "inputs": [
+            {
+              "input": "l3",
+              "glyph": "L3"
+            },
+            {
+              "input": "r3",
+              "glyph": "R3"
+            }
+          ],
+          "source": {
+            "kind": "emulator",
+            "detail": "retroarch.cfg"
+          }
+        },
+        {
+          "target": "hotkey.exit",
+          "label": "Quit game",
+          "inputs": [
+            {
+              "input": "select",
+              "glyph": "−"
+            },
+            {
+              "input": "start",
+              "glyph": "+"
+            }
+          ],
+          "source": {
+            "kind": "emulator",
+            "detail": "retroarch.cfg"
+          }
+        },
+        {
+          "target": "hotkey.next_slot",
+          "label": "Next save slot",
+          "inputs": [
+            {
+              "input": "select",
+              "glyph": "−"
+            },
+            {
+              "input": "dpad_right",
+              "glyph": "→"
+            }
+          ],
+          "source": {
+            "kind": "emulator",
+            "detail": "retroarch.cfg"
+          }
+        },
+        {
+          "target": "hotkey.prev_slot",
+          "label": "Previous save slot",
+          "inputs": [
+            {
+              "input": "select",
+              "glyph": "−"
+            },
+            {
+              "input": "dpad_left",
+              "glyph": "←"
+            }
+          ],
+          "source": {
+            "kind": "emulator",
+            "detail": "retroarch.cfg"
+          }
+        },
+        {
+          "target": "hotkey.screenshot",
+          "label": "Screenshot",
+          "inputs": [
+            {
+              "input": "select",
+              "glyph": "−"
+            },
+            {
+              "input": "face_east",
+              "glyph": "A"
+            }
+          ],
+          "source": {
+            "kind": "emulator",
+            "detail": "retroarch.cfg"
+          }
+        }
       ]
     },
     {
@@ -390,6 +574,7 @@
               }
             }
           ],
+          "held_with": "r2",
           "note": "C▼ while RT is held (the core's C-button modifier)",
           "note_source": {
             "kind": "emulator",
@@ -428,6 +613,7 @@
               }
             }
           ],
+          "held_with": "r2",
           "note": "C◀ while RT is held (the core's C-button modifier)",
           "note_source": {
             "kind": "emulator",
@@ -666,8 +852,8 @@
         },
         {
           "input": "guide",
-          "glyph": "Xbox",
-          "name": "Xbox button",
+          "glyph": "Home",
+          "name": "Home button",
           "drives": []
         },
         {
@@ -751,6 +937,7 @@
               }
             }
           ],
+          "held_with": "r2",
           "note": "C▼ while R2 is held (the core's C-button modifier)",
           "note_source": {
             "kind": "emulator",
@@ -789,6 +976,7 @@
               }
             }
           ],
+          "held_with": "r2",
           "note": "C◀ while R2 is held (the core's C-button modifier)",
           "note_source": {
             "kind": "emulator",
@@ -1098,6 +1286,7 @@
               }
             }
           ],
+          "held_with": "r2",
           "note": "C▼ while R2 is held (the core's C-button modifier)",
           "note_source": {
             "kind": "emulator",
@@ -1136,6 +1325,7 @@
               }
             }
           ],
+          "held_with": "r2",
           "note": "C◀ while R2 is held (the core's C-button modifier)",
           "note_source": {
             "kind": "emulator",

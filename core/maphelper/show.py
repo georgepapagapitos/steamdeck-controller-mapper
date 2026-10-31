@@ -27,6 +27,12 @@ STICK_PARTS = {"ls": ("ls_x", "ls_y", "ls_up", "ls_down", "ls_left", "ls_right")
                "rs": ("rs_x", "rs_y", "rs_up", "rs_down", "rs_left", "rs_right")}
 OPTION_LABELS = {"deadzones.ls": "Stick deadzone", "deadzones.rs": "Right stick deadzone", "rumble.enabled": "Rumble"}
 PAKS = {"rumble": "Rumble pak", "memory": "Memory pak", "transfer": "Transfer pak", "none": "No pak"}
+# The emulator's shortcuts, in the order a player looks for them; "fast_forward" is the toggle, "_hold" the hold.
+HOTKEYS = {"hotkey.save_state": "Save state", "hotkey.load_state": "Load state", "hotkey.fast_forward": "Fast forward",
+           "hotkey.fast_forward_hold": "Fast forward (hold)", "hotkey.rewind": "Rewind", "hotkey.pause": "Pause",
+           "hotkey.menu": "Emulator menu", "hotkey.exit": "Quit game", "hotkey.next_slot": "Next save slot",
+           "hotkey.prev_slot": "Previous save slot", "hotkey.screenshot": "Screenshot",
+           "hotkey.toggle_fullscreen": "Fullscreen"}
 
 
 @dataclass
@@ -38,6 +44,7 @@ class Described:
     notes: dict = field(default_factory=dict)      # physical input -> (text, source, short text for a list row)
     chords: list = field(default_factory=list)     # (physical input, target, physical input to hold, source)
     options: list = field(default_factory=list)    # (option key, canonical value, source, player whose rules set it)
+    hotkeys: list = field(default_factory=list)    # (hotkey target, [physical inputs pressed together], source)
 
 
 class After:
@@ -77,8 +84,11 @@ def document(ctx, glyphs: Optional[dict] = None) -> dict:
                          behind_steam=joystick is None or joystick.slot is not None, warnings=warnings, player=n)
         options = [{"key": key, "value": value, "label": _option_label(key, value),
                     "source": source.option(key, src, by)} for key, value, src, by in described.options]
-        players.append({"player": n, "pad": _pad(ctx, controller, joystick, glyphs, described.port),
-                        "inputs": inputs, "options": options})
+        entry = {"player": n, "pad": _pad(ctx, controller, joystick, glyphs, described.port),
+                 "inputs": inputs, "options": options}
+        if described.hotkeys:
+            entry["hotkeys"] = _hotkeys(controller, glyphs, described.hotkeys, source)
+        players.append(entry)
     policy = None
     if ctx.probe is not None:
         policy = {"name": ctx.probe.policy, "reason": ctx.probe.policy_reason}
@@ -118,11 +128,28 @@ def _has(controller, name: str) -> bool:
     return True
 
 
+def _glyphs(controller, glyphs: dict) -> dict:
+    """physical input -> (glyph, name) on this pad: generic, then its shape's, then its family's."""
+    style = glyphs["shapes"].get(controller.style, "generic")
+    return {**glyphs["styles"]["generic"], **glyphs["styles"].get(style, {}),
+            **glyphs["families"].get(controller.family or "", {})}
+
+
+def _hotkeys(controller, glyphs: dict, hotkeys: list, source: "_Sources") -> list:
+    """The emulator's shortcuts on this pad, in HOTKEYS order, each as the pad's own glyphs to press together."""
+    table = _glyphs(controller, glyphs)
+    order = list(HOTKEYS)
+    out = []
+    for target, inputs, src in sorted(hotkeys, key=lambda h: order.index(h[0]) if h[0] in order else len(order)):
+        out.append({"target": target, "label": HOTKEYS.get(target, target.split(".", 1)[-1].replace("_", " ")),
+                    "inputs": [{"input": i, "glyph": table.get(i, (i,))[0]} for i in inputs],
+                    "source": source.hotkey(target, src)})
+    return out
+
+
 def _inputs(controller, glyphs: dict, described: Described, source: "_Sources", layout: Optional[dict],
             behind_steam: bool, warnings: list, player: int) -> list:
-    style = glyphs["shapes"].get(controller.style, "generic")
-    table = {**glyphs["styles"]["generic"], **glyphs["styles"].get(style, {}),
-             **glyphs["families"].get(controller.family or "", {})}
+    table = _glyphs(controller, glyphs)
     shared = _shared(layout)
     # A core that lists several controller types for a system (SwanStation: psx.digital and psx.dualshock) drives
     # both from one button; the map shows the one map-helper's rules address, the layout's default controller.
@@ -154,6 +181,7 @@ def _inputs(controller, glyphs: dict, described: Described, source: "_Sources", 
             label, hold = _target_label(chord[0], layout), table.get(chord[1], (chord[1],))[0]
             text, short = f"{label} while {hold} is held (the core's C-button modifier)", f"{label} with {hold} held"
             note = (f"{note[0]}; {text}", note[1], f"{note[2]}; {short}") if note else (text, chord[2], short)
+            row["held_with"] = chord[1]      # a chord row: the plugin's summary says it once, on the held button
         if note:
             row["note"], row["note_source"] = note[0], source.note(name, note[1])
             row["note_short"] = note[2]
@@ -213,6 +241,11 @@ class _Sources:
                 if key.startswith("hotkey.") and physical in (choice.value.get("chord") or []):
                     return self.rule(choice.rule_id)
         return self.plain(src)
+
+    def hotkey(self, target: str, src: tuple) -> dict:
+        """A patched hotkey comes from player 1's hotkey rule for it."""
+        choice = self.resolution.bindings.get(target) if self.resolution and src[2] else None
+        return self.rule(choice.rule_id) if choice is not None else self.plain(src)
 
     def rule(self, rule_id: str) -> dict:
         rule = self.rules.get(rule_id)
@@ -320,6 +353,9 @@ def render(doc: dict) -> str:
             lines.append(f"  not seen by emulators (set them in Steam Input): {' '.join(steam)}")
         for o in p["options"]:
             lines.append(f"  option {o['key']} = {o['value']} ({o['label']}): {_source_text(o['source'])}")
+        for h in p.get("hotkeys", []):
+            keys = " + ".join(i["glyph"] for i in h["inputs"])
+            lines.append(f"  shortcut {h['label']:<20} {keys:<14} {_source_text(h['source'])}".rstrip())
     for w in doc.get("warnings", []):
         lines.append(f"warning: {w}")
     return "\n".join(lines) + "\n"

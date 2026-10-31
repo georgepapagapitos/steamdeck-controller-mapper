@@ -152,6 +152,37 @@ class N64Test(Base):
         self.assertIn("C▼", out)
 
 
+class HotkeysTest(Base):
+    """Each emulator's shortcuts, read from the captured config, on player 1's pad (a Switch Pro: Select is −, and
+    EmuDeck's positional Select+south is − + B)."""
+
+    def hotkeys(self, emulator: str, system: str, *extra) -> dict:
+        doc = self.show("--emulator", emulator, "--system", system, *extra, "--rules", str(self.tmp / "none"),
+                        "--config-root", str(FIXTURES / emulator / "dualsense-bt"))
+        self.assertTrue(all("hotkeys" not in p for p in doc["players"][1:]))      # player 1's only
+        return {h["target"]: [i["glyph"] for i in h["inputs"]] for h in doc["players"][0]["hotkeys"]}
+
+    def test_retroarch(self):
+        keys = self.hotkeys("retroarch", "n64", "--core", "mupen64plus_next")
+        self.assertEqual(list(keys)[:3], ["hotkey.save_state", "hotkey.load_state", "hotkey.fast_forward"])
+        self.assertEqual(keys["hotkey.save_state"], ["−", "R"])
+        self.assertEqual(keys["hotkey.exit"], ["−", "+"])
+        self.assertEqual(keys["hotkey.pause"], ["−", "B"])
+        self.assertEqual(keys["hotkey.menu"], ["L3", "R3"])        # input_menu_toggle_gamepad_combo = "2"
+
+    def test_dolphin_skips_keyboard_alternatives(self):
+        keys = self.hotkeys("dolphin", "gc")
+        self.assertEqual(keys["hotkey.toggle_fullscreen"], ["+", "L3"])         # @(Alt+Return)|@(Start+`Thumb L`)
+        self.assertEqual(keys["hotkey.fast_forward_hold"], ["+", "ZR"])
+        self.assertNotIn("hotkey.screenshot", keys)                             # F9 only
+
+    def test_pcsx2(self):
+        keys = self.hotkeys("pcsx2", "ps2")
+        self.assertEqual(keys["hotkey.exit"], ["−", "+"])
+        self.assertEqual(keys["hotkey.fast_forward"], ["−", "ZR"])
+        self.assertNotIn("hotkey.fast_forward_hold", keys)                      # Keyboard/Period
+
+
 class MultiSystemCoreTest(Base):
     def test_only_the_launched_systems_targets(self):
         # Flycast's descriptor lists Dreamcast, Naomi and Atomiswave targets; a Dreamcast launch must show Dreamcast's

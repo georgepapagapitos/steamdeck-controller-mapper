@@ -398,6 +398,7 @@ class RetroArchAdapter:
                 out.chords.append((physical, target, held, default))
         if user == 1:
             self._describe_enable(after, out)
+            self._describe_hotkeys(after, out)
         self._describe_options(user, after, desc, config_root, game, folder, out)
         return out
 
@@ -423,6 +424,56 @@ class RetroArchAdapter:
             if physical in out.notes:
                 text, short = f"{text}; {out.notes[physical][0]}", f"{short}; {out.notes[physical][2].lower()}"
             out.notes[physical] = (text, src, short)
+
+    def _describe_hotkeys(self, after: Callable, out) -> None:
+        """Each managed hotkey as the pad buttons that fire it: the enable button (when bound) plus its own."""
+        hk, cfg = self.hotkeys, self.hotkeys["file"]
+        indices = hk["drivers"].get((after(cfg, None, hk["driver_key"]) or "").strip('"'))
+        if indices is None:
+            return
+        tables = {"_btn": indices["buttons"], "_axis": indices["axes"]}
+
+        def read(base: str) -> tuple:
+            """(physical input, patched) of input_<base>, the button bind before the axis one."""
+            for suffix, table in tables.items():
+                key = f"input_{base}{suffix}"
+                value = (after(cfg, None, key) or "").strip('"')
+                physical = next((p for p, v in table.items() if str(v) == value), None)
+                if physical:
+                    return physical, after.patched(cfg, None, key)
+            return None, False
+
+        enable, _ = read(hk["enable"])
+        # A gamepad combo (input_menu_toggle_gamepad_combo, input_quit_gamepad_combo) needs no hotkey button held,
+        # so it is the one to show: EmuDeck sets L3+R3 for the menu and Start+Select to quit.
+        combos = {target: self._combo(after(cfg, None, key)) for target, key in
+                  (("hotkey.menu", "input_menu_toggle_gamepad_combo"), ("hotkey.exit", hk["quit_combo"]["key"]))}
+        for target, base in hk["targets"].items():
+            if combos.get(target):
+                out.hotkeys.append((target, combos[target], ("emulator", cfg, False)))
+                continue
+            physical, patched = read(base)
+            if physical is None or physical == enable:
+                continue
+            out.hotkeys.append((target, [enable, physical] if enable else [physical], ("emulator", cfg, patched)))
+
+    # RetroPad names in RetroArch's combo list -> the Steam virtual pad's physical inputs (positional binds).
+    _COMBO_INPUTS = {"L3": "l3", "R3": "r3", "L1": "l1", "R1": "r1", "L2": "l2", "R2": "r2", "Start": "start",
+                     "Select": "select", "Down": "dpad_down", "Y": "face_west"}
+
+    def _combo(self, raw: Optional[str]) -> Optional[list]:
+        """input_*_gamepad_combo's index -> the inputs pressed together, or None (none, or a "hold" combo)."""
+        try:
+            index = int((raw or "0").strip('"'))
+        except ValueError:
+            return None
+        names = self.hotkeys["quit_combo"]["combos"]
+        if not 0 < index < len(names) or names[index].startswith("hold"):
+            return None
+        inputs = [self._COMBO_INPUTS.get(n) for n in names[index].split("+")]
+        if None in inputs:
+            return None
+        return sorted(inputs, key=lambda i: i != "select")   # the hotkey button first, as in the other shortcuts
 
     def _describe_options(self, user: int, after: Callable, desc: dict, config_root: Optional[Path],
                           game: Optional[str], folder: Optional[str], out) -> None:
