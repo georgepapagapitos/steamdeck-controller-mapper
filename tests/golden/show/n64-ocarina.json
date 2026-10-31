@@ -831,14 +831,14 @@
         },
         {
           "input": "select",
-          "glyph": "View",
-          "name": "View",
+          "glyph": "−",
+          "name": "Minus button (−)",
           "drives": []
         },
         {
           "input": "start",
-          "glyph": "Menu",
-          "name": "Menu",
+          "glyph": "+",
+          "name": "Plus button (+)",
           "drives": [
             {
               "target": "n64.standard.start",

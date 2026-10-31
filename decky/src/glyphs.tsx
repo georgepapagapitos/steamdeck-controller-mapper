@@ -63,8 +63,11 @@ const STEAM_XBOX: Table = {
   Menu: "xbox_button_start", Xbox: "xbox_button_logo", Share: "xbox_button_share",
   P1: "xbox_p1", P2: "xbox_p2", P3: "xbox_p3", P4: "xbox_p4", PL: "shared_pl", PR: "shared_pr",
 };
-// An 8BitDo in X-input mode: Xbox glyphs, with its own home button, as Steam shows it.
-const STEAM_8BITDO: Table = { ...STEAM_XBOX, Home: "8bitdo_button_home", Xbox: "8bitdo_button_home" };
+// An 8BitDo in X-input mode: Xbox glyphs, with its own home button as Steam shows it, and − / + as printed.
+const STEAM_8BITDO: Table = {
+  ...STEAM_XBOX, Home: "8bitdo_button_home", Xbox: "8bitdo_button_home",
+  "−": "switchpro_button_minus", "+": "switchpro_button_plus",   // printed − / + where Xbox has View / Menu
+};
 
 const STEAM_PS: Table = {
   ...COMMON, "✕": "ps_button_x", "○": "ps_button_circle", "□": "ps_button_square", "△": "ps_button_triangle",
