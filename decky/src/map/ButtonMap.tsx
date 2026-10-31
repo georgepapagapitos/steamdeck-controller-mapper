@@ -3,17 +3,20 @@ import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { FaBars, FaChevronLeft } from "react-icons/fa";
 import { useLastLaunch } from "../backend";
 import type { LastLaunch } from "../data";
-import { launchLine, launchTime, programName, shortGameTitle, systemPrefix, warningText } from "../format";
+import { launchLine, launchTime, programName, shortGameTitle, shortPadName, systemPrefix, warningText } from "../format";
 import { takeRequestedPlayer } from "../navigation";
 import { getSystemLogo, notePending, pendingFor } from "../rules";
 import { undoLast, useUndo } from "../undo";
 import { Loading, Message, SampleBanner, failureText } from "../States";
 import { t } from "../strings";
 import { Styles } from "../styles";
+import { Guard } from "../Guard";
 import { steamKey } from "./BackStrip";
 import { ControlList } from "./ControlList";
 import { type Control, groupControls, steamOnlyInputs } from "./controls";
-import { type MapContext, backToDefault, backToDefaults, openEdit, openMenu, ruleDrives } from "./actions";
+import { type MapContext, backToDefault, backToDefaults, faceLetters, openEdit, openMenu, ruleDrives, setFaceLetters } from "./actions";
+import { FaFont, FaGamepad } from "react-icons/fa";
+import type { ActionRow } from "./ControlList";
 import { ConsoleDrawing } from "./ConsoleDrawing";
 import { OptionChips } from "./OptionChips";
 import { PadDrawing } from "./PadDrawing";
@@ -153,6 +156,27 @@ function MapView({ data, sample, reload }: { data: LastLaunch; sample: boolean; 
     focusSelected();
   };
   const startTest = player ? () => setTesting(true) : undefined;
+  // The rows above the buttons: test mode, and letters vs positions where the pad and console both have letters.
+  const letters = player ? faceLetters(player) : null;
+  const styleName = (player?.pad.style ?? "").replace(/^xbox$/, "Xbox-style").replace(/^steamdeck$/, "Steam Deck");
+  const southTarget = letters?.targets.find((x) => x.input === "face_south");
+  const southNow = player?.inputs.find((r) => r.input === "face_south")?.drives.find((d) => /^[ABXY]$/.test(d.label));
+  const actions: ActionRow[] = [];
+  if (startTest) {
+    actions.push({ key: "mh:test", icon: <FaGamepad aria-hidden="true" size={16} />, title: t.test.row,
+      note: t.test.rowNote, okText: t.test.start, onActivate: startTest });
+  }
+  if (letters && ctx) {
+    const system = prefix || launch.system_name || launch.system.toUpperCase();
+    actions.push({
+      key: "mh:letters", icon: <FaFont aria-hidden="true" size={15} />,
+      title: letters.on ? t.letters.byLetter(system)
+        : t.letters.byPosition(shortPadName(player!.pad.name), system, southNow?.label ?? southTarget?.label ?? ""),
+      note: letters.on ? t.letters.toPositions : `${t.letters.toLetters} · ${t.letters.noteAll(styleName || "these")}`,
+      okText: letters.on ? t.letters.toPositions : t.letters.toLetters,
+      onActivate: () => setFaceLetters(ctx, letters, !letters.on),
+    });
+  }
   const undo = useUndo();
   const menu = ctx ? () => openMenu(ctx, undo?.label ?? null, startTest) : undefined;
 
@@ -166,8 +190,6 @@ function MapView({ data, sample, reload }: { data: LastLaunch; sample: boolean; 
       onMenuActionDescription={menu ? t.edit.menu : undefined}
       onOptionsButton={undo ? () => undoLast() : undefined}
       onOptionsActionDescription={undo ? t.edit.undo : undefined}
-      onSecondaryButton={startTest}
-      onSecondaryActionDescription={startTest ? t.test.start : undefined}
     >
       <Header title={shortGameTitle(launch)} subtitle={subtitle} logo={logo} onMenu={menu}>
         <PlayerTabs players={players} current={current} onPick={pick} />
@@ -181,15 +203,19 @@ function MapView({ data, sample, reload }: { data: LastLaunch; sample: boolean; 
           <div className="mh-left">
             {sample && <SampleBanner result={{ ok: true, data, sample }} />}
             {controls.length ? (
-              <PadDrawing pad={player.pad} controls={controls} selected={selected} extras={backs} />
+              <Guard name="pad picture" resetKey={player.pad.name}>
+                <PadDrawing pad={player.pad} controls={controls} selected={selected} extras={backs} />
+              </Guard>
             ) : (
               <Message title={player.pad.name} body={t.map.noInputs} />
             )}
             {consoleController && (
               <>
                 <div className="mh-becomes" aria-hidden="true">{t.map.becomes(launch.system_name || launch.system.toUpperCase())}</div>
-                <ConsoleDrawing system={launch.system} controller={consoleController} targets={consoleTargets}
-                  labels={consoleLabels} name={launch.system_name || launch.system} />
+                <Guard name="console photo" resetKey={`${launch.system}/${consoleController}`}>
+                  <ConsoleDrawing system={launch.system} controller={consoleController} targets={consoleTargets}
+                    labels={consoleLabels} name={launch.system_name || launch.system} />
+                </Guard>
               </>
             )}
           </div>
@@ -199,7 +225,7 @@ function MapView({ data, sample, reload }: { data: LastLaunch; sample: boolean; 
               <TestMode pad={player.pad} leaveGlyph={player.inputs.find((i) => i.input === "face_east")?.glyph ?? "B"}
                 onInput={showPressed} onLeave={leaveTest} />
             ) : (
-              <ShortcutStrip player={player} />
+              <Guard name="shortcuts" resetKey={player.pad.name}><ShortcutStrip player={player} /></Guard>
             )}
             <OptionChips player={player} />
             {warnings.length > 0 && (
@@ -211,7 +237,7 @@ function MapView({ data, sample, reload }: { data: LastLaunch; sample: boolean; 
             )}
             <ControlList pad={player.pad} controls={controls} steamOnly={backs} isDeck={isDeck} selected={selected}
               prefix={prefix} onSelect={setSelected} onChange={ctx ? (c) => openEdit(ctx, c) : undefined}
-              onDefault={ctx ? (c) => backToDefault(ctx, c) : undefined} canDefault={canDefault} defaults={defaults} />
+              onDefault={ctx ? (c) => backToDefault(ctx, c) : undefined} canDefault={canDefault} defaults={defaults} actions={actions} />
           </div>
         </div>
       )}

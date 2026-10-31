@@ -9,6 +9,7 @@ import { t } from "../strings";
 import { Styles } from "../styles";
 import { type Capture, type Want, asSource, capture, padIndices, steamPadName } from "./capture";
 import { ConsoleDrawing } from "./ConsoleDrawing";
+import { Guard } from "../Guard";
 import { type Control, groupControls } from "./controls";
 import { PadDrawing } from "./PadDrawing";
 
@@ -487,12 +488,16 @@ export function EditFlow({ closeModal, launch, player, players, control, prefix,
           title={title}
           want={step.want}
           consolePad={
-            <ConsoleDrawing system={launch.system} controller={lit[0]?.split(".")[1] ?? null}
-              targets={lit.map((x) => x.split(".").pop()!)} name={t.edit.consolePad(what)}
-              labels={Object.fromEntries(step.job.targets.map((x) => [x.target.split(".").pop()!, x.label]))} />}
+            <Guard name="console photo">
+              <ConsoleDrawing system={launch.system} controller={lit[0]?.split(".")[1] ?? null}
+                targets={lit.map((x) => x.split(".").pop()!)} name={t.edit.consolePad(what)}
+                labels={Object.fromEntries(step.job.targets.map((x) => [x.target.split(".").pop()!, x.label]))} />
+            </Guard>}
           pad={(pressed) => (
-            <PadDrawing pad={player.pad} controls={controls}
-              selected={pressed ? controlKeyFor(controls, pressed) : current} outlined={pressed ? null : current} />
+            <Guard name="pad picture">
+              <PadDrawing pad={player.pad} controls={controls}
+                selected={pressed ? controlKeyFor(controls, pressed) : current} outlined={pressed ? null : current} />
+            </Guard>
           )}
           onTimeout={() => setStep({ ...step, stopped: true })}
           onPress={(pressed) => {

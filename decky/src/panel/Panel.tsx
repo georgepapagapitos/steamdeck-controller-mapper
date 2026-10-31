@@ -10,6 +10,7 @@ import { Loading, Message, SampleBanner, failureText } from "../States";
 import { t } from "../strings";
 import { Styles } from "../styles";
 import { GoodToKnow, Shortcuts } from "./Shortcuts";
+import { Guard } from "../Guard";
 
 // The last launch, game running or not: ES-DE stays open between games, so Steam can't say whether this one
 // still runs. "Last played" is true either way.
@@ -100,7 +101,7 @@ function Controls({ data }: { data: LastLaunch }) {
   if (data.players.length === 0) return null;
   return (
     <PanelSection title={t.controls}>
-      <GoodToKnow data={data} />
+      <Guard name="good to know" resetKey={data.launch.ts}><GoodToKnow data={data} /></Guard>
       <PanelSectionRow>
         <ButtonItem layout="below" onClick={() => openButtonMap(0)}>
           {t.showButtonMap}
@@ -209,7 +210,7 @@ export function Panel() {
         </PanelSection>
       )}
       <NowPlaying data={result.data} />
-      <Shortcuts data={result.data} />
+      <Guard name="shortcuts" resetKey={result.data.launch.ts}><Shortcuts data={result.data} /></Guard>
       <Controls data={result.data} />
       <Players data={result.data} />
       <WhoIsPlayerOne data={result.data} />

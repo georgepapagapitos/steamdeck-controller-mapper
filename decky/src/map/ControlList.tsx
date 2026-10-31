@@ -23,6 +23,17 @@ interface Props {
   onDefault?: (control: Control) => void; // X on a row, where canDefault says one of the user's rules sets something
   canDefault?: (control: Control) => boolean;
   defaults?: { note: string | null; onActivate: () => void }; // the "Back to emulator defaults" row, when rules apply
+  actions?: ActionRow[]; // rows above the buttons that do something for the whole map (test mode, letters)
+}
+
+// A row at the top of the list that acts on the whole map: one line, an icon, what A does.
+export interface ActionRow {
+  key: string; // "mh:test"; the drawing lights nothing for it
+  icon: ReactNode;
+  title: string;
+  note?: string;
+  okText: string;
+  onActivate: () => void;
 }
 
 // The focused row scrolls itself into view. Not a ScrollPanelGroup: Steam's group takes focus itself (a grey box
@@ -84,6 +95,14 @@ export function ControlList(props: Props) {
   return (
     <div className="mh-list-wrap">
         <Focusable className="mh-list" flow-children="column" role="list" aria-label={t.map.inputs} {...keepFocusIn}>
+          {(props.actions ?? []).map((a) => (
+            <Row key={a.key} id={a.key} on={selected === a.key} label={a.note ? `${a.title}. ${a.note}` : a.title}
+              onSelect={onSelect} onActivate={a.onActivate} okText={a.okText}>
+              <span className="mh-row-glyph">{a.icon}</span>
+              <span className="mh-row-target mh-row-defaults">{a.title}</span>
+              {a.note && <span className="mh-row-defaults-note">{a.note}</span>}
+            </Row>
+          ))}
           {defaults && (
             <Row id={DEFAULTS_KEY} on={selected === DEFAULTS_KEY} label={t.edit.defaultsRow} onSelect={onSelect}
               onActivate={defaults.onActivate} okText={t.edit.defaultsRow}>

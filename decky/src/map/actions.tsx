@@ -167,3 +167,50 @@ export function openMenu(ctx: MapContext, undoLabel: string | null, onTest?: () 
     </Menu>,
   );
 }
+
+// Face buttons by letter or by position. EmuDeck maps them by position (the bottom button is the console's bottom
+// button: an Xbox-style A gives SNES B); "letters" gives each console letter to the pad button printed with it.
+// Saved for every pad of this style on this system, so the 8BitDo and an Xbox pad agree; the Deck is its own style.
+const LETTERS = new Set(["A", "B", "X", "Y"]);
+const FACES = ["face_south", "face_east", "face_west", "face_north"];
+
+export interface FaceLetters {
+  on: boolean; // each lettered console button is on the pad button with that letter
+  targets: { target: string; label: string; input: string }[]; // console letter -> the pad button printed with it
+  ruled: { target: string; rule: string }[]; // what a rule of the user's puts on the face buttons now
+}
+
+export function faceLetters(player: Player): FaceLetters | null {
+  const rows = player.inputs.filter((r) => FACES.includes(r.input) && !r.steam_only);
+  const byGlyph = new Map(rows.map((r) => [r.glyph, r.input]));
+  const drives = rows.flatMap((r) => r.drives.filter((d) => LETTERS.has(d.label)).map((d) => ({ row: r, d })));
+  if (drives.length < 2) return null;
+  const targets = [...new Map(drives.map(({ d }) => [d.target, d])).values()]
+    .map((d) => ({ target: d.target, label: d.label, input: byGlyph.get(d.label) ?? "" }));
+  if (targets.some((x) => !x.input)) return null; // a pad without these letters (✕○□△)
+  const on = drives.every(({ row, d }) => row.glyph === d.label);
+  const ruled = drives.filter(({ d }) => d.source?.kind === "rule" && d.source.rule_id)
+    .map(({ d }) => ({ target: d.target, rule: d.source.rule_id! }));
+  if (on && ruled.length === 0) return null; // the letters already sit where EmuDeck puts them (a Switch Pro on SNES)
+  return { on, targets, ruled };
+}
+
+export async function setFaceLetters(ctx: MapContext, letters: FaceLetters, on: boolean) {
+  const { launch, player } = ctx;
+  const pad = player.pad.style
+    ? { level: "style" as const, value: player.pad.style }
+    : { level: "device" as const, player: player.player, model: player.pad.model ?? undefined };
+  const ops: Op[] = on
+    ? letters.targets.map((x) => ({ op: "set", target: x.target, source: { input: x.input },
+      scope: { controller: pad, content: { level: "system", system: launch.system } } }))
+    : [...new Map(letters.ruled.map((r) => [`${r.target}|${r.rule}`, r])).values()]
+      .map((r) => ({ op: "unset", target: r.target, rule: r.rule }));
+  if (!ops.length) return;
+  const answer = await editRules(ops);
+  if (!answer.ok) {
+    toaster.toast({ title: t.edit.failed, body: answer.error, critical: true });
+    return;
+  }
+  const system = launch.system_name || launch.system.toUpperCase();
+  saved(ctx, answer.data, on ? t.letters.undoOn(system) : t.letters.undoOff(system), t.letters.savedBody(system));
+}
