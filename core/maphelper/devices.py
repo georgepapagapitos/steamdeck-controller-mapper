@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 from .model import Controller
 
@@ -308,14 +308,21 @@ DECK_CONTROLS = "28de:1205"   # the Deck's own controls, as Steam's slot reports
 
 POLICY_STEAM_ORDER = "steam-order"
 POLICY_EXTERNAL_FIRST = "external-first"
+POLICY_PINNED = "pinned"
 
 
-def player_order(joysticks: list[Joystick], policy: str) -> list[Joystick]:
+def player_order(joysticks: list[Joystick], policy: str, preferred: tuple = (),
+                 model_of: Optional[Callable[[Joystick], Optional[str]]] = None) -> list[Joystick]:
     """Players under a policy (docs/04 §5.1). external-first is steam-order with the Deck's own controls moved last,
-    so a docked Deck never takes player 1 from a pad in hand, whatever order Steam's session left the slots in."""
+    so a docked Deck never takes player 1 from a pad in hand, whatever order Steam's session left the slots in.
+    pinned: the user's order of pad models (`map-helper players set`); a pad whose model isn't listed comes after
+    them, and pads that tie (two of one model) keep Steam's order."""
     players = steam_order(joysticks)
     if policy == POLICY_STEAM_ORDER:
         return players
+    if policy == POLICY_PINNED:
+        rank = {model: i for i, model in enumerate(preferred)}
+        return sorted(players, key=lambda j: rank.get(model_of(j) if model_of else None, len(rank)))
     if policy == POLICY_EXTERNAL_FIRST:
         deck = [j for j in players if j.slot and j.slot.vid_pid == DECK_CONTROLS]
         return [j for j in players if j not in deck] + deck

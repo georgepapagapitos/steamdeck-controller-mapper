@@ -11,13 +11,14 @@ from pathlib import Path
 from . import DATA, resolve as resolver
 from .devices import (STEAM_VIRTUAL_PAD, ControllerDB, is_gamepad, parse_ignore_devices, parse_proc_input_devices,
                       parse_virtual_gamepad_info, physical_ids, sdl_joysticks, stable_id, steam_slots, with_usb_serials,
-                      POLICY_EXTERNAL_FIRST, POLICY_STEAM_ORDER, docked, parse_drm_status,
+                      POLICY_EXTERNAL_FIRST, POLICY_PINNED, POLICY_STEAM_ORDER, docked, parse_drm_status,
                       player_order, read_drm_status)
 from .model import Target
 from .store import load_json, load_layouts, load_sources
 from .validate import validate_rule
 
 EXAMPLES = DATA.parent / "examples"      # the repo's example rules: the dev default for --rules
+PLAYERS_FILE = Path.home() / ".local" / "share" / "map-helper" / "players.json"   # the user's player order
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -114,6 +115,13 @@ def main(argv: list[str] | None = None) -> int:
                                                       "(default: ~/.local/lib/map-helper/current/mh_entry.py)")
             p.add_argument("--python", default="/usr/bin/python3", help="the Python the shim runs it with")
 
+    p = sub.add_parser("players", help="your player order: which pad is player 1, 2, ... (default: Steam's)")
+    p.add_argument("action", choices=["show", "set", "clear"], nargs="?", default="show")
+    p.add_argument("models", nargs="*", help="with set: pad models, player 1 first (e.g. 8bitdo.ultimate2 "
+                                              "valve.steamdeck); others follow in Steam's order")
+    p.add_argument("--players-file", type=Path, default=PLAYERS_FILE, help=argparse.SUPPRESS)
+    p.add_argument("--json", action="store_true")
+
     p = sub.add_parser("self-install", help="install this payload in ~/.local/lib/map-helper (docs/14 §6)")
     p.add_argument("--from", dest="source", type=Path,
                    help="the payload: mh_entry.py, maphelper/, data/ (default: the one this runs from)")
@@ -127,7 +135,7 @@ def main(argv: list[str] | None = None) -> int:
         return mh_run(argv[1:])
     args = parser.parse_args(argv)
     return {"validate": cmd_validate, "devices": cmd_devices, "explain": cmd_explain,
-            "apply": cmd_apply, "show": cmd_show, "rules": cmd_rules, "backup": cmd_backup, "restore": cmd_restore,
+            "apply": cmd_apply, "show": cmd_show, "rules": cmd_rules, "players": cmd_players, "backup": cmd_backup, "restore": cmd_restore,
             "doctor": cmd_doctor, "setup": cmd_setup, "uninstall": cmd_setup,
             "self-install": cmd_self_install}[args.command](args)
 
@@ -143,8 +151,10 @@ def add_probe_arguments(p) -> None:
                    help="Steam's virtual gamepad info file (default: $SteamVirtualGamepadInfo, else Steam's config dir)")
     p.add_argument("--ignore-devices", default=os.environ.get("SDL_GAMECONTROLLER_IGNORE_DEVICES", ""),
                    help="pads behind Steam Input (default: $SDL_GAMECONTROLLER_IGNORE_DEVICES)")
-    p.add_argument("--policy", choices=["auto", POLICY_STEAM_ORDER, POLICY_EXTERNAL_FIRST], default="auto",
-                   help="player order; auto: external-first when docked, else steam-order (docs/04 5.1)")
+    p.add_argument("--policy", choices=["auto", POLICY_STEAM_ORDER, POLICY_EXTERNAL_FIRST, POLICY_PINNED],
+                   default="auto", help="player order; auto: your order if you set one (map-helper players), else "
+                                        "external-first when docked, else steam-order (docs/04 5.1)")
+    p.add_argument("--players-file", type=Path, default=PLAYERS_FILE, help=argparse.SUPPRESS)
     p.add_argument("--drm-status", type=Path, help="saved DRM connector states (a capture's drm-status.txt) "
                                                    "instead of <sys-root>/class/drm")
 
@@ -166,11 +176,15 @@ class Probe:
         self.behind_steam = live if self.slots else parse_ignore_devices(args.ignore_devices)
         self.pads = [d for d in self.devices if is_gamepad(d) and not db.is_virtual(d.vid_pid)]
         self.ids = physical_ids(self.slots, self.pads)   # Steam slot -> physical pad's stable id
+        self.db = db
+        self.preferred = tuple(read_players(getattr(args, "players_file", None)))
         self.policy, self.policy_reason = self._policy(args)
 
     def _policy(self, args) -> tuple:
         if args.policy != "auto":
             return args.policy, "chosen with --policy"
+        if self.preferred:
+            return POLICY_PINNED, "your order (map-helper players)"
         drm = (parse_drm_status(args.drm_status.read_text(encoding="utf-8")) if args.drm_status
                else read_drm_status(args.sys_root))
         is_docked, why = docked(drm)
@@ -184,7 +198,8 @@ class Probe:
     def players(self, order: str) -> list:
         """Joysticks in an emulator's SDL order (see devices.sdl_joysticks), and the players under the policy."""
         joysticks = sdl_joysticks(self.devices, self.slots, self.behind_steam, order)
-        return joysticks, player_order(joysticks, self.policy)
+        model_of = lambda j: self.db.model_for(j.slot.vid_pid if j.slot else j.device.vid_pid)
+        return joysticks, player_order(joysticks, self.policy, self.preferred, model_of)
 
     def identity(self, joystick) -> tuple:
         """(stable id or None, VID:PID, name) of the physical pad behind a joystick."""
@@ -626,3 +641,39 @@ def _rules_text(action: str, out: dict) -> str:
     if out["preview_error"]:
         lines.append(f"  (no preview: {out['preview_error']})")
     return "\n".join(lines) + "\n"
+
+
+# -- players -----------------------------------------------------------------------------------------------------------
+
+def read_players(path) -> list:
+    """The user's player order (pad models, player 1 first), or [] when none is set or the file can't be read: a
+    broken file falls back to Steam's order rather than stopping a launch."""
+    try:
+        doc = json.loads(Path(path).read_text(encoding="utf-8")) if path and Path(path).is_file() else {}
+        order = doc.get("order", [])
+        return [m for m in order if isinstance(m, str)] if isinstance(order, list) else []
+    except (OSError, ValueError, AttributeError):
+        return []
+
+
+def cmd_players(args) -> int:
+    path = Path(args.players_file)
+    db = ControllerDB(load_json(DATA / "controllers.json"))
+    if args.action == "set":
+        unknown = [m for m in args.models if m not in db.models]
+        if not args.models or unknown or len(set(args.models)) != len(args.models):
+            print(f"map-helper players set: give pad models, each once (unknown: {', '.join(unknown) or 'none'})",
+                  file=sys.stderr)
+            return 2
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+        tmp.write_text(json.dumps({"schema_version": 1, "order": args.models}, indent=1) + "\n", encoding="utf-8")
+        os.replace(tmp, path)
+    elif args.action == "clear" and path.exists():
+        path.unlink()
+    order = read_players(path)
+    if args.json:
+        print(json.dumps({"order": order}))
+    else:
+        print("player order: " + (", ".join(order) if order else "Steam's (none set)"))
+    return 0

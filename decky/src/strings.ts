@@ -42,9 +42,20 @@ export const t = {
     fewer: "Fewer shortcuts",
   },
   controls: "Controls",
+  order: {
+    makeFirst: (pad: string) => `Make ${pad} player 1`,
+    makeFirstShort: "Make player 1",
+    note: "In every game, from the next launch",
+    firstBody: (pad: string) => `${pad} is player 1 from the next launch.`,
+    yours: "Player order: yours",
+    toSteam: "Use Steam's order",
+    steamBody: "Players follow Steam's controller order again from the next launch.",
+    saved: "Player order saved",
+  },
   letters: {
-    byPosition: (pad: string, system: string, example: string) => `A/B/X/Y by position: ${pad} A gives ${system} ${example}`,
-    byLetter: (system: string) => `A/B/X/Y by letter: each gives the ${system} button with its letter`,
+    byPosition: (system: string, example: string) =>
+      `Face buttons go by position (EmuDeck): your A gives ${system} ${example}`,
+    byLetter: (system: string) => `Face buttons go by letter: your A gives ${system} A`,
     toLetters: "Press for letters",
     toPositions: "Press for positions (EmuDeck)",
     noteAll: (style: string) => `All ${style} pads, all games of this system`,

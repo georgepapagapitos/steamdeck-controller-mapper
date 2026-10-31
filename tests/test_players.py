@@ -292,3 +292,47 @@ class CliTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PinnedOrderTest(unittest.TestCase):
+    """map-helper players: the user's order of pad models, used at every launch instead of Steam's."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp)
+        self.file = self.tmp / "players.json"
+
+    def players(self, *argv) -> tuple:
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = cli.main(["players", *argv, "--players-file", str(self.file)])
+        return code, out.getvalue() + err.getvalue()
+
+    def show_order(self) -> list:
+        d = REPO / "tests" / "fixtures" / "devices" / "all-three-reordered"
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            cli.main(["show", "--emulator", "retroarch", "--core", "snes9x", "--system", "snes",
+                      "--config-root", str(REPO / "tests" / "fixtures" / "retroarch" / "dualsense-bt"),
+                      "--proc-file", str(d / "proc-bus-input-devices"), "--virtual-info", str(d / "virtualgamepadinfo.txt"),
+                      "--ignore-devices", "", "--rules", str(self.tmp), "--state-dir", str(self.tmp / "st"),
+                      "--sys-root", str(self.tmp), "--players-file", str(self.file), "--json"])
+        import json
+        doc = json.loads(out.getvalue())
+        return [doc["policy"]["name"]] + [p["pad"]["model"] for p in doc["players"]]
+
+    def test_set_orders_players_and_the_rest_follow_steam(self):
+        self.assertEqual(self.players("set", "sony.dualsense", "valve.steamdeck")[0], 0)
+        self.assertEqual(self.show_order(), ["pinned", "sony.dualsense", "valve.steamdeck",
+                                             "nintendo.switch-pro", "8bitdo.ultimate2"])
+        self.assertEqual(self.players("clear")[0], 0)
+        self.assertEqual(self.show_order()[1:], ["nintendo.switch-pro", "8bitdo.ultimate2", "sony.dualsense",
+                                                 "valve.steamdeck"])
+
+    def test_bad_input_and_a_broken_file(self):
+        self.assertEqual(self.players("set", "sony.dualsens")[0], 2)
+        self.assertEqual(self.players("set", "sony.dualsense", "sony.dualsense")[0], 2)
+        self.assertFalse(self.file.exists())
+        self.file.write_text("{not json", encoding="utf-8")       # never stops a launch: Steam's order
+        self.assertEqual(cli.read_players(self.file), [])
+        self.assertNotEqual(self.show_order()[0], "pinned")

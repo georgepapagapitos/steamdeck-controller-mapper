@@ -85,6 +85,7 @@ export const deleteRules = (ids: string[]) =>
   fixture ? Promise.resolve(sampleOnly<{ rules: string[] }>()) : ask<{ rules: string[] }>("delete_rules", ids);
 export const resetRules = (system: string, game: string | null, dryRun: boolean) =>
   ask<{ rules: string[]; labels: string[]; dry_run: boolean }>("reset_rules", system, game, dryRun || !!fixture);
+export const setPlayerOrder = (models: string[]) => ask<{ order: string[] }>("set_player_order", models);
 export const getSystemLogo = (system: string) => ask<{ url: string }>("get_system_logo", system);
 
 // Changes saved since the button map's data was recorded: they apply at the next launch, so the map, which shows

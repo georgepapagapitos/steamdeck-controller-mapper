@@ -5,7 +5,7 @@ import { useLastLaunch } from "../backend";
 import type { LastLaunch } from "../data";
 import { launchLine, launchTime, programName, shortGameTitle, shortPadName, systemPrefix, warningText } from "../format";
 import { takeRequestedPlayer } from "../navigation";
-import { getSystemLogo, notePending, pendingFor } from "../rules";
+import { getSystemLogo, notePending, pendingFor, setPlayerOrder } from "../rules";
 import { undoLast, useUndo } from "../undo";
 import { Loading, Message, SampleBanner, failureText } from "../States";
 import { t } from "../strings";
@@ -15,7 +15,8 @@ import { steamKey } from "./BackStrip";
 import { ControlList } from "./ControlList";
 import { type Control, groupControls, steamOnlyInputs } from "./controls";
 import { type MapContext, backToDefault, backToDefaults, faceLetters, openEdit, openMenu, ruleDrives, setFaceLetters } from "./actions";
-import { FaFont, FaGamepad } from "react-icons/fa";
+import { FaExchangeAlt, FaGamepad, FaSortNumericDown } from "react-icons/fa";
+import { toaster } from "@decky/api";
 import type { ActionRow } from "./ControlList";
 import { ConsoleDrawing } from "./ConsoleDrawing";
 import { OptionChips } from "./OptionChips";
@@ -166,12 +167,30 @@ function MapView({ data, sample, reload }: { data: LastLaunch; sample: boolean; 
     actions.push({ key: "mh:test", icon: <FaGamepad aria-hidden="true" size={16} />, title: t.test.row,
       note: t.test.rowNote, okText: t.test.start, onActivate: startTest });
   }
+  // Player order: this pad first (the others keep their order after it), or back to Steam's order.
+  const saveOrder = async (models: string[], body: string) => {
+    const answer = await setPlayerOrder(models);
+    toaster.toast(answer.ok ? { title: t.order.saved, body } : { title: t.edit.failed, body: answer.error, critical: true });
+    if (answer.ok) reload();
+  };
+  if (player?.pad.model && current > 0) {
+    const models = [player.pad.model, ...players.map((p) => p.pad.model)]
+      .filter((m, i, all): m is string => !!m && all.indexOf(m) === i);
+    actions.push({ key: "mh:p1", icon: <FaSortNumericDown aria-hidden="true" size={15} />,
+      title: t.order.makeFirst(shortPadName(player.pad.name)), note: t.order.note, okText: t.order.makeFirstShort,
+      onActivate: () => saveOrder(models, t.order.firstBody(shortPadName(player.pad.name))) });
+  }
+  if (data.policy?.name === "pinned") {
+    actions.push({ key: "mh:steam-order", icon: <FaSortNumericDown aria-hidden="true" size={15} />,
+      title: t.order.yours, note: t.order.toSteam, okText: t.order.toSteam,
+      onActivate: () => saveOrder([], t.order.steamBody) });
+  }
   if (letters && ctx) {
     const system = prefix || launch.system_name || launch.system.toUpperCase();
     actions.push({
-      key: "mh:letters", icon: <FaFont aria-hidden="true" size={15} />,
+      key: "mh:letters", icon: <FaExchangeAlt aria-hidden="true" size={15} />,
       title: letters.on ? t.letters.byLetter(system)
-        : t.letters.byPosition(shortPadName(player!.pad.name), system, southNow?.label ?? southTarget?.label ?? ""),
+        : t.letters.byPosition(system, southNow?.label ?? southTarget?.label ?? ""),
       note: letters.on ? t.letters.toPositions : `${t.letters.toLetters} · ${t.letters.noteAll(styleName || "these")}`,
       okText: letters.on ? t.letters.toPositions : t.letters.toLetters,
       onActivate: () => setFaceLetters(ctx, letters, !letters.on),

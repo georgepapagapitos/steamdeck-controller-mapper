@@ -289,6 +289,25 @@ class Plugin:
             decky.logger.exception("edit_rules failed")
             return _fail("failed", "Something went wrong while saving. The plugin log has details.")
 
+    async def set_player_order(self, models: list) -> dict:
+        """`map-helper players set MODEL...` (player 1 first), or `clear` for an empty list: Steam's order again."""
+        try:
+            if not isinstance(models, list) or len(models) > 16 or not all(
+                    isinstance(m, str) and RULE_ID.match(m) for m in models):
+                return _fail("refused", "Those aren't pad models.")
+            if not os.path.isfile(_entry()):
+                return _fail("not-installed", "map-helper isn't installed on this Deck yet.")
+            result = await _run_core("players", *(["set", *models] if models else ["clear"]), "--json")
+            if result is None:
+                return _fail("timeout", "map-helper took too long to answer.")
+            code, out, err = result
+            if code != 0:
+                return _fail("refused" if code == 2 else "failed", _last_line(err) or f"exit code {code}")
+            return {"ok": True, "data": json.loads(out.decode("utf-8", "replace"))}
+        except Exception:
+            decky.logger.exception("set_player_order failed")
+            return _fail("failed", "Something went wrong while saving the player order.")
+
     async def set_rules_on(self, ids: list, on: bool) -> dict:
         try:
             return await _rules("enable" if on else "disable", *_ids(ids))
