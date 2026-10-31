@@ -867,9 +867,11 @@
       "hotkey.next_slot": "Other State Hotkeys/Increase Selected State Slot",
       "hotkey.prev_slot": "Other State Hotkeys/Decrease Selected State Slot",
       "hotkey.toggle_fullscreen": "General/Toggle Fullscreen",
-      "hotkey.pause": "General/Toggle Pause"
+      "hotkey.pause": "General/Toggle Pause",
+      "hotkey.speed_up": "Emulation Speed/Increase Emulation Speed",
+      "hotkey.speed_down": "Emulation Speed/Decrease Emulation Speed"
     },
-    "_note": "Key = '<group>/<label>' from HotkeyManager s_groups_info + s_hotkey_labels. 'General/Stop' stops emulation without quitting. 'Disable Emulation Speed Limit' only acts while held (HotkeyScheduler::Run: Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true)), DolphinQt/HotkeyScheduler.cpp L492 at 2c805fe), so it is hotkey.fast_forward_hold; Dolphin has no fast-forward toggle (Increase/Decrease Emulation Speed step the speed). Chords use ' & ' (pressed together) or '@(a+b)' (ordered)."
+    "_note": "Key = '<group>/<label>' from HotkeyManager s_groups_info + s_hotkey_labels. 'General/Stop' stops emulation without quitting. 'Disable Emulation Speed Limit' only acts while held (HotkeyScheduler::Run: Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true)), DolphinQt/HotkeyScheduler.cpp L492 at 2c805fe), so it is hotkey.fast_forward_hold; Dolphin has no fast-forward toggle (Increase/Decrease Emulation Speed step the speed). hotkey.speed_up/speed_down are those steps (EmuDeck: Select+R2 / Select+L2); a rule can unbind one with {\"input\": \"none\"}, which writes an empty value (Dolphin itself leaves an unbound hotkey out of the file; an empty value should load the same, as an empty expression [VERIFY]). Chords use ' & ' (pressed together) or '@(a+b)' (ordered)."
   },
   "options": {
     "rumble": {

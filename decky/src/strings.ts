@@ -40,6 +40,8 @@ export const t = {
     onPad: (pad: string) => `On player 1's ${pad}`,
     more: (n: number) => `${n} more shortcut${n === 1 ? "" : "s"}`,
     fewer: "Fewer shortcuts",
+    quit: "Quit game",
+    quitInMenu: "No combo here: open the emulator menu and quit there",
   },
   controls: "Controls",
   health: {

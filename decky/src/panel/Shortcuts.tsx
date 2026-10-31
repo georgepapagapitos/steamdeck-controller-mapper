@@ -72,6 +72,10 @@ export function Shortcuts({ data }: { data: LastLaunch }) {
           <Keys pad={pad} inputs={held && s.inputs.length > 1 && s.inputs[0].input === held.input ? s.inputs.slice(1) : s.inputs} />
         </Row>
       ))}
+      {!shortcuts.some((s) => s.target === "hotkey.exit") && (
+        // xemu: nothing on the pad quits, and its View + Menu (quit everywhere else) opens the menu instead.
+        <Row label={t.shortcuts.quit}><span className="mh-note">{t.shortcuts.quitInMenu}</span></Row>
+      )}
       {main.length > 0 && rest.length > 0 && (
         <PanelSectionRow>
           <Field className="mh-qam-field" focusable highlightOnFocus padding="compact" bottomSeparator="none"

@@ -155,6 +155,19 @@ class UntouchedKeysTest(unittest.TestCase):
         self.assertIn("+General/Take Screenshot = @(Back+`Button E`)", diff)
         self.assertNotIn("Buttons/Z", diff)
 
+    def test_fast_forward_on_view_rt_unbinds_the_speed_step(self):
+        # View + RT stepped the speed up (EmuDeck); moving the hold fast-forward there must free it, or both fire.
+        import json, tempfile
+        rules = Path(tempfile.mkdtemp())
+        (rules / "ff.json").write_text(json.dumps({
+            "schema_version": 1, "id": "user.test.ff",
+            "applies_to": {"controller": {"level": "any"}, "content": {"level": "emulator", "emulator": "dolphin"}},
+            "bindings": {"hotkey.fast_forward_hold": {"chord": ["select", "r2"]},
+                         "hotkey.speed_up": {"input": "none"}}}), encoding="utf-8")
+        diff = self.apply(rules)
+        self.assertIn("+Emulation Speed/Disable Emulation Speed Limit = @(Back+`Trigger R`)", diff)
+        self.assertIn("+Emulation Speed/Increase Emulation Speed = \n", diff + "\n")
+
 
 if __name__ == "__main__":
     unittest.main()

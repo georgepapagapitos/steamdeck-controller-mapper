@@ -157,6 +157,9 @@ class DolphinAdapter:
                 out.warnings.append(f"dolphin: no hotkey for {target}")
                 continue
             source = choice.value
+            if source.get("input") == "none":                 # unbound: no pad or keyboard input fires it
+                out.patches.append(Patch(spec["file"], spec["section"], key, ""))
+                continue
             inputs = source.get("chord") or [source["input"]]
             tokens = [self._token(i, out) for i in inputs]
             if None in tokens:

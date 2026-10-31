@@ -329,7 +329,9 @@
       "hotkey.next_slot": "SelectNextSaveStateSlot",
       "hotkey.prev_slot": "SelectPreviousSaveStateSlot",
       "hotkey.toggle_fullscreen": "ToggleFullscreen",
-      "hotkey.pause": "TogglePause"
+      "hotkey.pause": "TogglePause",
+      "hotkey.speed_up": null,
+      "hotkey.speed_down": null
     },
     "_note": "hotkey.fast_forward is the toggle (ToggleFastForward, EmuDeck's Select+R2); hotkey.fast_forward_hold is FastForward (hold). Rewind needs [Main] RewindEnable = true. EmuDeck binds several hotkeys twice (keyboard + pad) by repeating the key."
   },

@@ -32,7 +32,7 @@ HOTKEYS = {"hotkey.save_state": "Save state", "hotkey.load_state": "Load state",
            "hotkey.fast_forward_hold": "Fast forward (hold)", "hotkey.rewind": "Rewind", "hotkey.pause": "Pause",
            "hotkey.menu": "Emulator menu", "hotkey.exit": "Quit game", "hotkey.next_slot": "Next save slot",
            "hotkey.prev_slot": "Previous save slot", "hotkey.screenshot": "Screenshot",
-           "hotkey.toggle_fullscreen": "Fullscreen"}
+           "hotkey.toggle_fullscreen": "Fullscreen", "hotkey.speed_up": "Speed up", "hotkey.speed_down": "Slow down"}
 
 
 @dataclass
