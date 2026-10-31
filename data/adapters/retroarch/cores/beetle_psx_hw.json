@@ -48,10 +48,10 @@
     "psx.dualshock.right": "RIGHT",
     "psx.dualshock.l3": "L3",
     "psx.dualshock.r3": "R3",
-    "psx.dualshock.left_x": "LEFT_X",
-    "psx.dualshock.left_y": "LEFT_Y",
-    "psx.dualshock.right_x": "RIGHT_X",
-    "psx.dualshock.right_y": "RIGHT_Y"
+    "psx.dualshock.lstick_x": "LEFT_X",
+    "psx.dualshock.lstick_y": "LEFT_Y",
+    "psx.dualshock.rstick_x": "RIGHT_X",
+    "psx.dualshock.rstick_y": "RIGHT_Y"
   },
   "notes": "Software build (mednafen_psx_libretro.so) reports library_name 'Beetle PSX': a different remap directory."
 }

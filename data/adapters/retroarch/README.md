@@ -20,11 +20,11 @@ descriptor's `sources` point at those lines.
   "core_files": ["genesis_plus_gx_libretro.so"],
   "systems": ["genesis", "mastersystem"],
   "sources": ["https://github.com/..."],
-  "device_types": {"genesis.6button": 513}, // optional: value for input_libretro_device_pN
+  "device_types": {"genesis.six_button": 513}, // optional: value for input_libretro_device_pN
   "core_options": {...},                    // optional: core options that change the pad type
   "options": {"pak": {"key": "mupen64plus-pak{N}", "values": [...], "per_player": true, "players": 4}},
                                             // optional: canonical option -> core option map-helper writes
-  "targets": {"genesis.6button.x": "L"},   // canonical target -> RetroPad input the core reads
+  "targets": {"genesis.six_button.x": "L"},   // canonical target -> RetroPad input the core reads
   "core_option_variants": {...},           // optional: target tables under non-default core options
   "c_button_chord": {...},                 // optional (N64 cores): chorded alternative bindings
   "notes": "..."
@@ -88,8 +88,8 @@ when those are written. Every controller type below also has
 | `fds.standard` | as `nes.standard` + `insert_next_disk switch_disk_side eject_disk` |
 | `gb.standard`, `gbc.standard` | `a b turbo_a turbo_b start select` |
 | `gba.standard` | `a b l r turbo_a turbo_b turbo_l turbo_r start select` |
-| `genesis.3button`, `segacd.3button`, `32x.3button` | `a b c start` |
-| `genesis.6button`, `segacd.6button`, `32x.6button` | `a b c x y z mode start` |
+| `genesis.three_button`, `segacd.three_button`, `32x.three_button` | `a b c start` |
+| `genesis.six_button`, `segacd.six_button`, `32x.six_button` | `a b c x y z mode start` |
 | `mastersystem.standard` | `button_1 button_2 pause` |
 | `gamegear.standard` | `button_1 button_2 start` |
 | `sg1000.standard` | `button_1 button_2` |

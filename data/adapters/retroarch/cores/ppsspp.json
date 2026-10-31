@@ -24,8 +24,8 @@
     "psp.standard.down": "DOWN",
     "psp.standard.left": "LEFT",
     "psp.standard.right": "RIGHT",
-    "psp.standard.analog_x": "LEFT_X",
-    "psp.standard.analog_y": "LEFT_Y"
+    "psp.standard.stick_x": "LEFT_X",
+    "psp.standard.stick_y": "LEFT_Y"
   },
   "notes": "libretro/ppsspp is a stale 2020 mirror; the core is built from hrydgard/ppsspp/libretro."
 }

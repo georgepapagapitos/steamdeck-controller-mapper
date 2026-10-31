@@ -43,8 +43,8 @@
     "saturn.3d.down": "DOWN",
     "saturn.3d.left": "LEFT",
     "saturn.3d.right": "RIGHT",
-    "saturn.3d.analog_x": "LEFT_X",
-    "saturn.3d.analog_y": "LEFT_Y",
+    "saturn.3d.stick_x": "LEFT_X",
+    "saturn.3d.stick_y": "LEFT_Y",
     "saturn.3d.l_analog": "L2",
     "saturn.3d.r_analog": "R2",
     "saturn.3d.mode": "SELECT"
