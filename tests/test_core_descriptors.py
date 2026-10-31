@@ -9,7 +9,8 @@ from tests.helpers import REPO
 
 # Inputs a core has that its console's layout doesn't list (they show in the map under their own name, and no rule
 # can set them): turbo buttons, the DS microphone, extra arcade buttons, the Saturn 3D pad's mode switch, Wii tilt.
-EXTRAS = {"turbo_a", "turbo_b", "turbo_l", "turbo_r", "microphone", "button9", "coin", "mode", "tilt_x", "tilt_y"}
+EXTRAS = {"turbo_a", "turbo_b", "turbo_l", "turbo_r", "microphone", "button9", "coin", "mode", "tilt_x", "tilt_y",
+          "pressure"}
 # Controller types a core offers that no layout has yet.
 EXTRA_PADS = {"arcade.sf6", "wii.classic_pro", "wii.wiimote_sideways"}
 
@@ -43,6 +44,19 @@ class CoreDescriptorTest(unittest.TestCase):
                         continue
                     self.assertIn(key, layouts, f"{path.name}: no layout controller {key}")
                     self.assertTrue(name in layouts[key] or name in EXTRAS, f"{path.name}: {target} isn't in the layout")
+
+
+    def test_standalone_tables_match_the_layouts(self):
+        layouts = layout_names()
+        for name in ("dolphin", "pcsx2", "duckstation"):
+            doc = json.loads((REPO / "data" / "adapters" / f"{name}.json").read_text(encoding="utf-8"))
+            for target in doc.get("targets", {}):
+                if target.startswith(("hotkey.", "_")):
+                    continue
+                system, pad, input_name = target.split(".")
+                with self.subTest(table=name, target=target):
+                    self.assertIn(f"{system}.{pad}", layouts)
+                    self.assertTrue(input_name in layouts[f"{system}.{pad}"] or input_name in EXTRAS)
 
 
 if __name__ == "__main__":
